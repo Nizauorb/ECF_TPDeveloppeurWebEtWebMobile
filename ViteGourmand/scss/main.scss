@@ -55,7 +55,7 @@ body {
   h1 {
     font-size: 2.25rem; // 36px
     margin-bottom: 1.5rem;
-    color: $secondary;
+    color: $dark;
     text-align: center;
     
     @include media-breakpoint-down(md) {
@@ -115,7 +115,7 @@ body {
   padding: 4rem 0;
   
   h1 {
-    color: $secondary;
+    color: $dark;
     font-size: 2.25rem;
     margin-bottom: 3rem;
     font-weight: 700;

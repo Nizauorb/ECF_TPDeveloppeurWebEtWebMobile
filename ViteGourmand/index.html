@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vite & Gourmand</title>
+    <link rel="stylesheet" href="scss/main.css">
+
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container ">
+            <a href="/" class="logo-link">
+                <img src="img/logo_header.png" alt="Logo Vite & Gourmand" class="rounded-4 logo-img">
+            </a>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Contenu de la page qui sera injecté par le routage dynamique -->        
+    </main>
+
+    
+    <footer class="footer mt-auto py-3 text-secondary py-4">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-12 col-md-4 text-center">
+                    <h3 class="h3 text-secondary mb-3">Nos horaires</h3>
+                    <p class="mb-0">Du lundi au dimanche<br>11:00-15:00 - 18:30-23:00</p>
+                </div>
+                <div class="col-12 col-md-4 text-center align-self-center">
+                    <p class="mb-0">
+                        <a href="/Contact" class="btn btn-primary btn-lg custom-button-size m-3 text-white">Contactez-nous</a>
+                    </p>
+                </div>
+                <div class="col-12 col-md-4 text-center align-self-center">
+                    <p class="mb-0">
+                        <a href="/MentionsLegales" class="btn btn-primary btn-lg custom-button-size me-2 text-white">Mentions Légales</a>
+                        <a href="/CGV" class="btn btn-primary btn-lg custom-button-size text-white">CGV</a>
+                    </p>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <p class="mb-0 small">© 2025 Quai Antique - Tous droits réservés</p>
+                </div>
+            </div>
+        </div>
+    </footer> 
+    
+    <script type="module" src="/Router/router.js"></script> 
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+

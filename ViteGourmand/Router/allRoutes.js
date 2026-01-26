@@ -5,6 +5,7 @@ export const allRoutes = [
     new Route("/", "Accueil", "/pages/home.html"),
     new Route("/Galerie", "Galerie", "/pages/galerie.html"),
     new Route("/Carte", "Carte", "/pages/menu.html"),
+    new Route("/Contact", "Contact", "/pages/contact.html"),
 ];
 
 //Le titre s'affiche comme ceci : Route.titre - websitename

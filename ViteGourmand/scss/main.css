@@ -12061,10 +12061,10 @@ body {
   margin: 0 auto;
 }
 .company-presentation .row {
-  margin: 0 -15px;
+  margin: 0;
 }
-.company-presentation .col-12 {
-  padding: 0 15px;
+.company-presentation .col-12, .company-presentation .col-md-6 {
+  padding: 0 1rem;
 }
 
 @media (max-width: 575.98px) {

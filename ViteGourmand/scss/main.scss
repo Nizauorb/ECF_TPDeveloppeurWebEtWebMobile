@@ -156,6 +156,155 @@
   }
 }
 
+// Styles pour la section menu
+.menu-section {
+  padding: 4rem 0;
+  
+  .menu-header-info {
+    text-align: center;
+    margin-bottom: 3rem;
+    
+    .menu-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: $primary;
+      margin-bottom: 1rem;
+    }
+    
+    .menu-description {
+      font-size: 1.1rem;
+      color: $secondary;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+    
+    .menu-price {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.5rem;
+      
+      .price {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: $primary;
+      }
+      
+      .price-info {
+        font-size: 1rem;
+        color: $secondary;
+      }
+    }
+  }
+  
+  .menu-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+    margin-bottom: 3rem;
+    
+    .menu-image {
+      img {
+        width: 100%;
+        height: auto;
+        box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.02);
+        }
+      }
+    }
+    
+    .menu-details {
+      .menu-category {
+        margin-bottom: 2rem;
+        
+        h3 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: $primary;
+          margin-bottom: 1rem;
+          margin-right: 1rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 2px solid $primary;
+        }
+        
+        .dish-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          
+          li {
+            padding: 0.5rem 0;
+            color: $secondary;
+            font-size: 1.1rem;
+            position: relative;
+            padding-left: 1.5rem;
+            
+            &:before {
+              content: "•";
+              color: $primary;
+              position: absolute;
+              left: 0;
+              font-weight: bold;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  .menu-footer {
+    text-align: center;
+    
+    .order-btn {
+      background-color: $primary;
+      border-color: $primary;
+      color: white;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background-color: darken($primary, 10%);
+        border-color: darken($primary, 10%);
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba($primary, 0.3);
+      }
+      
+      i {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}
+
+// Responsive pour mobile
+@include media-breakpoint-down(md) {
+  .menu-section {
+    padding: 2rem 0;
+    
+    .menu-content {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    
+    .menu-header-info {
+      .menu-title {
+        font-size: 2rem;
+      }
+      
+      .menu-price .price {
+        font-size: 2rem;
+      }
+    }
+  }
+}
+
 // Responsive pour mobile
 @media (max-width: 768px) {
   .menu-header {

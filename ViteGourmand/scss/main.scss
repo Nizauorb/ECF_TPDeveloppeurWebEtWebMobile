@@ -3,19 +3,13 @@
 
 // Styles pour le header de menu
 .menu-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
   background-color: white;
   box-shadow: none;
   position: sticky;
   top: 0;
   z-index: 1000;
-  gap: 1rem;
   
   .logo-link {
-    order: -1; // Force le logo à être tout à gauche
     flex: 0 0 auto;
   }
 
@@ -65,38 +59,29 @@
     border-color: darken($primary, 8%) !important;
     color: white !important;
   }
-}
 
-.menu-nav .nav-list {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  gap: 1rem;
-}
-
-.menu-nav .nav-link {
-  text-decoration: none;
-  color: $secondary;
-  font-family: $headings-font-family;
-  font-weight: 500;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-  
-  &:hover {
-    background-color: rgba($primary, 0.1);
-    border-color: $primary;
+  // Menu hamburger pour mobile
+  .mobile-menu-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
     color: $primary;
-  }
-  
-  &.active {
-    background-color: $primary;
-    color: white;
-    border-color: $primary;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      color: darken($primary, 10%);
+      transform: scale(1.1);
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba($primary, 0.25);
+    }
   }
 }
+
 
 .header-actions {
   display: flex;
@@ -126,184 +111,8 @@
   justify-content: flex-end;
 }
 
-.filter-btn, .login-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  transition: all 0.3s ease;
-}
 
-.filter-btn {
-  border-color: $primary;
-  color: $primary;
-  
-  &:hover {
-    background-color: $primary;
-    color: white;
-  }
-}
 
-.login-btn {
-  background-color: $primary;
-  border-color: $primary;
-  
-  &:hover {
-    background-color: darken($primary, 10%);
-    border-color: darken($primary, 10%);
-  }
-}
-
-// Styles pour la section menu
-.menu-section {
-  padding: 4rem 0;
-  
-  .menu-header-info {
-    text-align: center;
-    margin-bottom: 3rem;
-    
-    .menu-title {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: $primary;
-      margin-bottom: 1rem;
-    }
-    
-    .menu-description {
-      font-size: 1.1rem;
-      color: $secondary;
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      line-height: 1.6;
-    }
-    
-    .menu-price {
-      display: flex;
-      align-items: baseline;
-      justify-content: center;
-      gap: 0.5rem;
-      
-      .price {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: $primary;
-      }
-      
-      .price-info {
-        font-size: 1rem;
-        color: $secondary;
-      }
-    }
-  }
-  
-  .menu-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: start;
-    margin-bottom: 3rem;
-    
-    .menu-image {
-      img {
-        width: 100%;
-        height: auto;
-        box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
-        
-        &:hover {
-          transform: scale(1.02);
-        }
-      }
-    }
-    
-    .menu-details {
-      .menu-category {
-        margin-bottom: 2rem;
-        
-        h3 {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: $primary;
-          margin-bottom: 1rem;
-          margin-right: 1rem;
-          padding-bottom: 0.5rem;
-          border-bottom: 2px solid $primary;
-        }
-        
-        .dish-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          
-          li {
-            padding: 0.5rem 0;
-            color: $secondary;
-            font-size: 1.1rem;
-            position: relative;
-            padding-left: 1.5rem;
-            
-            &:before {
-              content: "•";
-              color: $primary;
-              position: absolute;
-              left: 0;
-              font-weight: bold;
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  .menu-footer {
-    text-align: center;
-    
-    .order-btn {
-      background-color: $primary;
-      border-color: $primary;
-      color: white;
-      padding: 1rem 2rem;
-      font-size: 1.1rem;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      
-      &:hover {
-        background-color: darken($primary, 10%);
-        border-color: darken($primary, 10%);
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba($primary, 0.3);
-      }
-      
-      i {
-        margin-right: 0.5rem;
-      }
-    }
-  }
-}
-
-// Responsive pour mobile
-@include media-breakpoint-down(md) {
-  .menu-section {
-    padding: 2rem 0;
-    
-    .menu-content {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-    
-    .menu-header-info {
-      .menu-title {
-        font-size: 2rem;
-      }
-      
-      .menu-price .price {
-        font-size: 2rem;
-      }
-    }
-  }
-}
 
 // Responsive pour mobile
 @media (max-width: 768px) {
@@ -313,16 +122,6 @@
     padding: 1rem;
   }
   
-  .menu-nav .nav-list {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  
-  .menu-nav .nav-link {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
   
   .header-actions {
     width: 100%;
@@ -407,8 +206,8 @@
 // Styles pour le header
 .site-header {
   width: 100%;
-  padding: 1rem 0;
-  background-color: #fff;
+    padding: 1rem 0;
+    background-color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -602,7 +401,144 @@ body {
         max-width: 1200px;
         margin: 0 auto;
         padding: 0 1rem;
-        display: flex;
+  display: flex;
         justify-content: center; // Centre le logo
+}
+}
+
+// Styles pour le menu mobile offcanvas
+.offcanvas {
+  &.offcanvas-start {
+    width: 280px;
+    max-width: 85vw;
+  }
+  
+  .offcanvas-header {
+    background-color: $primary;
+    color: white;
+    padding: 1rem;
+    
+    .offcanvas-title {
+      color: white;
+      font-weight: 600;
+      font-size: 1.25rem;
     }
+    
+    .btn-close {
+      filter: brightness(0) invert(1);
+    }
+  }
+  
+  .offcanvas-body {
+    padding: 1.5rem;
+  }
+}
+
+.mobile-menu-section {
+  margin-bottom: 2rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .mobile-menu-section-title {
+    color: $primary;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba($primary, 0.2);
+  }
+}
+
+.mobile-menu-categories,
+.mobile-menu-actions {
+  .btn {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    
+    i {
+      width: 20px;
+      text-align: center;
+    }
+    
+    &:hover {
+      transform: translateX(5px);
+    }
+  }
+  
+  .menu-category {
+    background-color: white;
+    border-color: $primary;
+    color: $primary;
+    
+    &:hover {
+      background-color: rgba($primary, 0.1);
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+  
+  .filter-btn {
+    background-color: white;
+    border-color: $primary;
+    color: $primary;
+    
+    &:hover {
+      background-color: rgba($primary, 0.1);
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+  
+  .login-btn {
+    background-color: $primary;
+    border-color: $primary;
+    color: white;
+    
+    &:hover {
+      background-color: darken($primary, 10%);
+      border-color: darken($primary, 10%);
+      color: white;
+    }
+  }
+}
+
+// Responsive pour mobile et tablette
+@media (max-width: 991.98px) {
+  .menu-header {
+    .logo-img {
+      width: 48px;
+      height: 48px;
+    }
+    
+    .mobile-menu-toggle {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+// Responsive pour tablette uniquement
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .menu-header {
+    .logo-img {
+      width: 56px;
+      height: 56px;
+    }
+    
+    .menu-category {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+    
+    .filter-btn, .login-btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+  }
 }

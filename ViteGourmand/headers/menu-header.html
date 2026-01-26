@@ -1,21 +1,119 @@
-<div class="header-container menu-header">
-    <a href="/" class="logo-link">
-        <img src="img/mini_logo_header.png" alt="Logo Vite & Gourmand" class="rounded-3 logo-img">
-    </a>
-    
-    <div class="header-actions">
-        <button class="btn btn-outline-primary menu-category" data-category="classique">Classique</button>
-        <button class="btn btn-outline-primary menu-category" data-category="noel">Noël</button>
-        <button class="btn btn-outline-primary menu-category" data-category="paques">Pâques</button>
-        <button class="btn btn-outline-primary menu-category" data-category="evenements">Événements</button>
+<!-- Version Desktop (grand écran) -->
+<div class="header-container menu-header d-none d-xl-flex">
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <!-- Logo Desktop -->
+        <div class="ms-3">
+            <a href="/" class="logo-link">
+                <img src="img/mini_logo_header.png" alt="Logo Vite & Gourmand" class="rounded-3 logo-img">
+            </a>
+        </div>
+        
+        <!-- Navigation Desktop -->
+        <div class="header-actions flex-grow-1 justify-content-center">
+            <button class="btn btn-outline-primary menu-category" data-category="classique">Classique</button>
+            <button class="btn btn-outline-primary menu-category" data-category="noel">Noël</button>
+            <button class="btn btn-outline-primary menu-category" data-category="paques">Pâques</button>
+            <button class="btn btn-outline-primary menu-category" data-category="evenements">Événements</button>
+        </div>
+        
+        <!-- Actions Desktop -->
+        <div class="header-actions me-3">
+            <button class="btn btn-outline-primary filter-btn">
+                <i class="bi bi-funnel"></i> Filtrer
+            </button>
+            <a href="#" class="btn btn-primary login-btn">
+                <i class="bi bi-person"></i> Connexion
+            </a>
+        </div>
     </div>
-    
-    <div class="header-actions">
-        <button class="btn btn-outline-primary filter-btn">
-            <i class="bi bi-funnel"></i> Filtrer
-        </button>
-        <a href="#" class="btn btn-primary login-btn">
-            <i class="bi bi-person"></i> Connexion
-        </a>
+</div>
+
+<!-- Version Tablette -->
+<div class="header-container menu-header d-none d-lg-flex d-xl-none">
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <!-- Logo Tablette -->
+        <div class="ms-2">
+            <a href="/" class="logo-link">
+                <img src="img/mini_logo_header.png" alt="Logo Vite & Gourmand" class="rounded-3 logo-img">
+            </a>
+        </div>
+        
+        <!-- Navigation Tablette -->
+        <div class="header-actions flex-grow-1 justify-content-center px-2">
+            <button class="btn btn-outline-primary menu-category btn-sm me-1" data-category="classique">Classique</button>
+            <button class="btn btn-outline-primary menu-category btn-sm me-1" data-category="noel">Noël</button>
+            <button class="btn btn-outline-primary menu-category btn-sm me-1" data-category="paques">Pâques</button>
+            <button class="btn btn-outline-primary menu-category btn-sm" data-category="evenements">Événements</button>
+        </div>
+        
+        <!-- Actions Tablette -->
+        <div class="header-actions me-2">
+            <button class="btn btn-outline-primary filter-btn btn-sm me-1">
+                <i class="bi bi-funnel"></i> Filtrer
+            </button>
+            <a href="#" class="btn btn-primary login-btn btn-sm">
+                <i class="bi bi-person"></i> Connexion
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Version Mobile -->
+<div class="header-container menu-header d-lg-none">
+    <div class="d-flex justify-content-between align-items-center">
+        <!-- Logo Mobile -->
+        <div class="ms-2">
+            <a href="/" class="logo-link">
+                <img src="img/mini_logo_header.png" alt="Logo Vite & Gourmand" class="rounded-3 logo-img">
+            </a>
+        </div>
+        
+        <!-- Menu hamburger pour mobile -->
+        <div class="me-2">
+            <button class="mobile-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Menu mobile offcanvas -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileMenuLabel">Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Catégories de menus -->
+        <div class="mobile-menu-section">
+            <h6 class="mobile-menu-section-title">Catégories</h6>
+            <div class="mobile-menu-categories">
+                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="classique">
+                    <i class="bi bi-egg-fried me-2"></i> Classique
+                </button>
+                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="noel">
+                    <i class="bi bi-snow me-2"></i> Noël
+                </button>
+                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="paques">
+                    <i class="bi bi-egg me-2"></i> Pâques
+                </button>
+                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="evenements">
+                    <i class="bi bi-calendar-event me-2"></i> Événements
+                </button>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="mobile-menu-section">
+            <h6 class="mobile-menu-section-title">Actions</h6>
+            <div class="mobile-menu-actions">
+                <button class="btn btn-outline-primary filter-btn w-100 mb-2">
+                    <i class="bi bi-funnel me-2"></i> Filtrer
+                </button>
+                <a href="#" class="btn btn-primary login-btn w-100">
+                    <i class="bi bi-person me-2"></i> Connexion
+                </a>
+            </div>
+        </div>
     </div>
 </div>

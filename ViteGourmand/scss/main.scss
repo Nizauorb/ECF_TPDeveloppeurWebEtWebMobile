@@ -1,6 +1,44 @@
 @import url("/node_modules/bootstrap-icons/font/bootstrap-icons.css");
 @import "custom";
 
+// Styles pour le header de menu
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.menu-nav .nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 2rem;
+}
+
+.menu-nav .nav-link {
+  text-decoration: none;
+  color: $secondary;
+  font-family: $headings-font-family;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: $primary;
+    color: white;
+  }
+  
+  &.active {
+    background-color: $primary;
+    color: white;
+  }
+}
+
 // Style du bouton flottant du menu
 .floating-menu-button {
     position: fixed;

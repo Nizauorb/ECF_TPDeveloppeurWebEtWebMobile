@@ -31,6 +31,21 @@ const LoadContentPage = async () => {
   // Ajout du contenu HTML à l'élément avec l'ID "main-page"
   document.getElementById("main-content").innerHTML = html;
 
+  // Gestion du header spécifique si défini
+  if (actualRoute.headerHtml) {
+    const headerContent = await fetch(actualRoute.headerHtml).then((data) => data.text());
+    document.querySelector(".site-header").innerHTML = headerContent;
+  } else {
+    // Header par défaut
+    document.querySelector(".site-header").innerHTML = `
+      <div class="header-container">
+        <a href="/" class="logo-link">
+          <img src="img/logo_header.png" alt="Logo Vite & Gourmand" class="rounded-4 logo-img">
+        </a>
+      </div>
+    `;
+  }
+
   // Ajout du contenu JavaScript
   if (actualRoute.pathJS != "") {
     // Création d'une balise script

@@ -8,7 +8,63 @@
   align-items: center;
   padding: 1rem 2rem;
   background-color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: none;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  gap: 1rem;
+  
+  .logo-link {
+    order: -1; // Force le logo à être tout à gauche
+    flex: 0 0 auto;
+  }
+
+  .logo-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+
+  .header-actions .btn,
+  .header-actions a.btn {
+    background-color: $primary;
+    border-color: $primary;
+    color: white;
+    border-radius: 8px;
+    padding: 0.65rem 1.6rem;
+  }
+
+  .header-actions .btn:hover,
+  .header-actions a.btn:hover {
+    background-color: darken($primary, 8%);
+    border-color: darken($primary, 8%);
+    color: white;
+  }
+
+  .header-actions .filter-btn {
+    background-color: white !important;
+    border-color: $primary !important;
+    border-width: 2px;
+    color: $primary !important;
+  }
+
+  .header-actions .filter-btn:hover {
+    background-color: rgba($primary, 0.08) !important;
+    border-color: $primary !important;
+    color: $primary !important;
+  }
+
+  .header-actions .login-btn {
+    background-color: $primary !important;
+    border-color: $primary !important;
+    color: white !important;
+  }
+
+  .header-actions .login-btn:hover {
+    background-color: darken($primary, 8%) !important;
+    border-color: darken($primary, 8%) !important;
+    color: white !important;
+  }
 }
 
 .menu-nav .nav-list {
@@ -16,7 +72,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .menu-nav .nav-link {
@@ -24,18 +80,112 @@
   color: $secondary;
   font-family: $headings-font-family;
   font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   transition: all 0.3s ease;
+  border: 2px solid transparent;
   
   &:hover {
-    background-color: $primary;
-    color: white;
+    background-color: rgba($primary, 0.1);
+    border-color: $primary;
+    color: $primary;
   }
   
   &.active {
     background-color: $primary;
     color: white;
+    border-color: $primary;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+// Style pour les boutons de catégories de menus en ligne
+.menu-category {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+// Style pour le conteneur des catégories de menus
+.header-actions:first-of-type {
+  flex: 1 1 auto;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 3rem;
+}
+
+// Style pour le conteneur des boutons filtrer et connexion
+.header-actions:last-of-type {
+  flex: 0 0 auto;
+  margin-left: auto; // Pousse les boutons tout à droite
+  justify-content: flex-end;
+}
+
+.filter-btn, .login-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.filter-btn {
+  border-color: $primary;
+  color: $primary;
+  
+  &:hover {
+    background-color: $primary;
+    color: white;
+  }
+}
+
+.login-btn {
+  background-color: $primary;
+  border-color: $primary;
+  
+  &:hover {
+    background-color: darken($primary, 10%);
+    border-color: darken($primary, 10%);
+  }
+}
+
+// Responsive pour mobile
+@media (max-width: 768px) {
+  .menu-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .menu-nav .nav-list {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .menu-nav .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-actions:first-of-type {
+    flex-wrap: wrap;
+  }
+
+  .header-actions:last-of-type {
+    margin-left: 0;
   }
 }
 
@@ -113,8 +263,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
+
+  .menu-header {
+    width: 100%;
+    height: auto;
+  }
   
-  .header-container {
+  .header-container:not(.menu-header) {
     width: 200px;  // Taille carrée du conteneur
     height: 200px; // Même valeur que la largeur pour faire un carré
     display: flex;

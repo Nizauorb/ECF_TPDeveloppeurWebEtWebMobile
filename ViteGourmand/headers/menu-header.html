@@ -1,15 +1,21 @@
 <div class="header-container menu-header">
     <a href="/" class="logo-link">
-        <img src="img/logo_header.png" alt="Logo Vite & Gourmand" class="rounded-4 logo-img">
+        <img src="img/mini_logo_header.png" alt="Logo Vite & Gourmand" class="rounded-3 logo-img">
     </a>
-    <nav class="menu-nav">
-        <ul class="nav-list">
-            <li><a href="#" class="nav-link">Classique</a></li>
-            <li><a href="#" class="nav-link">Noël</a></li>
-            <li><a href="#" class="nav-link">Pâques</a></li>
-            <li><a href="#" class="nav-link">Événements</a></li>
-            <li><a href="#" class="nav-link">Filtrer</a></li>
-            <li><a href="#" class="nav-link">Connexion/Inscription</a></li>
-        </ul>
-    </nav>
+    
+    <div class="header-actions">
+        <button class="btn btn-outline-primary menu-category" data-category="classique">Classique</button>
+        <button class="btn btn-outline-primary menu-category" data-category="noel">Noël</button>
+        <button class="btn btn-outline-primary menu-category" data-category="paques">Pâques</button>
+        <button class="btn btn-outline-primary menu-category" data-category="evenements">Événements</button>
+    </div>
+    
+    <div class="header-actions">
+        <button class="btn btn-outline-primary filter-btn">
+            <i class="bi bi-funnel"></i> Filtrer
+        </button>
+        <a href="#" class="btn btn-primary login-btn">
+            <i class="bi bi-person"></i> Connexion
+        </a>
+    </div>
 </div>

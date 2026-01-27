@@ -1,5 +1,5 @@
 // Données des menus
-const menuData = {
+export const menuData = {
     classique: {
         title: "Menu Classique",
         price: "35€",
@@ -91,16 +91,31 @@ const menuData = {
 };
 
 // Fonction pour afficher les cartes des menus
-function renderMenuCards() {
+export function renderMenuCards(menusToRender = null) {
     const container = document.getElementById('menuContainer');
     if (!container) {
         console.log('Conteneur menuContainer non trouvé');
         return;
     }
     
+    // Utiliser les menus filtrés ou tous les menus par défaut
+    const menus = menusToRender || Object.keys(menuData);
+    
+    if (menus.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    Aucun menu ne correspond à vos critères de filtrage.
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
     let html = '';
     
-    Object.keys(menuData).forEach(menuKey => {
+    menus.forEach(menuKey => {
         const menu = menuData[menuKey];
         
         html += `
@@ -114,6 +129,10 @@ function renderMenuCards() {
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="badge bg-primary"><i class="bi bi-people-fill"></i> ${menu.minPeople} personnes</span>
                                 <span class="fw-bold text-primary">${menu.price}/personne</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-success"><i class="bi bi-leaf-fill"></i> ${menu.regime}</span>
+                                ${getStockBadge(menu.stockDisponible)}
                             </div>
                         </div>
                         <button class="btn btn-outline-primary w-100 mt-auto" onclick="showMenuDetails('${menuKey}')">
@@ -130,7 +149,7 @@ function renderMenuCards() {
 }
 
 // Fonction pour afficher les détails d'un menu
-function showMenuDetails(menuType) {
+export function showMenuDetails(menuType) {
     const menu = menuData[menuType];
     if (!menu) return;
 
@@ -192,7 +211,7 @@ function showMenuDetails(menuType) {
 }
 
 // Fonction pour générer les sections du menu
-function generateMenuSections(sections) {
+export function generateMenuSections(sections) {
     let html = '';
     
     if (sections.entrees) {
@@ -253,7 +272,7 @@ function generateMenuSections(sections) {
 }
 
 // Fonction pour générer les informations complémentaires
-function generateAdditionalInfo(menu) {
+export function generateAdditionalInfo(menu) {
     let html = `
         <div class="additional-info mt-4 pt-4 border-top">
             <h4 class="h5 fw-bold text-primary mb-3">
@@ -312,7 +331,7 @@ function generateAdditionalInfo(menu) {
 }
 
 // Fonction pour générer le badge de stock avec code couleur
-function getStockBadge(stock) {
+export function getStockBadge(stock) {
     let badgeClass = 'bg-danger';
     let icon = 'bi-x-circle-fill';
     
@@ -329,15 +348,78 @@ function getStockBadge(stock) {
     </span>`;
 }
 
+// Fonction pour appliquer les filtres
+export function applyFilters() {
+    const filteredMenus = getFilteredMenus();
+    renderMenuCards(filteredMenus);
+    updateFilterResults(filteredMenus.length);
+    console.log('Filtres appliqués -', filteredMenus.length, 'menus trouvés');
+}
+
+// Fonction pour réinitialiser les filtres
+export function resetFilters() {
+    document.getElementById('filterPeople').value = '';
+    document.getElementById('filterRegime').value = '';
+    document.getElementById('filterAllergenes').value = '';
+    document.getElementById('filterStock').value = '';
+    
+    renderMenuCards();
+    updateFilterResults(Object.keys(menuData).length);
+    console.log('Filtres réinitialisés');
+}
+
+// Fonction pour obtenir les menus filtrés
+export function getFilteredMenus() {
+    const peopleFilter = document.getElementById('filterPeople').value;
+    const regimeFilter = document.getElementById('filterRegime').value;
+    const allergenesFilter = document.getElementById('filterAllergenes').value;
+    const stockFilter = document.getElementById('filterStock').value;
+    
+    return Object.keys(menuData).filter(menuKey => {
+        const menu = menuData[menuKey];
+        
+        // Filtre par nombre de personnes
+        if (peopleFilter && menu.minPeople !== peopleFilter) {
+            return false;
+        }
+        
+        // Filtre par régime
+        if (regimeFilter && menu.regime !== regimeFilter) {
+            return false;
+        }
+        
+        // Filtre par allergènes (exclusion)
+        if (allergenesFilter && menu.allergenes.includes(allergenesFilter)) {
+            return false;
+        }
+        
+        // Filtre par stock
+        if (stockFilter) {
+            if (stockFilter === 'available' && menu.stockDisponible < 4) {
+                return false;
+            }
+            if (stockFilter === 'limited' && menu.stockDisponible >= 4) {
+                return false;
+            }
+        }
+        
+        return true;
+    });
+}
+
+// Fonction pour mettre à jour le texte des résultats
+export function updateFilterResults(count) {
+    const resultsElement = document.getElementById('filterResults');
+    const totalMenus = Object.keys(menuData).length;
+    
+    if (count === totalMenus) {
+        resultsElement.textContent = `Affichage de tous les menus (${count})`;
+    } else {
+        resultsElement.textContent = `${count} menu${count > 1 ? 's' : ''} trouvé${count > 1 ? 's' : ''} sur ${totalMenus}`;
+    }
+}
+
 // Initialisation quand le script est chargé
 document.addEventListener('DOMContentLoaded', function() {
-    renderMenuCards();
     console.log('Menu.js chargé - Fonctionnalités prêtes');
 });
-
-// Appel direct au cas où le DOM est déjà chargé
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderMenuCards);
-} else {
-    renderMenuCards();
-}

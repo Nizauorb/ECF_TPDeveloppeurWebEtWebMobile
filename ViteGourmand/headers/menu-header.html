@@ -10,18 +10,41 @@
         
         <!-- Navigation Desktop -->
         <div class="header-actions flex-grow-1 justify-content-center">
-            <button class="btn btn-outline-primary menu-category" data-category="classique">Classique</button>
-            <button class="btn btn-outline-primary menu-category" data-category="noel">Noël</button>
-            <button class="btn btn-outline-primary menu-category" data-category="paques">Pâques</button>
-            <button class="btn btn-outline-primary menu-category" data-category="evenements">Événements</button>
+            <select class="form-select me-2" id="filterPeople" style="width: auto;">
+                <option value="">Personnes</option>
+                <option value="2-6">2-6 personnes</option>
+                <option value="4-6">4-6 personnes</option>
+                <option value="6-10">6-10 personnes</option>
+                <option value="10+">10+ personnes</option>
+            </select>
+            <select class="form-select me-2" id="filterRegime" style="width: auto;">
+                <option value="">Régime</option>
+                <option value="Classique">Classique</option>
+            </select>
+            <select class="form-select me-2" id="filterAllergenes" style="width: auto;">
+                <option value="">Sans allergène</option>
+                <option value="Gluten">Sans Gluten</option>
+                <option value="Lait et produits laitiers">Sans Lait</option>
+                <option value="Œufs">Sans Œufs</option>
+                <option value="Fruits à coque">Sans Fruits à coque</option>
+                <option value="Mollusques">Sans Mollusques</option>
+            </select>
+            <select class="form-select me-2" id="filterStock" style="width: auto;">
+                <option value="">Disponibilité</option>
+                <option value="available">Disponibles</option>
+                <option value="limited">Stock limité</option>
+            </select>
+            <button class="btn btn-primary" onclick="applyFilters()">
+                <i class="bi bi-funnel"></i> Appliquer
+            </button>
         </div>
         
         <!-- Actions Desktop -->
         <div class="header-actions me-3">
-            <button class="btn btn-outline-primary filter-btn">
-                <i class="bi bi-funnel"></i> Filtrer
+            <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                <i class="bi bi-arrow-clockwise"></i> Réinitialiser
             </button>
-            <a href="#" class="btn btn-primary login-btn">
+            <a href="/Login" class="btn btn-primary login-btn">
                 <i class="bi bi-person"></i> Connexion
             </a>
         </div>
@@ -40,18 +63,36 @@
         
         <!-- Navigation Tablette -->
         <div class="header-actions flex-grow-1 justify-content-center px-2">
-            <button class="btn btn-outline-primary menu-category btn-sm me-1" data-category="classique">Classique</button>
-            <button class="btn btn-outline-primary menu-category btn-sm me-1" data-category="noel">Noël</button>
-            <button class="btn btn-outline-primary menu-category btn-sm me-1" data-category="paques">Pâques</button>
-            <button class="btn btn-outline-primary menu-category btn-sm" data-category="evenements">Événements</button>
+            <select class="form-select me-1" id="filterPeople" style="width: auto;">
+                <option value="">Personnes</option>
+                <option value="2-6">2-6</option>
+                <option value="4-6">4-6</option>
+                <option value="6-10">6-10</option>
+                <option value="10+">10+</option>
+            </select>
+            <select class="form-select me-1" id="filterRegime" style="width: auto;">
+                <option value="">Régime</option>
+                <option value="Classique">Classique</option>
+            </select>
+            <select class="form-select me-1" id="filterAllergenes" style="width: auto;">
+                <option value="">Sans allergène</option>
+                <option value="Gluten">Sans Gluten</option>
+                <option value="Lait et produits laitiers">Sans Lait</option>
+                <option value="Œufs">Sans Œufs</option>
+                <option value="Fruits à coque">Sans Fruits à coque</option>
+                <option value="Mollusques">Sans Mollusques</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+                <i class="bi bi-funnel"></i>
+            </button>
         </div>
         
         <!-- Actions Tablette -->
         <div class="header-actions me-2">
-            <button class="btn btn-outline-primary filter-btn btn-sm me-1">
-                <i class="bi bi-funnel"></i> Filtrer
+            <button class="btn btn-outline-secondary btn-sm me-1" onclick="resetFilters()">
+                <i class="bi bi-arrow-clockwise"></i>
             </button>
-            <a href="#" class="btn btn-primary login-btn btn-sm">
+            <a href="/Login" class="btn btn-primary login-btn btn-sm">
                 <i class="bi bi-person"></i> Connexion
             </a>
         </div>
@@ -84,21 +125,39 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
     </div>
     <div class="offcanvas-body">
-        <!-- Catégories de menus -->
+        <!-- Filtres -->
         <div class="mobile-menu-section">
-            <h6 class="mobile-menu-section-title">Catégories</h6>
-            <div class="mobile-menu-categories">
-                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="classique">
-                    <i class="bi bi-egg-fried me-2"></i> Classique
+            <h6 class="mobile-menu-section-title">Filtrer les menus</h6>
+            <div class="mobile-menu-filters">
+                <select class="form-select mb-2" id="filterPeople">
+                    <option value="">Nombre de personnes</option>
+                    <option value="2-6">2-6 personnes</option>
+                    <option value="4-6">4-6 personnes</option>
+                    <option value="6-10">6-10 personnes</option>
+                    <option value="10+">10+ personnes</option>
+                </select>
+                <select class="form-select mb-2" id="filterRegime">
+                    <option value="">Régime</option>
+                    <option value="Classique">Classique</option>
+                </select>
+                <select class="form-select mb-2" id="filterAllergenes">
+                    <option value="">Sans allergène</option>
+                    <option value="Gluten">Sans Gluten</option>
+                    <option value="Lait et produits laitiers">Sans Lait</option>
+                    <option value="Œufs">Sans Œufs</option>
+                    <option value="Fruits à coque">Sans Fruits à coque</option>
+                    <option value="Mollusques">Sans Mollusques</option>
+                </select>
+                <select class="form-select mb-2" id="filterStock">
+                    <option value="">Disponibilité</option>
+                    <option value="available">Disponibles</option>
+                    <option value="limited">Stock limité</option>
+                </select>
+                <button class="btn btn-primary w-100 mb-2" onclick="applyFilters()">
+                    <i class="bi bi-funnel me-2"></i> Appliquer les filtres
                 </button>
-                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="noel">
-                    <i class="bi bi-snow me-2"></i> Noël
-                </button>
-                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="paques">
-                    <i class="bi bi-egg me-2"></i> Pâques
-                </button>
-                <button class="btn btn-outline-primary menu-category w-100 mb-2" data-category="evenements">
-                    <i class="bi bi-calendar-event me-2"></i> Événements
+                <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Réinitialiser
                 </button>
             </div>
         </div>
@@ -107,10 +166,7 @@
         <div class="mobile-menu-section">
             <h6 class="mobile-menu-section-title">Actions</h6>
             <div class="mobile-menu-actions">
-                <button class="btn btn-outline-primary filter-btn w-100 mb-2">
-                    <i class="bi bi-funnel me-2"></i> Filtrer
-                </button>
-                <a href="#" class="btn btn-primary login-btn w-100">
+                <a href="/Login" class="btn btn-primary login-btn w-100">
                     <i class="bi bi-person me-2"></i> Connexion
                 </a>
             </div>

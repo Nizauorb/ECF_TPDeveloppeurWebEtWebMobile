@@ -46,27 +46,39 @@ const LoadContentPage = async () => {
     `;
   }
 
-  // Ajout du contenu JavaScript
-  if (actualRoute.pathJS != "") {
-    // Création d'une balise script
+  // Gestion du JavaScript spécifique
+  if (actualRoute.pathJS && actualRoute.pathJS.includes("menu.js")) {
+    // Pour la page menu, utiliser le menuManager
+    if (!window.menuManager) {
+      // Charger le menuManager si pas encore chargé
+      try {
+        const module = await import(actualRoute.pathJS.replace('menu.js', 'menuManager.js'));
+        console.log('MenuManager chargé');
+      } catch (error) {
+        console.error('Erreur de chargement du MenuManager:', error);
+      }
+    }
+    
+    // Initialiser le menu
+    if (window.menuManager) {
+      window.menuManager.initMenu();
+    }
+  } else if (actualRoute.pathJS && actualRoute.pathJS !== "") {
+    // Pour les autres scripts, utiliser l'ancienne méthode
     var scriptTag = document.createElement("script");
     scriptTag.setAttribute("type", "text/javascript");
     scriptTag.setAttribute("src", actualRoute.pathJS);
 
-    // Attendre que le script soit chargé avant de continuer
     scriptTag.onload = function() {
       console.log('Script chargé:', actualRoute.pathJS);
-      // Changer le titre de la page après le chargement du script
       document.title = actualRoute.title + " - " + websiteName;
     };
 
     scriptTag.onerror = function() {
       console.error('Erreur de chargement du script:', actualRoute.pathJS);
-      // Changer le titre même si le script échoue
       document.title = actualRoute.title + " - " + websiteName;
     };
 
-    // Ajout de la balise script au corps du document
     document.querySelector("body").appendChild(scriptTag);
   } else {
     // Changer le titre de la page s'il n'y a pas de script

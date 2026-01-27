@@ -4,7 +4,7 @@ const menuData = {
         title: "Menu Classique",
         price: "42€",
         image: "../img/Classique.png",
-        description: "Découvrez notre menu traditionnel avec une sélection de nos plats les plus populaires, parfait pour un repas convivial en famille ou entre amis.",
+        description: "Un festin convivial et raffiné pour 2 à 6 convives. Savourez une terrine de campagne généreuse, un filet de bœuf Rossini accompagné d'un gratin dauphinois crémeux, et une crème brûlée à la vanille parfaitement caramélisée. Une expérience gastronomique élégante, parfaite pour un repas familial ou entre amis.",
         minPeople: "2-6",
         sections: {
             entrees: [

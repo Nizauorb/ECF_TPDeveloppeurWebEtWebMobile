@@ -10,18 +10,18 @@
         
         <!-- Navigation Desktop -->
         <div class="header-actions flex-grow-1 justify-content-center">
-            <select class="form-select me-2" id="filterPeople" style="width: auto;">
+            <select class="form-select me-2" id="filterPeople-desktop" style="width: auto;">
                 <option value="">Personnes</option>
                 <option value="2-6">2-6 personnes</option>
                 <option value="4-6">4-6 personnes</option>
                 <option value="6-10">6-10 personnes</option>
                 <option value="10+">10+ personnes</option>
             </select>
-            <select class="form-select me-2" id="filterRegime" style="width: auto;">
+            <select class="form-select me-2" id="filterRegime-desktop" style="width: auto;">
                 <option value="">Régime</option>
                 <option value="Classique">Classique</option>
             </select>
-            <select class="form-select me-2" id="filterAllergenes" style="width: auto;">
+            <select class="form-select me-2" id="filterAllergenes-desktop" style="width: auto;">
                 <option value="">Sans allergène</option>
                 <option value="Gluten">Sans Gluten</option>
                 <option value="Lait et produits laitiers">Sans Lait</option>
@@ -29,7 +29,7 @@
                 <option value="Fruits à coque">Sans Fruits à coque</option>
                 <option value="Mollusques">Sans Mollusques</option>
             </select>
-            <select class="form-select me-2" id="filterStock" style="width: auto;">
+            <select class="form-select me-2" id="filterStock-desktop" style="width: auto;">
                 <option value="">Disponibilité</option>
                 <option value="available">Disponibles</option>
                 <option value="limited">Stock limité</option>
@@ -37,7 +37,7 @@
             <button class="btn btn-primary" onclick="applyFilters()">
                 <i class="bi bi-funnel"></i> Appliquer
             </button>
-            <span class="ms-3 text-muted" id="filterResults">Affichage de tous les menus</span>
+            <span class="ms-3 text-muted" id="filterResults-desktop">Affichage de tous les menus</span>
         </div>
         
         <!-- Actions Desktop -->
@@ -64,18 +64,18 @@
         
         <!-- Navigation Tablette -->
         <div class="header-actions flex-grow-1 justify-content-center px-2">
-            <select class="form-select me-1" id="filterPeople" style="width: auto;">
+            <select class="form-select me-1" id="filterPeople-tablet" style="width: auto;">
                 <option value="">Personnes</option>
                 <option value="2-6">2-6</option>
                 <option value="4-6">4-6</option>
                 <option value="6-10">6-10</option>
                 <option value="10+">10+</option>
             </select>
-            <select class="form-select me-1" id="filterRegime" style="width: auto;">
+            <select class="form-select me-1" id="filterRegime-tablet" style="width: auto;">
                 <option value="">Régime</option>
                 <option value="Classique">Classique</option>
             </select>
-            <select class="form-select me-1" id="filterAllergenes" style="width: auto;">
+            <select class="form-select me-1" id="filterAllergenes-tablet" style="width: auto;">
                 <option value="">Sans allergène</option>
                 <option value="Gluten">Sans Gluten</option>
                 <option value="Lait et produits laitiers">Sans Lait</option>
@@ -83,10 +83,15 @@
                 <option value="Fruits à coque">Sans Fruits à coque</option>
                 <option value="Mollusques">Sans Mollusques</option>
             </select>
+            <select class="form-select me-1" id="filterStock-tablet" style="width: auto;">
+                <option value="">Disponibilité</option>
+                <option value="available">Disponibles</option>
+                <option value="limited">Stock limité</option>
+            </select>
             <button class="btn btn-primary btn-sm" onclick="applyFilters()">
                 <i class="bi bi-funnel"></i>
             </button>
-            <span class="ms-2 text-muted small" id="filterResults">Affichage de tous les menus</span>
+            <span class="ms-2 text-muted small" id="filterResults-tablet">Affichage de tous les menus</span>
         </div>
         
         <!-- Actions Tablette -->
@@ -131,18 +136,18 @@
         <div class="mobile-menu-section">
             <h6 class="mobile-menu-section-title">Filtrer les menus</h6>
             <div class="mobile-menu-filters">
-                <select class="form-select mb-2" id="filterPeople">
+                <select class="form-select mb-2" id="filterPeople-mobile">
                     <option value="">Nombre de personnes</option>
                     <option value="2-6">2-6 personnes</option>
                     <option value="4-6">4-6 personnes</option>
                     <option value="6-10">6-10 personnes</option>
                     <option value="10+">10+ personnes</option>
                 </select>
-                <select class="form-select mb-2" id="filterRegime">
+                <select class="form-select mb-2" id="filterRegime-mobile">
                     <option value="">Régime</option>
                     <option value="Classique">Classique</option>
                 </select>
-                <select class="form-select mb-2" id="filterAllergenes">
+                <select class="form-select mb-2" id="filterAllergenes-mobile">
                     <option value="">Sans allergène</option>
                     <option value="Gluten">Sans Gluten</option>
                     <option value="Lait et produits laitiers">Sans Lait</option>
@@ -150,7 +155,7 @@
                     <option value="Fruits à coque">Sans Fruits à coque</option>
                     <option value="Mollusques">Sans Mollusques</option>
                 </select>
-                <select class="form-select mb-2" id="filterStock">
+                <select class="form-select mb-2" id="filterStock-mobile">
                     <option value="">Disponibilité</option>
                     <option value="available">Disponibles</option>
                     <option value="limited">Stock limité</option>
@@ -161,7 +166,7 @@
                 <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
                     <i class="bi bi-arrow-clockwise me-2"></i> Réinitialiser
                 </button>
-                <div class="mt-2 text-muted small" id="filterResults">Affichage de tous les menus</div>
+                <div class="mt-2 text-muted small" id="filterResults-mobile">Affichage de tous les menus</div>
             </div>
         </div>
         

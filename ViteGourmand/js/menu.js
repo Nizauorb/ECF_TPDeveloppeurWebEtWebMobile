@@ -348,6 +348,21 @@ export function getStockBadge(stock) {
     </span>`;
 }
 
+// Fonction helper pour obtenir l'élément de filtre selon la taille d'écran
+function getFilterElement(baseId) {
+    // Détection de la version visible selon les classes Bootstrap
+    if (window.innerWidth >= 1200) {
+        // Desktop (xl)
+        return document.getElementById(baseId + '-desktop');
+    } else if (window.innerWidth >= 992) {
+        // Tablette (lg)
+        return document.getElementById(baseId + '-tablet');
+    } else {
+        // Mobile
+        return document.getElementById(baseId + '-mobile');
+    }
+}
+
 // Fonction pour appliquer les filtres
 export function applyFilters() {
     const filteredMenus = getFilteredMenus();
@@ -359,10 +374,15 @@ export function applyFilters() {
 
 // Fonction pour réinitialiser les filtres
 export function resetFilters() {
-    document.getElementById('filterPeople').value = '';
-    document.getElementById('filterRegime').value = '';
-    document.getElementById('filterAllergenes').value = '';
-    document.getElementById('filterStock').value = '';
+    const peopleElement = getFilterElement('filterPeople');
+    const regimeElement = getFilterElement('filterRegime');
+    const allergenesElement = getFilterElement('filterAllergenes');
+    const stockElement = getFilterElement('filterStock');
+    
+    if (peopleElement) peopleElement.value = '';
+    if (regimeElement) regimeElement.value = '';
+    if (allergenesElement) allergenesElement.value = '';
+    if (stockElement) stockElement.value = '';
     
     renderMenuCards();
     updateFilterResults(Object.keys(menuData).length);
@@ -372,10 +392,23 @@ export function resetFilters() {
 
 // Fonction pour obtenir les menus filtrés
 export function getFilteredMenus() {
-    const peopleFilter = document.getElementById('filterPeople').value;
-    const regimeFilter = document.getElementById('filterRegime').value;
-    const allergenesFilter = document.getElementById('filterAllergenes').value;
-    const stockFilter = document.getElementById('filterStock').value;
+    const peopleElement = getFilterElement('filterPeople');
+    const regimeElement = getFilterElement('filterRegime');
+    const allergenesElement = getFilterElement('filterAllergenes');
+    const stockElement = getFilterElement('filterStock');
+    
+    const peopleFilter = peopleElement ? peopleElement.value : '';
+    const regimeFilter = regimeElement ? regimeElement.value : '';
+    const allergenesFilter = allergenesElement ? allergenesElement.value : '';
+    const stockFilter = stockElement ? stockElement.value : '';
+    
+    // DEBUG: Log de débogage - à supprimer en production
+    console.log('DEBUG: Éléments de filtre trouvés:', {
+        people: !!peopleElement,
+        regime: !!regimeElement,
+        allergenes: !!allergenesElement,
+        stock: !!stockElement
+    });
     
     return Object.keys(menuData).filter(menuKey => {
         const menu = menuData[menuKey];
@@ -411,7 +444,7 @@ export function getFilteredMenus() {
 
 // Fonction pour mettre à jour le texte des résultats
 export function updateFilterResults(count) {
-    const resultsElement = document.getElementById('filterResults');
+    const resultsElement = getFilterElement('filterResults');
     
     // DEBUG: Vérification de sécurité - à supprimer en production
     if (!resultsElement) {

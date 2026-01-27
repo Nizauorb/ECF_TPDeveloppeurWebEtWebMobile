@@ -53,9 +53,11 @@ const LoadContentPage = async () => {
       // Charger le menuManager si pas encore chargé
       try {
         const module = await import(actualRoute.pathJS.replace('menu.js', 'menuManager.js'));
-        console.log('MenuManager chargé');
+        // DEBUG: Log de débogage - à supprimer en production
+      console.log('MenuManager chargé');
       } catch (error) {
-        console.error('Erreur de chargement du MenuManager:', error);
+        // DEBUG: Log de débogage - à supprimer en production
+      console.error('Erreur de chargement du MenuManager:', error);
       }
     }
     
@@ -70,11 +72,13 @@ const LoadContentPage = async () => {
     scriptTag.setAttribute("src", actualRoute.pathJS);
 
     scriptTag.onload = function() {
+      // DEBUG: Log de débogage - à supprimer en production
       console.log('Script chargé:', actualRoute.pathJS);
       document.title = actualRoute.title + " - " + websiteName;
     };
 
     scriptTag.onerror = function() {
+      // DEBUG: Log de débogage - à supprimer en production
       console.error('Erreur de chargement du script:', actualRoute.pathJS);
       document.title = actualRoute.title + " - " + websiteName;
     };

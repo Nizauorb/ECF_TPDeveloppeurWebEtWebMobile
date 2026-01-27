@@ -9,10 +9,12 @@ class MenuManager {
     // Fonction d'initialisation unique
     async initMenu() {
         if (this.isInitialized) {
+            // DEBUG: Log de débogage - à supprimer en production
             console.log('MenuManager déjà initialisé');
             return;
         }
 
+        // DEBUG: Log de débogage - à supprimer en production
         console.log('Initialisation du MenuManager...');
         
         // Attendre que le DOM soit chargé
@@ -31,6 +33,7 @@ class MenuManager {
         renderMenuCards();
         
         this.isInitialized = true;
+        // DEBUG: Log de débogage - à supprimer en production
         console.log('MenuManager initialisé avec succès');
     }
 

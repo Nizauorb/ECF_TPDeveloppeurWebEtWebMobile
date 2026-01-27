@@ -353,6 +353,7 @@ export function applyFilters() {
     const filteredMenus = getFilteredMenus();
     renderMenuCards(filteredMenus);
     updateFilterResults(filteredMenus.length);
+    // DEBUG: Log de débogage - à supprimer en production
     console.log('Filtres appliqués -', filteredMenus.length, 'menus trouvés');
 }
 
@@ -365,6 +366,7 @@ export function resetFilters() {
     
     renderMenuCards();
     updateFilterResults(Object.keys(menuData).length);
+    // DEBUG: Log de débogage - à supprimer en production
     console.log('Filtres réinitialisés');
 }
 
@@ -410,6 +412,13 @@ export function getFilteredMenus() {
 // Fonction pour mettre à jour le texte des résultats
 export function updateFilterResults(count) {
     const resultsElement = document.getElementById('filterResults');
+    
+    // DEBUG: Vérification de sécurité - à supprimer en production
+    if (!resultsElement) {
+        console.warn('DEBUG: Élément filterResults non trouvé - impossible d\'afficher les résultats');
+        return;
+    }
+    
     const totalMenus = Object.keys(menuData).length;
     
     if (count === totalMenus) {
@@ -421,5 +430,6 @@ export function updateFilterResults(count) {
 
 // Initialisation quand le script est chargé
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Menu.js chargé - Fonctionnalités prêtes');
+    console.log('Menu.js chargé - Fonctionnalités prêtes'); // DEBUG: Log de débogage - à supprimer en production
+    console.log('** DERNIER LOG DE DÉBOGAGE **'); // <--- MARQUER CE LOG DE DÉBOGAGE
 });

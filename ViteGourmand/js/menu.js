@@ -3,7 +3,7 @@ export const menuData = {
     classique: {
         title: "Menu Classique",
         price: "35€",
-        image: "../img/Classique.png",
+        image: "Classique.png",
         description: "Un festin convivial et raffiné pour 2 à 6 convives. Savourez une terrine de campagne généreuse, un filet de bœuf Rossini accompagné d'un gratin dauphinois crémeux, et une crème brûlée à la vanille parfaitement caramélisée. Une expérience gastronomique élégante, parfaite pour un repas familial ou entre amis.",
         minPeople: "2-6",
         allergenes: ["Gluten", "Lait et produits laitiers", "Œufs"],
@@ -25,7 +25,7 @@ export const menuData = {
     noel: {
         title: "Menu de Noël",
         price: "55€",
-        image: "../img/Noel.png",
+        image: "Noel.png",
         description: "Un festin de Noël généreux pour 6 à 10 convives. Dégustez des huîtres fraîches en entrée, un chapon rôti farci aux châtaignes accompagné d'un gratin de pommes de terre au Reblochon fondant, et une bûche de Noël traditionnelle au chocolat et marron glacé. Une table scintillante aux couleurs de fête pour célébrer ensemble dans une ambiance chaleureuse et raffinée.",
         minPeople: "6-10",
         allergenes: ["Mollusques", "Lait et produits laitiers", "Fruits à coque", "Œufs", "Gluten"],
@@ -47,7 +47,7 @@ export const menuData = {
     paques: {
         title: "Menu de Pâques",
         price: "38€",
-        image: "../img/Paques.png",
+        image: "Paques.png",
         description: "Un menu de Pâques automnal et réconfortant pour 4 à 6 convives. Dégustez un velouté de potimarron onctueux au foie gras poêlé, un jarret de bœuf braisé fondant accompagné d'une purée de céleri-rave au Comté et de carottes glacées, et une délicate tarte fine aux poires confites. Une ambiance sereine et chaleureuse aux couleurs automnales pour célébrer ce moment festif.",
         minPeople: "4-6",
         allergenes: ["Lait et produits laitiers", "Fruits à coque", "Gluten", "Œufs"],
@@ -69,7 +69,7 @@ export const menuData = {
     event: {
         title: "Menu d'Evénements",
         price: "48€",
-        image: "../img/Event.png",
+        image: "Event.png",
         description: "Un menu événementiel raffiné pour 10 convives et plus. Savourez des asperges vertes rôties aux œufs mollets mimosa, un carré d'agneau rôti aux herbes de Provence accompagné d'un risotto crémeux aux petits pois et menthe fraîche, et un fraisier revisité à la crème mousseline. Une table élégante et sophistiquée, parfaite pour célébrer vos grands événements dans une ambiance festive et raffinée.",
         minPeople: "10+",
         allergenes: ["Lait et produits laitiers", "Œufs", "Gluten"],

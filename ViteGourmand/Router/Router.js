@@ -40,7 +40,7 @@ const LoadContentPage = async () => {
     document.querySelector(".site-header").innerHTML = `
       <div class="header-container">
         <a href="/" class="logo-link">
-          <img src="img/logo_header.png" alt="Logo Vite & Gourmand" class="rounded-4 logo-img">
+          <img src="/logo_header.png" alt="Logo Vite & Gourmand" class="rounded-4 logo-img">
         </a>
       </div>
     `;
@@ -52,7 +52,7 @@ const LoadContentPage = async () => {
     if (!window.menuManager) {
       // Charger le menuManager si pas encore chargé
       try {
-        const module = await import(actualRoute.pathJS.replace('menu.js', 'menuManager.js'));
+        const module = await import(/* @vite-ignore */ actualRoute.pathJS.replace('menu.js', 'menuManager.js'));
         // DEBUG: Log de débogage - à supprimer en production
       console.log('MenuManager chargé');
       } catch (error) {

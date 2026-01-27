@@ -53,12 +53,25 @@ const LoadContentPage = async () => {
     scriptTag.setAttribute("type", "text/javascript");
     scriptTag.setAttribute("src", actualRoute.pathJS);
 
+    // Attendre que le script soit chargé avant de continuer
+    scriptTag.onload = function() {
+      console.log('Script chargé:', actualRoute.pathJS);
+      // Changer le titre de la page après le chargement du script
+      document.title = actualRoute.title + " - " + websiteName;
+    };
+
+    scriptTag.onerror = function() {
+      console.error('Erreur de chargement du script:', actualRoute.pathJS);
+      // Changer le titre même si le script échoue
+      document.title = actualRoute.title + " - " + websiteName;
+    };
+
     // Ajout de la balise script au corps du document
     document.querySelector("body").appendChild(scriptTag);
+  } else {
+    // Changer le titre de la page s'il n'y a pas de script
+    document.title = actualRoute.title + " - " + websiteName;
   }
-
-  // Changement du titre de la page
-  document.title = actualRoute.title + " - " + websiteName;
 };
 
 // Fonction pour gérer les événements de routage (clic sur les liens)

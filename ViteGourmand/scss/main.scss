@@ -509,6 +509,96 @@ body {
   }
 }
 
+// Styles pour les cartes de menu
+.menu-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .card-img-top {
+    height: 180px; // Réduit la hauteur des images
+    object-fit: cover;
+  }
+  
+  .card-body {
+    padding: 1rem; // Réduit le padding
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .h5 {
+    font-size: 1.1rem; // Réduit la taille du titre
+    margin-bottom: 0.75rem;
+    color: $dark;
+  }
+  
+  .card-text {
+    font-size: 0.875rem; // Réduit la taille du texte
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    color: $secondary;
+  }
+  
+  .menu-info {
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.35rem 0.65rem;
+      background-color: $primary;
+      
+      i {
+        margin-right: 0.25rem;
+      }
+    }
+    
+    .fw-bold {
+      font-size: 0.9rem;
+    }
+  }
+  
+  .btn-outline-primary {
+    border-color: $primary;
+    color: $primary;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: $primary;
+      border-color: $primary;
+      transform: translateY(-1px);
+    }
+    
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+// Responsive pour les cartes de menu
+@media (max-width: 768px) {
+  .menu-card {
+    .card-img-top {
+      height: 140px; // Encore plus petit sur mobile
+    }
+    
+    .card-body {
+      padding: 0.75rem;
+    }
+    
+    .h5 {
+      font-size: 1rem;
+    }
+    
+    .text-muted {
+      font-size: 0.8rem;
+    }
+  }
+}
+
 // Responsive pour mobile et tablette
 @media (max-width: 991.98px) {
   .menu-header {
@@ -518,7 +608,7 @@ body {
     }
     
     .mobile-menu-toggle {
-      font-size: 1.25rem;
+      font-size: 2.25rem;
     }
   }
 }

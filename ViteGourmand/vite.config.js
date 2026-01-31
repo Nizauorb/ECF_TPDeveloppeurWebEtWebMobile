@@ -19,6 +19,19 @@ export default defineConfig({
     assetsDir: 'assets',
     copyPublicDir: true
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+        includePaths: [resolve(__dirname, 'node_modules')]
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '~bootstrap': resolve(__dirname, 'node_modules/bootstrap')
+    }
+  },
   // Plugin pour copier les dossiers supplémentaires
   plugins: [
     {
@@ -28,8 +41,24 @@ export default defineConfig({
         const path = await import('path')
         
         // Dossiers à copier
-        const dirsToCopy = ['pages', 'js', 'headers', 'Router', 'scss']
+        const dirsToCopy = ['pages', 'js', 'headers', 'Router']
         const outDir = 'dist'
+        
+        // Copier les fichiers CSS compilés
+        const cssFiles = ['scss/main.css', 'scss/main.css.map']
+        for (const cssFile of cssFiles) {
+          const srcCss = path.resolve(cssFile)
+          const destCss = path.resolve(outDir, cssFile)
+          
+          if (fs.existsSync(srcCss)) {
+            const destDir = path.dirname(destCss)
+            if (!fs.existsSync(destDir)) {
+              fs.mkdirSync(destDir, { recursive: true })
+            }
+            fs.copyFileSync(srcCss, destCss)
+            console.log(`✓ Copié ${cssFile} vers dist/${cssFile}`)
+          }
+        }
         
         for (const dir of dirsToCopy) {
           const srcDir = path.resolve(dir)

@@ -1,0 +1,97 @@
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <h1 class="h3 mb-3">Inscription</h1>
+                            <p class="text-muted">Créez votre compte utilisateur</p>
+                        </div>
+                        
+                        <form id="registerForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Nom</label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                    <div class="invalid-feedback">Veuillez entrer votre nom</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">Prénom</label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                    <div class="invalid-feedback">Veuillez entrer votre prénom</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Numéro de téléphone</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required>
+                                <div class="invalid-feedback">Veuillez entrer un numéro de téléphone valide</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Adresse email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <div class="invalid-feedback">Veuillez entrer une adresse email valide</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Adresse postale</label>
+                                <textarea class="form-control" id="address" name="address" rows="2" required></textarea>
+                                <div class="invalid-feedback">Veuillez entrer votre adresse postale</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Mot de passe</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="password-requirements mt-2">
+                                    <small class="text-muted">
+                                        <div class="requirement" data-requirement="length">
+                                            <i class="bi bi-x-circle text-danger"></i> Au moins 10 caractères
+                                        </div>
+                                        <div class="requirement" data-requirement="uppercase">
+                                            <i class="bi bi-x-circle text-danger"></i> Une majuscule
+                                        </div>
+                                        <div class="requirement" data-requirement="lowercase">
+                                            <i class="bi bi-x-circle text-danger"></i> Une minuscule
+                                        </div>
+                                        <div class="requirement" data-requirement="number">
+                                            <i class="bi bi-x-circle text-danger"></i> Un chiffre
+                                        </div>
+                                        <div class="requirement" data-requirement="special">
+                                            <i class="bi bi-x-circle text-danger"></i> Un caractère spécial
+                                        </div>
+                                    </small>
+                                </div>
+                                <div class="invalid-feedback">Le mot de passe ne respecte pas les exigences</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirmation du mot de passe</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                <div class="invalid-feedback">Les mots de passe ne correspondent pas</div>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    J'accepte les <a href="/CGV" class="text-primary">conditions générales de vente</a>
+                                </label>
+                                <div class="invalid-feedback">Vous devez accepter les conditions générales</div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">S'inscrire</button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <p class="mb-0">Déjà un compte ? <a href="/Login" class="text-primary text-decoration-none">Se connecter</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

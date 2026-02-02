@@ -9,29 +9,6 @@ class AuthValidator {
         this.setupLoginForm();
         this.setupRegisterForm();
     }
- 
-    setupLoginForm() {
-        const loginForm = document.getElementById('loginForm');
-        if (!loginForm) {
-            // Si pas trouvé, réessayer dans 50ms
-            setTimeout(() => this.setupLoginForm(), 50);
-            return;
-        }
-
-        if (this._loginBound) return;
-        this._loginBound = true;
-
-        console.log('Formulaire trouvé, configuration...');
-        
-        loginForm.addEventListener('submit', async (e) => {
-            console.log('Événement intercepté !');
-            e.preventDefault();
-            
-            if (this.validateLoginForm()) {
-                await this.loginUser();
-            }
-        });
-    }
 
     // Validation du mot de passe selon les exigences
     validatePassword(password) {
@@ -62,6 +39,7 @@ class AuthValidator {
     updatePasswordRequirements(password) {
         const requirements = this.validatePassword(password);
         
+        // Mise à jour de l'interface utilisateur (si vous avez des indicateurs visuels)
         Object.keys(requirements).forEach(req => {
             const element = document.querySelector(`[data-requirement="${req}"]`);
             if (element) {
@@ -128,73 +106,138 @@ async loginUser() {
         this.hideLoadingState();
     }
 }
-    
-// Gérer le succès de connexion
-handleSuccessfulLogin(data) {
-    // Stocker les informations
-    localStorage.setItem('token', data.data.token);
-    localStorage.setItem('user', JSON.stringify(data.data.user));
-    
-    // Afficher le message de succès
-    this.showSuccess('Connexion réussie ! Redirection...');
-    
-    // Redirection selon le rôle
-    setTimeout(() => {
-        const user = data.data.user;
-        let redirectUrl = '/';
-        
-        switch(user.role) {
-            case 'administrateur':
-                redirectUrl = '/admin';
-                break;
-            case 'employe':
-                redirectUrl = '/employe';
-                break;
-            case 'utilisateur':
-                redirectUrl = '/user';
-                break;
-            default:
-                redirectUrl = '/';
+
+    setupLoginForm() {
+            const loginForm = document.getElementById('loginForm');
+            if (!loginForm) {
+                // Si pas trouvé, réessayer dans 50ms
+                setTimeout(() => this.setupLoginForm(), 50);
+                return;
+            }
+
+            if (this._loginBound) return;
+            this._loginBound = true;
+
+            console.log('Formulaire trouvé, configuration...');
+            
+            loginForm.addEventListener('submit', async (e) => {
+                console.log('Événement intercepté !');
+                e.preventDefault();
+                
+                if (this.validateLoginForm()) {
+                    await this.loginUser();
+                }
+            });
         }
         
-        window.location.href = redirectUrl;
-    }, 1500);
-}    
+    // Gérer le succès de connexion
+    handleSuccessfulLogin(data) {
+        // Stocker les informations
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        
+        // Afficher le message de succès
+        this.showSuccess('Connexion réussie ! Redirection...');
+        
+        // Redirection selon le rôle
+        setTimeout(() => {
+            const user = data.data.user;
+            let redirectUrl = '/';
+            
+            switch(user.role) {
+                case 'administrateur':
+                    redirectUrl = '/admin';
+                    break;
+                case 'employe':
+                    redirectUrl = '/employe';
+                    break;
+                case 'utilisateur':
+                    redirectUrl = '/user';
+                    break;
+                default:
+                    redirectUrl = '/';
+            }
+            
+            window.location.href = redirectUrl;
+        }, 1500);
+    }    
 
-    // Configuration du formulaire d'inscription
     setupRegisterForm() {
         const registerForm = document.getElementById('registerForm');
-        if (!registerForm) return;
+        if (!registerForm) {
+            setTimeout(() => this.setupRegisterForm(), 50);
+            return;
+        }
 
         if (this._registerBound) return;
         this._registerBound = true;
 
         // Validation en temps réel du mot de passe
         const passwordInput = document.getElementById('password');
-        passwordInput?.addEventListener('input', () => {
-            this.updatePasswordRequirements(passwordInput.value);
-        });
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => {
+                this.updatePasswordRequirements(passwordInput.value);
+            });
+        }
 
-        registerForm.addEventListener('submit', (e) => {
+        registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             if (this.validateRegisterForm()) {
-                // Simulation d'inscription - à remplacer par appel API
-                console.log('Tentative d\'inscription...');
-                this.showSuccess('Inscription réussie ! Redirection...');
-                setTimeout(() => {
-                    // Redirection vers la page de connexion
-                    window.location.href = '/Login';
-                }, 2000);
+                try {
+                    this.showLoadingState();
+                    
+                    // Récupération des données du formulaire
+                    const formData = {
+                        lastName: document.getElementById('lastName').value,
+                        firstName: document.getElementById('firstName').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        address: document.getElementById('address').value,
+                        password: document.getElementById('password').value,
+                        confirmPassword: document.getElementById('confirmPassword').value
+                    };
+
+                    // Envoi des données au serveur
+                    const response = await fetch('/api/auth/register.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Erreur lors de l\'inscription');
+                    }
+
+                    // Inscription réussie
+                    this.showSuccess('Inscription réussie ! Redirection vers la page de connexion...');
+                    
+                    // Redirection vers la page de connexion après 2 secondes
+                    setTimeout(() => {
+                        window.location.href = '/Login';
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Erreur lors de l\'inscription:', error);
+                    this.showError(error.message || 'Une erreur est survenue lors de l\'inscription');
+                } finally {
+                    this.hideLoadingState();
+                }
             }
         });
 
-        // Validation en temps réel des autres champs
+        // Configuration de la validation en temps réel
         this.setupFieldValidation('lastName', (value) => value.trim().length >= 2);
         this.setupFieldValidation('firstName', (value) => value.trim().length >= 2);
         this.setupFieldValidation('phone', this.validatePhone.bind(this));
         this.setupFieldValidation('email', this.validateEmail.bind(this));
         this.setupFieldValidation('address', (value) => value.trim().length >= 10);
+        this.setupFieldValidation('password', (value) => this.updatePasswordRequirements(value));
         this.setupFieldValidation('confirmPassword', (value) => {
             const password = document.getElementById('password')?.value;
             return value === password && value.length > 0;

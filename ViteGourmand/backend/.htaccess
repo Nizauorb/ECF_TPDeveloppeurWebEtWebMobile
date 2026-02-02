@@ -11,3 +11,16 @@ RewriteEngine On
 # Gérer les requêtes OPTIONS
 RewriteCond %{REQUEST_METHOD} OPTIONS
 RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Interdire l'accès direct aux fichiers de configuration
+<Files "config/*">
+    Require all denied
+</Files>
+
+# Interdire l'accès aux fichiers .env
+<Files ".env">
+    Require all denied
+</Files>
+
+# Désactiver l'affichage des répertoires
+Options -Indexes

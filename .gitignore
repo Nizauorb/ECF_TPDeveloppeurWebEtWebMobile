@@ -27,3 +27,8 @@ Thumbs.db
 # Brouillons
 Brouillon.md
 Git-Pratique.md
+
+# Fichiers sensibles
+/backend/config/config.php
+.env
+/vendor/

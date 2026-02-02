@@ -1,11 +1,36 @@
 class AuthValidator {
     constructor() {
-        this.init();
+        this._loginBound = false;
+        this._registerBound = false;
+        setTimeout(() => this.init(), 0);
     }
-
+ 
     init() {
         this.setupLoginForm();
         this.setupRegisterForm();
+    }
+ 
+    setupLoginForm() {
+        const loginForm = document.getElementById('loginForm');
+        if (!loginForm) {
+            // Si pas trouvé, réessayer dans 50ms
+            setTimeout(() => this.setupLoginForm(), 50);
+            return;
+        }
+
+        if (this._loginBound) return;
+        this._loginBound = true;
+
+        console.log('Formulaire trouvé, configuration...');
+        
+        loginForm.addEventListener('submit', async (e) => {
+            console.log('Événement intercepté !');
+            e.preventDefault();
+            
+            if (this.validateLoginForm()) {
+                await this.loginUser();
+            }
+        });
     }
 
     // Validation du mot de passe selon les exigences
@@ -52,42 +77,97 @@ class AuthValidator {
         return Object.values(requirements).every(req => req === true);
     }
 
-    // Configuration du formulaire de connexion
-    setupLoginForm() {
-        const loginForm = document.getElementById('loginForm');
-        if (!loginForm) return;
+// Nouvelle méthode pour la connexion
+async loginUser() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+        // Afficher l'état de chargement
+        this.showLoadingState();
+        
+        const response = await fetch('/api/auth/login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
 
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            if (this.validateLoginForm()) {
-                // Simulation de connexion - à remplacer par appel API
-                console.log('Tentative de connexion...');
-                this.showSuccess('Connexion réussie ! Redirection...');
-                setTimeout(() => {
-                    // Redirection vers l'espace utilisateur ou admin selon le rôle
-                    window.location.href = '/';
-                }, 2000);
+         // Gérer les réponses HTTP
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('Email ou mot de passe incorrect');
+            } else if (response.status === 429) {
+                throw new Error('Trop de tentatives de connexion. Veuillez réessayer plus tard.');
+            } else if (response.status >= 500) {
+                throw new Error('Erreur serveur. Veuillez réessayer ultérieurement.');
+            } else {
+                throw new Error('Erreur de connexion');
             }
-        });
-
-        // Validation en temps réel
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-
-        emailInput?.addEventListener('blur', () => {
-            this.validateField(emailInput, this.validateEmail(emailInput.value));
-        });
-
-        passwordInput?.addEventListener('blur', () => {
-            this.validateField(passwordInput, passwordInput.value.length > 0);
-        });
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Succès : stocker les infos et rediriger
+           this.handleSuccessfulLogin(data);   
+        } else {
+            // Erreur retournée par le backend
+            this.showError(data.message || 'Erreur de connexion');
+        }
+    } catch (error) {
+        // Erreur réseau ou serveur
+        console.error('Erreur fetch:', error);
+        this.showError('Impossible de contacter le serveur. Vérifiez votre connexion.');
+    } finally {
+        this.hideLoadingState();
     }
+}
+    
+// Gérer le succès de connexion
+handleSuccessfulLogin(data) {
+    // Stocker les informations
+    localStorage.setItem('token', data.data.token);
+    localStorage.setItem('user', JSON.stringify(data.data.user));
+    
+    // Afficher le message de succès
+    this.showSuccess('Connexion réussie ! Redirection...');
+    
+    // Redirection selon le rôle
+    setTimeout(() => {
+        const user = data.data.user;
+        let redirectUrl = '/';
+        
+        switch(user.role) {
+            case 'administrateur':
+                redirectUrl = '/admin';
+                break;
+            case 'employe':
+                redirectUrl = '/employe';
+                break;
+            case 'utilisateur':
+                redirectUrl = '/user';
+                break;
+            default:
+                redirectUrl = '/';
+        }
+        
+        window.location.href = redirectUrl;
+    }, 1500);
+}    
 
     // Configuration du formulaire d'inscription
     setupRegisterForm() {
         const registerForm = document.getElementById('registerForm');
         if (!registerForm) return;
+
+        if (this._registerBound) return;
+        this._registerBound = true;
 
         // Validation en temps réel du mot de passe
         const passwordInput = document.getElementById('password');
@@ -149,13 +229,35 @@ class AuthValidator {
         const password = document.getElementById('password');
         
         let isValid = true;
+        let errorMessage = '';
 
-        if (!this.validateField(email, this.validateEmail(email.value))) {
+        // Validation email
+        if (!email.value.trim()) {
+            this.validateField(email, false);
+            errorMessage = 'L\'adresse email est requise';
             isValid = false;
+        } else if (!this.validateEmail(email.value)) {
+            this.validateField(email, false);
+            errorMessage = 'Veuillez entrer une adresse email valide';
+            isValid = false;
+        } else {
+            this.validateField(email, true);
         }
 
-        if (!this.validateField(password, password.value.length > 0)) {
+        // Validation mot de passe
+        if (!password.value.trim()) {
+            this.validateField(password, false);
+            if (!errorMessage) {
+                errorMessage = 'Le mot de passe est requis';
+            }
             isValid = false;
+        } else {
+            this.validateField(password, true);
+        }
+
+        // Afficher le message d'erreur approprié
+        if (!isValid && errorMessage) {
+            this.showError(errorMessage);
         }
 
         return isValid;
@@ -195,6 +297,27 @@ class AuthValidator {
         }
 
         return isValid;
+    }
+    
+    // Afficher l'état de chargement
+    showLoadingState() {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                Connexion en cours...
+            `;
+        }
+    }
+
+    // Masquer l'état de chargement
+    hideLoadingState() {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Se connecter';
+        }
     }
 
     // Affichage d'un message de succès
@@ -236,9 +359,31 @@ class AuthValidator {
             }
         }, 5000);
     }
+
+    // Vérifier si l'utilisateur est connecté
+    isLoggedIn() {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        return token && user;
+    }
+
+    // Obtenir l'utilisateur connecté
+    getCurrentUser() {
+        const userStr = localStorage.getItem('user');
+        return userStr ? JSON.parse(userStr) : null;
+    }
+
+    // Déconnexion
+    logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/Login';
+    }
 }
 
-// Initialisation lorsque le DOM est chargé
-document.addEventListener('DOMContentLoaded', () => {
-    new AuthValidator();
-});
+
+
+// Le routeur charge ce script dynamiquement après injection du HTML.
+// DOMContentLoaded est souvent déjà passé, donc on initialise immédiatement.
+new AuthValidator();

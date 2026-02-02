@@ -1,5 +1,8 @@
+// frontend/vite.config.js
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
+import fs from 'fs'
+import path from 'path'
 
 export default defineConfig({
   root: '.',
@@ -7,7 +10,15 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    historyApiFallback: true
+    historyApiFallback: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost/vite-gourmand/backend/api',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   build: {
     outDir: 'dist',
@@ -32,8 +43,18 @@ export default defineConfig({
       '~bootstrap': resolve(__dirname, 'node_modules/bootstrap')
     }
   },
-  // Plugin pour copier les dossiers supplémentaires
   plugins: [
+    {
+      name: 'copy-backend',
+      buildStart: async () => {
+        // Copier le backend vers le dossier Apache à chaque build
+        await copyBackendToApache();
+      },
+      handleHotUpdate: async () => {
+        // Copier en mode développement quand les fichiers changent
+        await copyBackendToApache();
+      }
+    },
     {
       name: 'copy-dirs',
       closeBundle: async () => {
@@ -65,12 +86,10 @@ export default defineConfig({
           const destDir = path.resolve(outDir, dir)
           
           if (fs.existsSync(srcDir)) {
-            // Créer le dossier de destination s'il n'existe pas
             if (!fs.existsSync(destDir)) {
               fs.mkdirSync(destDir, { recursive: true })
             }
             
-            // Copier récursivement
             const copyRecursive = (src, dest) => {
               const files = fs.readdirSync(src)
               files.forEach(file => {
@@ -96,3 +115,37 @@ export default defineConfig({
     }
   ]
 })
+
+// Fonction pour copier le backend vers Apache
+async function copyBackendToApache() {
+  const backendPath = resolve(__dirname, '../backend')
+  const apachePath = 'C:/xampp/htdocs/vite-gourmand/backend'
+  
+  if (fs.existsSync(backendPath)) {
+    // Créer le dossier de destination s'il n'existe pas
+    if (!fs.existsSync(apachePath)) {
+      fs.mkdirSync(apachePath, { recursive: true })
+    }
+    
+    // Copier récursivement
+    const copyRecursive = (src, dest) => {
+      const files = fs.readdirSync(src)
+      files.forEach(file => {
+        const srcPath = path.join(src, file)
+        const destPath = path.join(dest, file)
+        
+        if (fs.statSync(srcPath).isDirectory()) {
+          if (!fs.existsSync(destPath)) {
+            fs.mkdirSync(destPath, { recursive: true })
+          }
+          copyRecursive(srcPath, destPath)
+        } else {
+          fs.copyFileSync(srcPath, destPath)
+        }
+      })
+    }
+    
+    copyRecursive(backendPath, apachePath)
+    console.log('✓ Backend copié vers Apache')
+  }
+}

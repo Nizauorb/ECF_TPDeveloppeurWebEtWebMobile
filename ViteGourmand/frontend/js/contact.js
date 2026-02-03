@@ -10,6 +10,7 @@ class ContactForm {
 
     setupContactForm() {
         const contactForm = document.querySelector('.contact-form');
+        
         if (!contactForm) {
             setTimeout(() => this.setupContactForm(), 50);
             return;
@@ -21,7 +22,6 @@ class ContactForm {
         console.log('Formulaire de contact trouvé, configuration...');
 
         contactForm.addEventListener('submit', async (e) => {
-            console.log('Soumission du formulaire de contact interceptée !');
             e.preventDefault();
             
             if (this.validateContactForm()) {
@@ -163,7 +163,6 @@ class ContactForm {
                 })
             });
 
-            // Gérer les réponses HTTP
             if (!response.ok) {
                 if (response.status === 400) {
                     const data = await response.json();

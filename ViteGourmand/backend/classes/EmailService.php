@@ -1,16 +1,17 @@
 <?php
 // backend/classes/EmailService.php
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
 class EmailService {
     private $config;
     private $mail;
 
     public function __construct() {
         $this->config = require __DIR__ . '/../config/config.php';
-        $this->mail = new PHPMailer(true);
+        
+        // Importer PHPMailer
+        require_once __DIR__ . '/../../vendor/autoload.php';
+        
+        $this->mail = new PHPMailer\PHPMailer\PHPMailer(true);
         $this->setupMailer();
     }
 

@@ -2,7 +2,7 @@
 // backend/api/contact/send.php
 
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Désactiver l'affichage des warnings en production
 
 // Configuration des headers
 header("Access-Control-Allow-Origin: *");
@@ -89,8 +89,18 @@ try {
     }
 
     // Envoyer l'email avec EmailService
-    $emailService = new EmailService();
-    $emailService->sendContactEmail($name, $email, $message);
+    try {
+        $emailService = new EmailService();
+        $emailService->sendContactEmail($name, $email, $message);
+    } catch (Exception $emailError) {
+        error_log("Erreur EmailService: " . $emailError->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Erreur lors de l\'envoi de l\'email. Veuillez réessayer plus tard.'
+        ]);
+        exit();
+    }
 
     // Réponse de succès
     http_response_code(200);

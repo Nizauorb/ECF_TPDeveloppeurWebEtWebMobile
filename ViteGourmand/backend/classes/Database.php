@@ -1,10 +1,6 @@
 <?php
 // backend/classes/Database.php
 
-// Import des classes PDO
-use PDO;
-use PDOException;
-
 class Database {
     private static $instance = null;
     private $connection;

@@ -1,10 +1,7 @@
 <?php
 // Activer l'affichage des erreurs
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Import des classes nécessaires
-use DateTime;
+ini_set('display_errors', 0); // Désactiver l'affichage des warnings en production
 
 // Définir les en-têtes CORS
 header("Access-Control-Allow-Origin: *");
@@ -67,7 +64,7 @@ try {
 
     // Générer un token sécurisé
     $token = bin2hex(random_bytes(32));
-    $expiresAt = (new DateTime('+10 minutes'))->format('Y-m-d H:i:s');
+    $expiresAt = (new \DateTime('+10 minutes'))->format('Y-m-d H:i:s');
 
     // Marquer les anciens tokens comme utilisés
     $stmt = $db->prepare("UPDATE password_reset_tokens SET used = 1 WHERE user_id = ? AND used = 0");

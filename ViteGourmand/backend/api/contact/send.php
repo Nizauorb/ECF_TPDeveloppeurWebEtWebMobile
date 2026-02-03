@@ -4,6 +4,12 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Désactiver l'affichage des warnings en production
 
+// Inclure les dépendances
+require_once __DIR__ . '/../../classes/SecurityHeaders.php';
+require_once __DIR__ . '/../../classes/RateLimiter.php';
+require_once __DIR__ . '/../../classes/CSRFProtection.php';
+require_once __DIR__ . '/../../classes/InputValidator.php';
+
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
 SecurityHeaders::setErrorHeaders();
@@ -24,12 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ]);
     exit();
 }
-
-// Inclure les dépendances
-require_once __DIR__ . '/../../classes/SecurityHeaders.php';
-require_once __DIR__ . '/../../classes/RateLimiter.php';
-require_once __DIR__ . '/../../classes/CSRFProtection.php';
-require_once __DIR__ . '/../../classes/InputValidator.php';
 
 // Validation de la taille et du type de contenu
 if (!InputValidator::validateInputSize()) {

@@ -2,6 +2,7 @@ class AuthValidator {
     constructor() {
         this._loginBound = false;
         this._registerBound = false;
+        this.csrfToken = null;
         setTimeout(() => this.init(), 0);
     }
  
@@ -10,6 +11,26 @@ class AuthValidator {
         this.setupRegisterForm();
         this.setupForgotPasswordForm();
         this.setupResetPasswordForm();
+        this.loadCSRFToken();
+    }
+
+    async loadCSRFToken() {
+        try {
+            const response = await fetch('/api/csrf/token.php', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.csrfToken = data.csrf_token;
+                // DEBUG: console.log('CSRF Token chargé dans AuthValidator:', this.csrfToken.substring(0, 8) + '...');
+            } else {
+                console.error('Erreur chargement token CSRF dans AuthValidator');
+            }
+        } catch (error) {
+            console.error('Erreur réseau CSRF AuthValidator:', error);
+        }
     }
 
     // Validation du mot de passe selon les exigences
@@ -358,12 +379,22 @@ async loginUser() {
             }
 
             try {
+                // Vérifier si le token CSRF est disponible
+                if (!this.csrfToken) {
+                    throw new Error('Token CSRF non disponible. Veuillez réessayer.');
+                }
+
                 const response = await fetch('/api/auth/forgot-password.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRF-Token': this.csrfToken
                     },
-                    body: JSON.stringify({ email })
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        csrf_token: this.csrfToken,
+                        email 
+                    })
                 });
             
                 // Lire la réponse une seule fois

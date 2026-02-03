@@ -1,6 +1,10 @@
 <?php
 // backend/classes/Database.php
 
+// Import des classes PDO
+use PDO;
+use PDOException;
+
 class Database {
     private static $instance = null;
     private $connection;
@@ -23,9 +27,14 @@ class Database {
         }
     }
 
-    public static function getInstance() {
+    public static function getInstance(): Database {
         if (self::$instance === null) {
-            self::$instance = new self();
+            try {
+                self::$instance = new self();
+            } catch (Exception $e) {
+                error_log("Erreur création instance Database: " . $e->getMessage());
+                throw new Exception("Impossible d'initialiser la base de données: " . $e->getMessage());
+            }
         }
         return self::$instance;
     }

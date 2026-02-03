@@ -780,3 +780,483 @@ section.py-5 {
 .alert {
   animation: slideInRight 0.3s ease;
 }
+
+// Styles pour les pages d'authentification (forgot-password, reset-password)
+.auth-container {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($secondary, 0.02) 100%);
+  
+  @media (max-width: 768px) {
+    min-height: 70vh;
+    padding: 1rem;
+  }
+}
+
+.auth-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 3rem;
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid rgba($primary, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  // Version plus large pour la page d'inscription
+  &.auth-card-large {
+    max-width: 600px;
+    
+    @media (max-width: 768px) {
+      max-width: 100%;
+    }
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  
+  .auth-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, $primary, darken($primary, 10%));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba($primary, 0.3);
+    animation: float 3s ease-in-out infinite;
+    
+    i {
+      font-size: 2rem;
+      color: white;
+    }
+  }
+  
+  h2 {
+    color: $dark;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .auth-description {
+    color: $secondary;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.form-group {
+  margin-bottom: 1.75rem;
+  
+  // Pour les formulaires avec des rangées (nom/prénom)
+  &.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+  
+  label {
+    display: block;
+    color: $dark;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    
+    &::after {
+      content: ' *';
+      color: $primary;
+    }
+  }
+  
+  .input-group {
+    display: flex;
+    align-items: stretch;
+    
+    .input-group-text {
+      background: rgba($primary, 0.1);
+      border: 2px solid #e9ecef;
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      padding: 0.875rem 1rem;
+      color: $primary;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      
+      i {
+        width: 20px;
+        text-align: center;
+      }
+    }
+    
+    input {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e9ecef;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-color: #f8f9fa;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+        transform: translateY(-1px);
+        
+        & + .input-group-text {
+          border-color: $primary;
+          background-color: rgba($primary, 0.15);
+        }
+      }
+      
+      &:hover {
+        border-color: rgba($primary, 0.3);
+        background-color: white;
+        
+        & + .input-group-text {
+          border-color: rgba($primary, 0.3);
+        }
+      }
+      
+      &::placeholder {
+        color: #adb5bd;
+        font-style: italic;
+      }
+    }
+    
+    textarea {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e9ecef;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-color: #f8f9fa;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+        transform: translateY(-1px);
+        
+        & + .input-group-text {
+          border-color: $primary;
+          background-color: rgba($primary, 0.15);
+        }
+      }
+      
+      &:hover {
+        border-color: rgba($primary, 0.3);
+        background-color: white;
+        
+        & + .input-group-text {
+          border-color: rgba($primary, 0.3);
+        }
+      }
+      
+      &::placeholder {
+        color: #adb5bd;
+        font-style: italic;
+      }
+    }
+  }
+  
+  // Style pour les inputs sans input-group
+  input:not(.input-group ~ input) {
+    width: 100%;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      background-color: white;
+      box-shadow: 0 0 0 4px rgba($primary, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    &:hover {
+      border-color: rgba($primary, 0.3);
+      background-color: white;
+    }
+    
+    &::placeholder {
+      color: #adb5bd;
+      font-style: italic;
+    }
+  }
+  
+  // Styles pour les checkboxes
+  .form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+    
+    .form-check-input {
+      width: 1.25rem !important;
+      height: 1.25rem !important;
+      border: 2px solid #e9ecef !important;
+      border-radius: 4px !important;
+      transition: all 0.3s ease !important;
+      margin-top: 0.125rem;
+      
+      &:checked {
+        background-color: $primary;
+        border-color: $primary;
+      }
+      
+      &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+      }
+    }
+    
+    .form-check-label {
+      color: $dark;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      padding-top: 0.125rem;
+      
+      .terms-link {
+        color: $primary;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          color: darken($primary, 10%);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+.error-message {
+  display: none;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(220, 53, 69, 0.1);
+  border-left: 3px solid #dc3545;
+  border-radius: 4px;
+  animation: slideInRight 0.3s ease;
+  
+  &.show {
+    display: block;
+  }
+  
+  &::before {
+    content: '⚠️';
+    margin-right: 0.5rem;
+  }
+}
+
+.auth-links {
+  margin-top: 2rem;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  
+  a {
+    color: $primary;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    i {
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: $primary;
+      transition: width 0.3s ease;
+    }
+    
+    &:hover {
+      color: darken($primary, 10%);
+      text-decoration: none;
+      
+      i {
+        transform: translateX(-3px);
+      }
+      
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.auth-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  
+  .help-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    
+    i {
+      color: $primary;
+      font-size: 1rem;
+    }
+    
+    .register-link {
+      color: $primary;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        color: darken($primary, 10%);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// Animation de chargement pour le bouton
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.btn-primary.loading {
+  animation: pulse 1.5s infinite;
+  
+  .btn-text::after {
+    content: '⏳';
+    margin-left: 0.5rem;
+  }
+}
+
+// Message de succès
+.success-message {
+  display: none;
+  color: #155724;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(40, 167, 69, 0.1);
+  border-left: 3px solid #28a745;
+  border-radius: 4px;
+  animation: slideInRight 0.3s ease;
+  
+  &.show {
+    display: block;
+  }
+  
+  &::before {
+    content: '✅';
+    margin-right: 0.5rem;
+  }
+}
+
+// Styles pour les exigences de mot de passe
+.password-requirements {
+  margin-top: 0.75rem;
+  
+  .requirement {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    
+    i {
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+      
+      &.bi-x-circle {
+        color: #dc3545;
+      }
+      
+      &.bi-check-circle {
+        color: #28a745;
+      }
+    }
+    
+    &.valid {
+      color: #155724;
+      
+      i {
+        &.bi-x-circle {
+          color: #28a745;
+        }
+      }
+    }
+  }
+}

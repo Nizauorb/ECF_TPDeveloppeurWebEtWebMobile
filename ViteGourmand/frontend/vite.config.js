@@ -10,7 +10,15 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    historyApiFallback: true,
+    historyApiFallback: {
+      rewrites: [
+        { from: /\/ResetPassword/, to: '/index.html' },
+        { from: /\/ForgotPassword/, to: '/index.html' },
+        { from: /\/Login/, to: '/index.html' },
+        { from: /\/Register/, to: '/index.html' },
+        { from: /./, to: '/index.html' } // Toutes les autres routes
+      ]
+    },
     proxy: {
       '/api': {
         target: 'http://localhost/vite-gourmand/backend/api',

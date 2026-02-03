@@ -8,6 +8,8 @@ class AuthValidator {
     init() {
         this.setupLoginForm();
         this.setupRegisterForm();
+        this.setupForgotPasswordForm();
+        this.setupResetPasswordForm();
     }
 
     // Validation du mot de passe selon les exigences
@@ -341,6 +343,158 @@ async loginUser() {
 
         return isValid;
     }
+
+    setupForgotPasswordForm() {
+        const form = document.getElementById('forgotPasswordForm');
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!this.validateEmail(email)) {
+                this.showError('emailError', 'Veuillez entrer un email valide');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/forgot-password.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+            
+                // Lire la réponse une seule fois
+                const responseText = await response.text();
+                console.log('Réponse brute:', responseText);
+                
+                // Essayer de parser en JSON
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error('Réponse serveur invalide: ' + responseText);
+                }
+                
+                if (data.success) {
+                    this.showSuccess(data.message);
+                    setTimeout(() => {
+                        window.location.href = '/Login';
+                    }, 3000);
+                } else {
+                    this.showError('generalError', data.message || 'Une erreur est survenue');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                this.showError('generalError', 'Erreur de communication avec le serveur: ' + error.message);
+            }
+        });
+    }
+
+    setupResetPasswordForm() {
+        const form = document.getElementById('resetPasswordForm');
+        if (!form) return;
+
+        // Gestion du token de réinitialisation
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        // Si le token est présent dans l'URL, le stocker dans le champ caché
+        if (token) {
+            const tokenInput = document.getElementById('token');
+            if (tokenInput) {
+                tokenInput.value = token;
+            }
+        } else {
+            // Si aucun token n'est trouvé, vérifier dans le localStorage
+            const storedToken = localStorage.getItem('resetToken');
+            if (storedToken) {
+                const tokenInput = document.getElementById('token');
+                if (tokenInput) {
+                    tokenInput.value = storedToken;
+                    // Nettoyer le localStorage après utilisation
+                    localStorage.removeItem('resetToken');
+                }
+            } else {
+                // Rediriger vers la page de demande de réinitialisation si aucun token n'est trouvé
+                window.location.href = '/ForgotPassword';
+                return; // Ne pas continuer l'exécution si redirection
+            }
+        }
+
+        // Ajouter l'écouteur d'événement pour la validation en temps réel du mot de passe
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => {
+                this.updatePasswordRequirements(passwordInput.value);
+            });
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const token = document.getElementById('token').value;
+
+            // Validation des exigences du mot de passe selon le cahier des charges
+            const passwordRequirements = this.validatePassword(password);
+            const isPasswordValid = Object.values(passwordRequirements).every(req => req === true);
+            
+            if (!isPasswordValid) {
+                this.showError('passwordError', 'Le mot de passe doit contenir au moins 10 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                this.showError('confirmPasswordError', 'Les mots de passe ne correspondent pas');
+                return;
+            }
+
+            try {
+                // Afficher l'état de chargement
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('loading');
+                }
+
+                const response = await fetch('/api/auth/reset-password.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        token, 
+                        password 
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.showSuccess('Votre mot de passe a été réinitialisé avec succès');
+                    setTimeout(() => {
+                        window.location.href = '/Login';
+                    }, 3000);
+                } else {
+                    this.showError('generalError', data.message || 'Une erreur est survenue');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                this.showError('generalError', 'Une erreur est survenue lors de la communication avec le serveur');
+            } finally {
+                // Masquer l'état de chargement
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('loading');
+                }
+            }
+        });
+    }   
     
     // Afficher l'état de chargement
     showLoadingState() {

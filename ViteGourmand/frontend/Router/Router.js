@@ -7,9 +7,11 @@ const route404 = new Route("404", "Page introuvable", "/pages/404.html");
 // Fonction pour récupérer la route correspondant à une URL donnée
 const getRouteByUrl = (url) => {
   let currentRoute = null;
+  // Enlever les paramètres d'URL pour la correspondance des routes
+  const path = url.split('?')[0];
   // Parcours de toutes les routes pour trouver la correspondance
   allRoutes.forEach((element) => {
-    if (element.url == url) {
+    if (element.url === path) {
       currentRoute = element;
     }
   });
@@ -23,13 +25,22 @@ const getRouteByUrl = (url) => {
 
 // Fonction pour charger le contenu de la page
 const LoadContentPage = async () => {
-  const path = window.location.pathname;
+  const path = window.location.pathname + window.location.search;
   // Récupération de l'URL actuelle
   const actualRoute = getRouteByUrl(path);
   // Récupération du contenu HTML de la route
   const html = await fetch(actualRoute.pathHtml).then((data) => data.text());
-  // Ajout du contenu HTML à l'élément avec l'ID "main-page"
+  // Ajout du contenu HTML à l'élément avec l'ID "main-content"
   document.getElementById("main-content").innerHTML = html;
+
+  // Extraire les paramètres d'URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  
+  // Stocker le token dans le localStorage pour une utilisation ultérieure
+  if (token) {
+    localStorage.setItem('resetToken', token);
+  }
 
   // Gestion du header spécifique si défini
   if (actualRoute.headerHtml) {

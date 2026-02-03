@@ -28,6 +28,7 @@ const LoadContentPage = async () => {
   const path = window.location.pathname + window.location.search;
   // Récupération de l'URL actuelle
   const actualRoute = getRouteByUrl(path);
+  console.log('Route trouvée:', actualRoute); // Debug
   
   // Récupération du contenu HTML de la route
   const html = await fetch(actualRoute.pathHtml).then((data) => data.text());
@@ -65,8 +66,11 @@ const LoadContentPage = async () => {
       // Charger le menuManager si pas encore chargé
       try {
         const module = await import(/* @vite-ignore */ actualRoute.pathJS.replace('menu.js', 'menuManager.js'));
+        // DEBUG: Log de débogage - à supprimer en production
+      console.log('MenuManager chargé');
       } catch (error) {
-        console.error('Erreur de chargement du MenuManager:', error);
+        // DEBUG: Log de débogage - à supprimer en production
+      console.error('Erreur de chargement du MenuManager:', error);
       }
     }
     
@@ -81,10 +85,13 @@ const LoadContentPage = async () => {
     scriptTag.setAttribute("src", actualRoute.pathJS);
 
     scriptTag.onload = function() {
+      // DEBUG: Log de débogage - à supprimer en production
+      console.log('Script chargé:', actualRoute.pathJS);
       document.title = actualRoute.title + " - " + websiteName;
     };
 
     scriptTag.onerror = function() {
+      // DEBUG: Log de débogage - à supprimer en production
       console.error('Erreur de chargement du script:', actualRoute.pathJS);
       document.title = actualRoute.title + " - " + websiteName;
     };

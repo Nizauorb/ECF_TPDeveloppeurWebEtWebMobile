@@ -1,17 +1,42 @@
 class ContactForm {
     constructor() {
         this._formBound = false;
+        this.csrfToken = null;
+        // DEBUG: console.log('ContactForm: Initialisation...');
         setTimeout(() => this.init(), 0);
     }
 
     init() {
+        // DEBUG: console.log('ContactForm: Démarrage de init()');
         this.setupContactForm();
+        this.loadCSRFToken();
+    }
+
+    async loadCSRFToken() {
+        try {
+            const response = await fetch('/api/csrf/token.php', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.csrfToken = data.csrf_token;
+                // DEBUG: console.log('CSRF Token chargé:', this.csrfToken.substring(0, 8) + '...');
+            } else {
+                console.error('Erreur chargement token CSRF');
+            }
+        } catch (error) {
+            console.error('Erreur réseau CSRF:', error);
+        }
     }
 
     setupContactForm() {
         const contactForm = document.querySelector('.contact-form');
+        // DEBUG: console.log('ContactForm: Recherche du formulaire...', contactForm);
         
         if (!contactForm) {
+            // DEBUG: console.log('ContactForm: Formulaire non trouvé, nouvel essai dans 50ms');
             setTimeout(() => this.setupContactForm(), 50);
             return;
         }
@@ -19,9 +44,10 @@ class ContactForm {
         if (this._formBound) return;
         this._formBound = true;
 
-        console.log('Formulaire de contact trouvé, configuration...');
+        // DEBUG: console.log('ContactForm: Formulaire trouvé et configuré !');
 
         contactForm.addEventListener('submit', async (e) => {
+            // DEBUG: console.log('Soumission du formulaire de contact interceptée !');
             e.preventDefault();
             
             if (this.validateContactForm()) {
@@ -150,31 +176,38 @@ class ContactForm {
             // Afficher l'état de chargement
             this.showLoadingState();
             
+            // Vérifier si le token CSRF est disponible
+            if (!this.csrfToken) {
+                throw new Error('Token CSRF non disponible. Veuillez réessayer.');
+            }
+            
             const response = await fetch('/api/contact/send.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-Token': this.csrfToken
                 },
+                credentials: 'include',
                 body: JSON.stringify({
+                    csrf_token: this.csrfToken,
                     name: name,
                     email: email,
                     message: message
                 })
             });
 
-            if (!response.ok) {
-                if (response.status === 400) {
-                    const data = await response.json();
-                    throw new Error(data.message || 'Données invalides');
-                } else if (response.status >= 500) {
-                    throw new Error('Erreur serveur. Veuillez réessayer ultérieurement.');
-                } else {
-                    throw new Error('Erreur lors de l\'envoi du message');
-                }
+            // Pour debugger : voir la réponse brute
+            const responseText = await response.text();
+            // DEBUG: console.log('Réponse brute du serveur:', responseText);
+
+            // Essayer de parser en JSON
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                throw new Error('Réponse serveur invalide: ' + responseText);
             }
-            
-            const data = await response.json();
             
             if (data.success) {
                 // Succès : vider le formulaire et afficher confirmation
@@ -273,4 +306,5 @@ class ContactForm {
 
 // Le routeur charge ce script dynamiquement après injection du HTML.
 // DOMContentLoaded est souvent déjà passé, donc on initialise immédiatement.
+// DEBUG: console.log('ContactForm: Script chargé, création de l\'instance...');
 new ContactForm();

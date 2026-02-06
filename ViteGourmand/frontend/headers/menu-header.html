@@ -66,11 +66,9 @@
             </div>
         </div>
         
-        <!-- Actions Desktop -->
-        <div class="header-actions me-4">
-            <a href="/Login" class="btn btn-primary login-btn">
-                <i class="bi bi-person"></i> Connexion
-            </a>
+        <!-- Actions Desktop (injecté dynamiquement par le Router) -->
+        <div class="header-actions me-4 auth-actions">
+            <!-- Rempli par updateAuthUI() -->
         </div>
     </div>
 </div>
@@ -120,14 +118,55 @@
             </div>
         </div>
         
-        <!-- Actions mobile/tablette -->
+        <!-- Actions mobile/tablette (injecté dynamiquement par le Router) -->
         <div class="mobile-menu-section">
-            <h6 class="mobile-menu-section-title">Actions</h6>
-            <div class="mobile-menu-actions">
-                <a href="/Login" class="btn btn-primary login-btn w-100">
-                    <i class="bi bi-person me-2"></i> Connexion
-                </a>
+            <h6 class="mobile-menu-section-title">Mon compte</h6>
+            <div class="mobile-menu-actions auth-actions-mobile">
+                <!-- Rempli par updateAuthUI() -->
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Offcanvas Profil utilisateur (côté droit) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="userProfileMenu" aria-labelledby="userProfileMenuLabel">
+    <div class="offcanvas-header border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-primary fs-4">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div>
+                <h5 class="offcanvas-title fw-semibold mb-0" id="userProfileMenuLabel">Mon Espace</h5>
+                <small class="text-muted" id="offcanvas-user-email"></small>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <nav class="py-2">
+            <ul class="list-unstyled mb-0">
+                <li>
+                    <a href="/UserDashboard" class="d-flex align-items-center px-4 py-3 text-decoration-none text-dark">
+                        <i class="bi bi-bag-check me-3 fs-5 text-primary"></i>
+                        <span>Mes Commandes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/UserDashboard" class="d-flex align-items-center px-4 py-3 text-decoration-none text-dark" onclick="setTimeout(() => { if(typeof showProfile === 'function') showProfile(); }, 500)">
+                        <i class="bi bi-person-gear me-3 fs-5 text-primary"></i>
+                        <span>Mon Profil</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <hr class="my-0">
+        <div class="p-3">
+            <a href="/Carte" class="btn btn-outline-primary w-100 mb-2">
+                <i class="bi bi-plus-circle me-2"></i>Nouvelle Commande
+            </a>
+            <button class="btn btn-outline-danger w-100" id="offcanvas-logout-btn">
+                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+            </button>
         </div>
     </div>
 </div>

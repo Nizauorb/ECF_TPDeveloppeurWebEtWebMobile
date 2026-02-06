@@ -4,6 +4,76 @@ import { allRoutes, websiteName } from "./allRoutes.js";
 // Création d'une route pour la page 404 (page introuvable)
 const route404 = new Route("404", "Page introuvable", "/pages/404.html");
 
+// Mise à jour de l'interface selon l'état de connexion
+const updateAuthUI = () => {
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  const isLoggedIn = token && userStr;
+
+  // Boutons desktop (.auth-actions)
+  const authDesktop = document.querySelectorAll('.auth-actions');
+  // Boutons mobile (.auth-actions-mobile)
+  const authMobile = document.querySelectorAll('.auth-actions-mobile');
+
+  if (isLoggedIn) {
+    const user = JSON.parse(userStr);
+
+    // Desktop : bouton "Mon Profil" qui ouvre l'offcanvas
+    authDesktop.forEach(el => {
+      el.innerHTML = `
+        <button class="btn btn-primary login-btn" data-bs-toggle="offcanvas" data-bs-target="#userProfileMenu">
+          <i class="bi bi-person-circle me-1"></i> ${user.prenom || 'Mon Profil'}
+        </button>
+      `;
+    });
+
+    // Mobile : bouton "Mon Profil" + Déconnexion
+    authMobile.forEach(el => {
+      el.innerHTML = `
+        <button class="btn btn-primary w-100 mb-2" data-bs-toggle="offcanvas" data-bs-target="#userProfileMenu">
+          <i class="bi bi-person-circle me-2"></i> Mon Profil
+        </button>
+        <button class="btn btn-outline-danger w-100" onclick="localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href='/Login';">
+          <i class="bi bi-box-arrow-right me-2"></i> Déconnexion
+        </button>
+      `;
+    });
+
+    // Offcanvas profil : remplir l'email et le nom
+    const offcanvasEmail = document.getElementById('offcanvas-user-email');
+    if (offcanvasEmail) offcanvasEmail.textContent = user.email || '';
+    const offcanvasName = document.getElementById('userProfileMenuLabel');
+    if (offcanvasName) offcanvasName.textContent = `${user.prenom || ''} ${user.nom || ''}`;
+
+    // Bouton déconnexion dans l'offcanvas
+    const logoutBtn = document.getElementById('offcanvas-logout-btn');
+    if (logoutBtn) {
+      logoutBtn.onclick = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/Login';
+      };
+    }
+  } else {
+    // Non connecté : bouton "Connexion"
+    authDesktop.forEach(el => {
+      el.innerHTML = `
+        <a href="/Login" class="btn btn-primary login-btn">
+          <i class="bi bi-person"></i> Connexion
+        </a>
+      `;
+    });
+
+    authMobile.forEach(el => {
+      el.innerHTML = `
+        <a href="/Login" class="btn btn-primary login-btn w-100">
+          <i class="bi bi-person me-2"></i> Connexion
+        </a>
+      `;
+    });
+  }
+};
+
 // Fonction pour récupérer la route correspondant à une URL donnée
 const getRouteByUrl = (url) => {
   let currentRoute = null;
@@ -51,13 +121,16 @@ const LoadContentPage = async () => {
   } else {
     // Header par défaut
     document.querySelector(".site-header").innerHTML = `
-      <div class="header-container">
-        <a href="/" class="logo-link">
-          <img src="/logo_header.png" alt="Logo Vite & Gourmand" class="rounded-4 logo-img">
+      <div class="default-header-wrapper">
+        <a href="/">
+          <img src="/mini_logo_header.png" alt="Logo Vite & Gourmand" class="default-logo">
         </a>
       </div>
     `;
   }
+
+  // Mettre à jour l'interface d'authentification après injection du header
+  updateAuthUI();
 
   // Gestion du JavaScript spécifique
   if (actualRoute.pathJS && actualRoute.pathJS.includes("menu.js")) {
@@ -102,6 +175,9 @@ const LoadContentPage = async () => {
     document.title = actualRoute.title + " - " + websiteName;
   }
 };
+
+// Exposer updateAuthUI globalement pour pouvoir l'appeler après déconnexion
+window.updateAuthUI = updateAuthUI;
 
 // Fonction pour gérer les événements de routage (clic sur les liens)
 const routeEvent = (event) => {

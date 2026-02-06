@@ -2,17 +2,46 @@
 // backend/classes/RateLimiter.php
 
 class RateLimiter {
-    private static $limits = [
-        'contact' => ['requests' => 3, 'window' => 300],  // 3 emails / 5 min
-        'forgot_password' => ['requests' => 5, 'window' => 900],  // 5 demandes / 15 min
-    ];
+    private static $config = null;
+    
+    /**
+     * Charger la configuration depuis config/security.php
+     */
+    private static function loadConfig(): void {
+        if (self::$config !== null) return;
+        
+        $configFile = __DIR__ . '/../config/security.php';
+        if (file_exists($configFile)) {
+            $security = require $configFile;
+            self::$config = $security['rate_limits'] ?? [];
+        } else {
+            self::$config = [];
+        }
+    }
+    
+    /**
+     * Obtenir la limite pour une action donnée
+     */
+    private static function getLimit(string $action): array {
+        self::loadConfig();
+        
+        // Lire la limite par défaut depuis la config ou fallback
+        $configFile = __DIR__ . '/../config/security.php';
+        $default = ['requests' => 1, 'window' => 60];
+        if (file_exists($configFile)) {
+            $security = require $configFile;
+            $default = $security['rate_limit_default'] ?? $default;
+        }
+        
+        return self::$config[$action] ?? $default;
+    }
     
     /**
      * Vérifier si une adresse IP peut faire une requête
      */
     public static function checkLimit(string $action, ?string $ip = null): bool {
         $ip = $ip ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $config = self::$limits[$action] ?? ['requests' => 1, 'window' => 60];
+        $config = self::getLimit($action);
         
         $key = "rate_limit_{$action}_{$ip}";
         $current = self::getStorage($key);
@@ -46,7 +75,7 @@ class RateLimiter {
      */
     public static function getWaitTime(string $action, ?string $ip = null): int {
         $ip = $ip ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $config = self::$limits[$action] ?? ['requests' => 1, 'window' => 60];
+        $config = self::getLimit($action);
         
         $key = "rate_limit_{$action}_{$ip}";
         $current = self::getStorage($key);
@@ -80,7 +109,7 @@ class RateLimiter {
      * Headers HTTP pour rate limiting
      */
     public static function setRateLimitHeaders(string $action): void {
-        $config = self::$limits[$action] ?? ['requests' => 1, 'window' => 60];
+        $config = self::getLimit($action);
         $remaining = $config['requests'] - (self::getStorage("rate_limit_{$action}_" . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'))['count'] ?? 0);
         
         header("X-RateLimit-Limit: {$config['requests']}");

@@ -21,6 +21,18 @@ class CSRFProtection {
     }
     
     /**
+     * Charger la durée de vie du token depuis la config
+     */
+    private static function getTokenLifetime(): int {
+        $configFile = __DIR__ . '/../config/security.php';
+        if (file_exists($configFile)) {
+            $security = require $configFile;
+            return $security['csrf']['token_lifetime'] ?? 3600;
+        }
+        return 3600;
+    }
+    
+    /**
      * Valider un token CSRF
      */
     public static function validateToken(string $token): bool {
@@ -40,8 +52,8 @@ class CSRFProtection {
             return false;
         }
         
-        // Vérifier l'âge du token (1 heure max)
-        $maxAge = 3600; // 1 heure
+        // Vérifier l'âge du token
+        $maxAge = self::getTokenLifetime();
         if (time() - $_SESSION['csrf_token_time'] > $maxAge) {
             error_log("CSRF: Token expiré");
             self::clearToken();
@@ -72,9 +84,10 @@ class CSRFProtection {
         }
         
         // Générer un nouveau token si inexistant ou expiré
+        $maxAge = self::getTokenLifetime();
         if (!isset($_SESSION['csrf_token']) || 
             !isset($_SESSION['csrf_token_time']) || 
-            time() - $_SESSION['csrf_token_time'] > 3600) {
+            time() - $_SESSION['csrf_token_time'] > $maxAge) {
             return self::generateToken();
         }
         

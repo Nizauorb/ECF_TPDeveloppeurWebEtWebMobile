@@ -1,15 +1,56 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
-require_once __DIR__ . '/../../classes/Database.php';
+ini_set('display_errors', 0);
 
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+require_once __DIR__ . '/../../classes/Database.php';
+require_once __DIR__ . '/../../classes/SecurityHeaders.php';
+require_once __DIR__ . '/../../classes/RateLimiter.php';
+require_once __DIR__ . '/../../classes/CSRFProtection.php';
+require_once __DIR__ . '/../../classes/InputValidator.php';
+
+// Headers de sécurité
+SecurityHeaders::setSecureCORS();
+SecurityHeaders::setErrorHeaders();
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    SecurityHeaders::setOptionsHeaders();
     http_response_code(200);
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Méthode non autorisée']);
+    exit();
+}
+
+// Validation de la taille et du type de contenu
+if (!InputValidator::validateInputSize()) {
+    http_response_code(413);
+    echo json_encode(['success' => false, 'message' => 'Les données envoyées sont trop volumineuses']);
+    exit();
+}
+
+if (!InputValidator::validateContentType()) {
+    http_response_code(415);
+    echo json_encode(['success' => false, 'message' => 'Type de contenu non autorisé']);
+    exit();
+}
+
+// Protection CSRF
+CSRFProtection::requireValidation();
+
+// Rate Limiting
+RateLimiter::setRateLimitHeaders('reset_password');
+
+if (!RateLimiter::checkLimit('reset_password')) {
+    $waitTime = RateLimiter::getWaitTime('reset_password');
+    http_response_code(429);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Trop de tentatives. Veuillez réessayer dans ' . ceil($waitTime / 60) . ' minute(s).',
+        'retry_after' => $waitTime
+    ]);
     exit();
 }
 

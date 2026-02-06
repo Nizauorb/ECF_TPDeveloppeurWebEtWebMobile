@@ -3,6 +3,23 @@
 
 class InputValidator {
     
+    private static $securityConfig = null;
+    
+    /**
+     * Charger la configuration depuis config/security.php
+     */
+    private static function getConfig(): array {
+        if (self::$securityConfig !== null) return self::$securityConfig;
+        
+        $configFile = __DIR__ . '/../config/security.php';
+        if (file_exists($configFile)) {
+            self::$securityConfig = require $configFile;
+        } else {
+            self::$securityConfig = [];
+        }
+        return self::$securityConfig;
+    }
+    
     /**
      * Valider et assainir un nom
      */
@@ -14,12 +31,16 @@ class InputValidator {
             return ['valid' => false, 'error' => 'Le nom est requis', 'sanitized' => ''];
         }
         
-        if (strlen($name) < 2) {
-            return ['valid' => false, 'error' => 'Le nom doit contenir au moins 2 caractères', 'sanitized' => ''];
+        $config = self::getConfig();
+        $minLen = $config['input']['name_min_length'] ?? 2;
+        $maxLen = $config['input']['name_max_length'] ?? 100;
+        
+        if (strlen($name) < $minLen) {
+            return ['valid' => false, 'error' => "Le nom doit contenir au moins {$minLen} caractères", 'sanitized' => ''];
         }
         
-        if (strlen($name) > 100) {
-            return ['valid' => false, 'error' => 'Le nom ne peut pas dépasser 100 caractères', 'sanitized' => ''];
+        if (strlen($name) > $maxLen) {
+            return ['valid' => false, 'error' => "Le nom ne peut pas dépasser {$maxLen} caractères", 'sanitized' => ''];
         }
         
         // Assainissement contre XSS
@@ -31,7 +52,8 @@ class InputValidator {
         }
         
         // Vérification des caractères autorisés (lettres, espaces, tirets, apostrophes)
-        if (!preg_match('/^[a-zA-ZÀ-ÿ\s\-\'\.]{2,100}$/', $sanitized)) {
+        $pattern = '/^[a-zA-ZÀ-ÿ\s\-\'\.]{'.$minLen.','.$maxLen.'}$/';
+        if (!preg_match($pattern, $sanitized)) {
             return ['valid' => false, 'error' => 'Le nom contient des caractères non autorisés', 'sanitized' => ''];
         }
         
@@ -49,7 +71,10 @@ class InputValidator {
             return ['valid' => false, 'error' => 'L\'email est requis', 'sanitized' => ''];
         }
         
-        if (strlen($email) > 254) {
+        $config = self::getConfig();
+        $maxLen = $config['input']['email_max_length'] ?? 254;
+        
+        if (strlen($email) > $maxLen) {
             return ['valid' => false, 'error' => 'L\'email est trop long', 'sanitized' => ''];
         }
         
@@ -80,19 +105,23 @@ class InputValidator {
             return ['valid' => false, 'error' => 'Le message est requis', 'sanitized' => ''];
         }
         
-        if (strlen($message) < 10) {
-            return ['valid' => false, 'error' => 'Le message doit contenir au moins 10 caractères', 'sanitized' => ''];
+        $config = self::getConfig();
+        $minLen = $config['input']['message_min_length'] ?? 10;
+        $maxLen = $config['input']['message_max_length'] ?? 2000;
+        
+        if (strlen($message) < $minLen) {
+            return ['valid' => false, 'error' => "Le message doit contenir au moins {$minLen} caractères", 'sanitized' => ''];
         }
         
-        if (strlen($message) > 2000) {
-            return ['valid' => false, 'error' => 'Le message ne peut pas dépasser 2000 caractères', 'sanitized' => ''];
+        if (strlen($message) > $maxLen) {
+            return ['valid' => false, 'error' => "Le message ne peut pas dépasser {$maxLen} caractères", 'sanitized' => ''];
         }
         
         // Assainissement contre XSS et injections
         $sanitized = self::sanitizeString($message);
         
         // Vérification après assainissement
-        if (strlen($sanitized) < 10) {
+        if (strlen($sanitized) < $minLen) {
             return ['valid' => false, 'error' => 'Le message contient trop de caractères invalides', 'sanitized' => ''];
         }
         
@@ -190,8 +219,9 @@ class InputValidator {
      * Valider la taille des données entrantes
      */
     public static function validateInputSize(): bool {
+        $config = self::getConfig();
         $contentLength = (int)$_SERVER['CONTENT_LENGTH'] ?? 0;
-        $maxSize = 1 * 1024 * 1024; // 1MB
+        $maxSize = $config['input']['max_input_size'] ?? (1 * 1024 * 1024);
         
         if ($contentLength > $maxSize) {
             error_log("Tentative d'envoi de données trop volumineuses: {$contentLength} bytes");

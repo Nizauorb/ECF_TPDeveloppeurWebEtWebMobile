@@ -125,13 +125,18 @@ class SecurityHeaders {
      * Valider si l'origine est autorisée
      */
     private static function isAllowedOrigin(string $origin): bool {
-        $allowedOrigins = [
-            'http://localhost:3000',
-            'https://localhost:3000',
-            'http://127.0.0.1:3000',
-            'https://127.0.0.1:3000',
-            // Ajouter vos domaines de production ici
-        ];
+        $configFile = __DIR__ . '/../config/security.php';
+        if (file_exists($configFile)) {
+            $security = require $configFile;
+            $allowedOrigins = $security['cors']['allowed_origins'] ?? [];
+        } else {
+            $allowedOrigins = [
+                'http://localhost:3000',
+                'https://localhost:3000',
+                'http://127.0.0.1:3000',
+                'https://127.0.0.1:3000',
+            ];
+        }
         
         return in_array($origin, $allowedOrigins);
     }

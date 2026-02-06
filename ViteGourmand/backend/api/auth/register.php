@@ -1,17 +1,20 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
-// Inclure la configuration et la connexion à la base de données
+ini_set('display_errors', 0);
+
+// Inclure les dépendances
 require_once __DIR__ . '/../../classes/Database.php';
+require_once __DIR__ . '/../../classes/SecurityHeaders.php';
+require_once __DIR__ . '/../../classes/RateLimiter.php';
+require_once __DIR__ . '/../../classes/CSRFProtection.php';
+require_once __DIR__ . '/../../classes/InputValidator.php';
 
-// Configuration des headers
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+// Headers de sécurité
+SecurityHeaders::setSecureCORS();
+SecurityHeaders::setErrorHeaders();
 
-// Gérer les requêtes OPTIONS
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    SecurityHeaders::setOptionsHeaders();
     http_response_code(200);
     exit();
 }
@@ -22,6 +25,36 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
         'success' => false,
         'message' => 'Méthode non autorisée'
+    ]);
+    exit();
+}
+
+// Validation de la taille et du type de contenu
+if (!InputValidator::validateInputSize()) {
+    http_response_code(413);
+    echo json_encode(['success' => false, 'message' => 'Les données envoyées sont trop volumineuses']);
+    exit();
+}
+
+if (!InputValidator::validateContentType()) {
+    http_response_code(415);
+    echo json_encode(['success' => false, 'message' => 'Type de contenu non autorisé']);
+    exit();
+}
+
+// Protection CSRF
+CSRFProtection::requireValidation();
+
+// Rate Limiting - Anti-spam inscription
+RateLimiter::setRateLimitHeaders('register');
+
+if (!RateLimiter::checkLimit('register')) {
+    $waitTime = RateLimiter::getWaitTime('register');
+    http_response_code(429);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Trop de tentatives. Veuillez réessayer dans ' . ceil($waitTime / 60) . ' minute(s).',
+        'retry_after' => $waitTime
     ]);
     exit();
 }
@@ -48,13 +81,26 @@ if (!empty($missingFields)) {
     exit();
 }
 
-// Validation de l'email
-if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+// Validation de l'email avec InputValidator
+$emailValidation = InputValidator::validateEmail($data['email']);
+if (!$emailValidation['valid']) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Format d\'email invalide'
-    ]);
+    echo json_encode(['success' => false, 'message' => $emailValidation['error']]);
+    exit();
+}
+
+// Validation du nom et prénom avec InputValidator
+$lastNameValidation = InputValidator::validateName($data['lastName']);
+if (!$lastNameValidation['valid']) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Nom : ' . $lastNameValidation['error']]);
+    exit();
+}
+
+$firstNameValidation = InputValidator::validateName($data['firstName']);
+if (!$firstNameValidation['valid']) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Prénom : ' . $firstNameValidation['error']]);
     exit();
 }
 
@@ -94,7 +140,7 @@ try {
 
     // Vérifier si l'email existe déjà
     $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$data['email']]);
+    $stmt->execute([$emailValidation['sanitized']]);
     
     if ($stmt->fetch()) {
         http_response_code(409); // Conflict
@@ -115,10 +161,10 @@ try {
     ");
 
     $stmt->execute([
-        ':email' => $data['email'],
+        ':email' => $emailValidation['sanitized'],
         ':password_hash' => $passwordHash,
-        ':first_name' => $data['firstName'],
-        ':last_name' => $data['lastName'],
+        ':first_name' => $firstNameValidation['sanitized'],
+        ':last_name' => $lastNameValidation['sanitized'],
         ':phone' => $data['phone'],
         ':address' => $data['address']
     ]);
@@ -146,6 +192,6 @@ try {
     echo json_encode([
         'success' => false,
         'message' => 'Erreur lors de l\'inscription',
-        'error' => $e->getMessage()
+        'error' => 'Erreur interne'
     ]);
 }

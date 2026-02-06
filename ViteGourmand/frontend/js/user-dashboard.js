@@ -20,12 +20,39 @@ function requireAuth() {
 // Variables globales (var pour permettre le rechargement du script par le Router)
 var currentUser = null;
 var currentEditingOrder = null;
+var csrfToken = null;
+
+async function loadCSRFToken() {
+    try {
+        const response = await fetch('/api/csrf/token.php', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const data = await response.json();
+            csrfToken = data.csrf_token;
+        }
+    } catch (error) {
+        console.error('Erreur chargement CSRF token:', error);
+    }
+}
+
+function getCsrfHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
+    }
+    return headers;
+}
 
 // Initialisation (exécution immédiate car le script est injecté dynamiquement par le Router)
 (function() {
     currentUser = requireAuth();
     if (currentUser) {
         console.log('Utilisateur connecté:', currentUser);
+        
+        // Charger le token CSRF
+        loadCSRFToken();
         
         // Afficher les infos utilisateur dans la sidebar
         displayUserInfo(currentUser);
@@ -423,9 +450,8 @@ async function handleProfileSubmit(e) {
     try {
         const response = await fetch('/api/user/update-profile.php', {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: getCsrfHeaders(),
+            credentials: 'include',
             body: JSON.stringify(formData)
         });
         
@@ -475,9 +501,8 @@ async function requestPasswordChange() {
     try {
         const response = await fetch('/api/user/request-password-reset.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: getCsrfHeaders(),
+            credentials: 'include',
             body: JSON.stringify({ email: currentUser.email })
         });
         
@@ -530,7 +555,8 @@ async function confirmEmailChange() {
     try {
         const response = await fetch('/api/user/confirm-email-change.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getCsrfHeaders(),
+            credentials: 'include',
             body: JSON.stringify({ user_id: currentUser.id, code: code })
         });
         
@@ -584,7 +610,8 @@ async function requestDeleteAccount() {
     try {
         const response = await fetch('/api/user/request-delete-account.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getCsrfHeaders(),
+            credentials: 'include',
             body: JSON.stringify({ user_id: currentUser.id })
         });
         
@@ -639,7 +666,8 @@ async function confirmDeleteAccount() {
     try {
         const response = await fetch('/api/user/confirm-delete-account.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getCsrfHeaders(),
+            credentials: 'include',
             body: JSON.stringify({ user_id: currentUser.id, code: code })
         });
         

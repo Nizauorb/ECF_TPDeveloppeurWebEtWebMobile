@@ -87,12 +87,13 @@ async loginUser() {
         // Afficher l'état de chargement
         this.showLoadingState();
         
+        const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+        if (this.csrfToken) headers['X-CSRF-Token'] = this.csrfToken;
+        
         const response = await fetch('/api/auth/login.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: headers,
+            credentials: 'include',
             body: JSON.stringify({
                 email: email,
                 password: password
@@ -222,12 +223,13 @@ async loginUser() {
                     };
 
                     // Envoi des données au serveur
+                    const regHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+                    if (this.csrfToken) regHeaders['X-CSRF-Token'] = this.csrfToken;
+                    
                     const response = await fetch('/api/auth/register.php', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
+                        headers: regHeaders,
+                        credentials: 'include',
                         body: JSON.stringify(formData)
                     });
 
@@ -492,11 +494,13 @@ async loginUser() {
                     submitBtn.classList.add('loading');
                 }
 
+                const resetHeaders = { 'Content-Type': 'application/json' };
+                if (this.csrfToken) resetHeaders['X-CSRF-Token'] = this.csrfToken;
+                
                 const response = await fetch('/api/auth/reset-password.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: resetHeaders,
+                    credentials: 'include',
                     body: JSON.stringify({ 
                         token, 
                         password 

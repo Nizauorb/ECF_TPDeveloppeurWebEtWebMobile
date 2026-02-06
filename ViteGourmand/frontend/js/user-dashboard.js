@@ -432,28 +432,134 @@ async function handleProfileSubmit(e) {
         const result = await response.json();
         
         if (result.success) {
-            // Mettre à jour les infos utilisateur dans localStorage
+            // Mettre à jour les champs (sauf email si changement en attente)
             currentUser.firstName = formData.first_name;
             currentUser.lastName = formData.last_name;
-            currentUser.email = formData.email;
             currentUser.phone = formData.phone;
             currentUser.address = formData.address;
-            localStorage.setItem('user', JSON.stringify(currentUser));
             
-            // Mettre à jour l'affichage
-            displayUserInfo(currentUser);
-            
-            // Afficher un message de succès
-            showSuccessMessage('Profil mis à jour avec succès');
-            
-            // Désactiver l'édition
-            cancelProfileEdit();
+            if (result.email_change_pending) {
+                // L'email n'a PAS été changé, un code a été envoyé à l'ancienne adresse
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                displayUserInfo(currentUser);
+                cancelProfileEdit();
+                showEmailVerificationModal();
+                showSuccessMessage(result.message);
+            } else {
+                // Pas de changement d'email, tout est mis à jour
+                currentUser.email = formData.email;
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                displayUserInfo(currentUser);
+                showSuccessMessage(result.message);
+                cancelProfileEdit();
+            }
         } else {
             showErrorMessage(result.message || 'Erreur lors de la mise à jour du profil');
         }
     } catch (error) {
         console.error('Erreur:', error);
         showErrorMessage('Erreur de communication avec le serveur');
+    }
+}
+
+// Changement de mot de passe (envoie un email de reset)
+async function requestPasswordChange() {
+    const btn = document.getElementById('change-password-btn');
+    const feedback = document.getElementById('password-change-feedback');
+    
+    // Désactiver le bouton pendant la requête
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Envoi en cours...';
+    feedback.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/user/request-password-reset.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: currentUser.email })
+        });
+        
+        const result = await response.json();
+        
+        feedback.style.display = 'block';
+        if (result.success) {
+            feedback.className = 'mt-2 alert alert-success';
+            feedback.innerHTML = '<i class="bi bi-check-circle me-1"></i> ' + result.message;
+        } else {
+            feedback.className = 'mt-2 alert alert-danger';
+            feedback.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> ' + (result.message || 'Erreur lors de l\'envoi');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        feedback.style.display = 'block';
+        feedback.className = 'mt-2 alert alert-danger';
+        feedback.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> Erreur de communication avec le serveur';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-key me-1"></i> Changer mon mot de passe';
+    }
+}
+
+// Vérification de changement d'email
+function showEmailVerificationModal() {
+    const modal = new bootstrap.Modal(document.getElementById('emailVerificationModal'));
+    document.getElementById('email-verification-code').value = '';
+    document.getElementById('email-verification-feedback').style.display = 'none';
+    document.getElementById('confirm-email-change-btn').disabled = false;
+    modal.show();
+}
+
+async function confirmEmailChange() {
+    const code = document.getElementById('email-verification-code').value.trim();
+    const feedback = document.getElementById('email-verification-feedback');
+    const btn = document.getElementById('confirm-email-change-btn');
+    
+    if (code.length !== 6) {
+        feedback.style.display = 'block';
+        feedback.className = 'alert alert-danger mt-3';
+        feedback.textContent = 'Veuillez saisir un code à 6 chiffres.';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Vérification...';
+    feedback.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/user/confirm-email-change.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUser.id, code: code })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Mettre à jour l'email dans localStorage
+            currentUser.email = result.new_email;
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            displayUserInfo(currentUser);
+            
+            // Fermer la modale
+            const modal = bootstrap.Modal.getInstance(document.getElementById('emailVerificationModal'));
+            if (modal) modal.hide();
+            
+            showSuccessMessage('Adresse email mise à jour avec succès !');
+        } else {
+            feedback.style.display = 'block';
+            feedback.className = 'alert alert-danger mt-3';
+            feedback.textContent = result.message || 'Code incorrect.';
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        feedback.style.display = 'block';
+        feedback.className = 'alert alert-danger mt-3';
+        feedback.textContent = 'Erreur de communication avec le serveur.';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmer';
     }
 }
 

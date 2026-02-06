@@ -563,25 +563,94 @@ async function confirmEmailChange() {
     }
 }
 
-// Suppression de compte
-function confirmDeleteAccount() {
+// Suppression de compte - Étape 1 : ouvrir la modale SUPPRIMER
+function showDeleteAccountModal() {
+    document.getElementById('delete-confirmation').value = '';
+    document.getElementById('confirm-delete-btn').disabled = true;
+    document.getElementById('delete-request-feedback').style.display = 'none';
     const modal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
     modal.show();
 }
 
-async function deleteAccount() {
+// Suppression de compte - Étape 1b : envoyer le code par email
+async function requestDeleteAccount() {
+    const btn = document.getElementById('confirm-delete-btn');
+    const feedback = document.getElementById('delete-request-feedback');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Envoi en cours...';
+    feedback.style.display = 'none';
+    
     try {
-        const response = await fetch('/api/user/delete', {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+        const response = await fetch('/api/user/request-delete-account.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUser.id })
         });
         
         const result = await response.json();
         
         if (result.success) {
-            showSuccessMessage('Compte supprimé avec succès');
+            // Fermer la modale étape 1
+            const modal1 = bootstrap.Modal.getInstance(document.getElementById('deleteAccountModal'));
+            if (modal1) modal1.hide();
+            
+            // Ouvrir la modale étape 2 (saisie du code)
+            setTimeout(() => {
+                document.getElementById('delete-verification-code').value = '';
+                document.getElementById('delete-verification-feedback').style.display = 'none';
+                document.getElementById('confirm-delete-code-btn').disabled = false;
+                const modal2 = new bootstrap.Modal(document.getElementById('deleteVerificationModal'));
+                modal2.show();
+            }, 500);
+        } else {
+            feedback.style.display = 'block';
+            feedback.className = 'mt-2 alert alert-danger';
+            feedback.textContent = result.message || 'Erreur lors de l\'envoi du code.';
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        feedback.style.display = 'block';
+        feedback.className = 'mt-2 alert alert-danger';
+        feedback.textContent = 'Erreur de communication avec le serveur.';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-envelope me-1"></i> Envoyer le code de confirmation';
+    }
+}
+
+// Suppression de compte - Étape 2 : valider le code et supprimer
+async function confirmDeleteAccount() {
+    const code = document.getElementById('delete-verification-code').value.trim();
+    const feedback = document.getElementById('delete-verification-feedback');
+    const btn = document.getElementById('confirm-delete-code-btn');
+    
+    if (code.length !== 6) {
+        feedback.style.display = 'block';
+        feedback.className = 'alert alert-danger mt-3';
+        feedback.textContent = 'Veuillez saisir un code à 6 chiffres.';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Suppression...';
+    feedback.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/user/confirm-delete-account.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUser.id, code: code })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Fermer la modale
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteVerificationModal'));
+            if (modal) modal.hide();
+            
+            showSuccessMessage('Compte supprimé avec succès. Redirection...');
             
             // Déconnexion et redirection
             setTimeout(() => {
@@ -589,11 +658,18 @@ async function deleteAccount() {
                 window.location.href = '/';
             }, 2000);
         } else {
-            showErrorMessage(result.message || 'Erreur lors de la suppression du compte');
+            feedback.style.display = 'block';
+            feedback.className = 'alert alert-danger mt-3';
+            feedback.textContent = result.message || 'Code incorrect.';
         }
     } catch (error) {
         console.error('Erreur:', error);
-        showErrorMessage('Erreur de communication avec le serveur');
+        feedback.style.display = 'block';
+        feedback.className = 'alert alert-danger mt-3';
+        feedback.textContent = 'Erreur de communication avec le serveur.';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-trash me-1"></i> Supprimer définitivement';
     }
 }
 

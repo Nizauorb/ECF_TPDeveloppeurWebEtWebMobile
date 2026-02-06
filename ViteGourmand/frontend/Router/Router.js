@@ -22,7 +22,7 @@ const updateAuthUI = () => {
     authDesktop.forEach(el => {
       el.innerHTML = `
         <button class="btn btn-primary login-btn" data-bs-toggle="offcanvas" data-bs-target="#userProfileMenu">
-          <i class="bi bi-person-circle me-1"></i> ${user.prenom || 'Mon Profil'}
+          <i class="bi bi-person-circle me-1"></i> ${user.firstName || 'Mon Profil'}
         </button>
       `;
     });
@@ -43,7 +43,7 @@ const updateAuthUI = () => {
     const offcanvasEmail = document.getElementById('offcanvas-user-email');
     if (offcanvasEmail) offcanvasEmail.textContent = user.email || '';
     const offcanvasName = document.getElementById('userProfileMenuLabel');
-    if (offcanvasName) offcanvasName.textContent = `${user.prenom || ''} ${user.nom || ''}`;
+    if (offcanvasName) offcanvasName.textContent = `${user.firstName || ''} ${user.lastName || ''}`;
 
     // Bouton déconnexion dans l'offcanvas
     const logoutBtn = document.getElementById('offcanvas-logout-btn');

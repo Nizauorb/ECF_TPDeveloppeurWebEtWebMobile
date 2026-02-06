@@ -1,21 +1,28 @@
 // frontend/js/user-dashboard.js
 function requireAuth() {
-    const auth = new AuthValidator();
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
     
-    if (!auth.isLoggedIn()) {
+    if (!token || !userStr) {
         window.location.href = '/Login';
         return false;
     }
     
-    return auth.getCurrentUser();
+    try {
+        return JSON.parse(userStr);
+    } catch (e) {
+        console.error('Erreur parsing user:', e);
+        window.location.href = '/Login';
+        return false;
+    }
 }
 
-// Variables globales
-let currentUser = null;
-let currentEditingOrder = null;
+// Variables globales (var pour permettre le rechargement du script par le Router)
+var currentUser = null;
+var currentEditingOrder = null;
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
+// Initialisation (exécution immédiate car le script est injecté dynamiquement par le Router)
+(function() {
     currentUser = requireAuth();
     if (currentUser) {
         console.log('Utilisateur connecté:', currentUser);
@@ -23,13 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Afficher les infos utilisateur dans la sidebar
         displayUserInfo(currentUser);
         
-        // Charger les commandes par défaut
-        loadUserCommands(currentUser.id);
+        // Lire le paramètre ?section= pour afficher la bonne section
+        const urlParams = new URLSearchParams(window.location.search);
+        const section = urlParams.get('section');
+        
+        if (section === 'profile') {
+            showProfile();
+        } else {
+            // Par défaut : afficher les commandes
+            loadUserCommands(currentUser.id);
+        }
         
         // Mettre en place les écouteurs d'événements
         setupEventListeners();
     }
-});
+})();
 
 // Configuration des écouteurs d'événements
 function setupEventListeners() {
@@ -51,16 +66,18 @@ function setupEventListeners() {
 
 // Affichage des informations utilisateur
 function displayUserInfo(user) {
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    
     // Sidebar desktop
     const sidebarUserName = document.getElementById('sidebar-user-name');
     if (sidebarUserName) {
-        sidebarUserName.textContent = `${user.prenom} ${user.nom}`;
+        sidebarUserName.textContent = fullName;
     }
     
     // Mobile header
     const sidebarUserNameMobile = document.getElementById('sidebar-user-name-mobile');
     if (sidebarUserNameMobile) {
-        sidebarUserNameMobile.textContent = `${user.prenom} ${user.nom}`;
+        sidebarUserNameMobile.textContent = fullName;
     }
     
     // Header mobile (legacy)
@@ -69,21 +86,21 @@ function displayUserInfo(user) {
     const mobileUserEmail = document.getElementById('mobile-user-email');
     
     if (headerUserName) {
-        headerUserName.textContent = `${user.prenom} ${user.nom}`;
+        headerUserName.textContent = fullName;
     }
     if (mobileUserName) {
-        mobileUserName.textContent = `${user.prenom} ${user.nom}`;
+        mobileUserName.textContent = fullName;
     }
     if (mobileUserEmail) {
         mobileUserEmail.textContent = user.email;
     }
     
     // Formulaire de profil
-    document.getElementById('profile-nom').value = user.nom || '';
-    document.getElementById('profile-prenom').value = user.prenom || '';
+    document.getElementById('profile-nom').value = user.lastName || '';
+    document.getElementById('profile-prenom').value = user.firstName || '';
     document.getElementById('profile-email').value = user.email || '';
-    document.getElementById('profile-telephone').value = user.telephone || '';
-    document.getElementById('profile-adresse').value = user.adresse || '';
+    document.getElementById('profile-telephone').value = user.phone || '';
+    document.getElementById('profile-adresse').value = user.address || '';
 }
 
 // Navigation
@@ -93,6 +110,9 @@ function showMyOrders() {
     
     // Afficher la section commandes
     document.getElementById('orders-section').style.display = 'block';
+    
+    // Afficher les boutons d'action
+    document.getElementById('dashboard-header-actions').classList.remove('d-none');
     
     // Mettre à jour le titre
     document.getElementById('page-title').textContent = 'Mes Commandes';
@@ -110,6 +130,9 @@ function showProfile() {
     
     // Afficher la section profil
     document.getElementById('profile-section').style.display = 'block';
+    
+    // Masquer les boutons d'action (Actualiser / Nouvelle Commande)
+    document.getElementById('dashboard-header-actions').classList.add('d-none');
     
     // Mettre à jour le titre
     document.getElementById('page-title').textContent = 'Mon Profil';
@@ -156,7 +179,12 @@ async function loadUserCommands(userId) {
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('orders-list').style.display = 'none';
         
-        const response = await fetch(`/api/commands/user/${userId}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/commands/user-commands.php?user_id=${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         const result = await response.json();
         
         // Masquer l'état de chargement
@@ -168,7 +196,8 @@ async function loadUserCommands(userId) {
             showEmptyState();
         }
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur chargement commandes:', error);
+        document.getElementById('loading-state').style.display = 'none';
         showEmptyState();
     }
 }
@@ -383,19 +412,19 @@ async function handleProfileSubmit(e) {
     e.preventDefault();
     
     const formData = {
-        nom: document.getElementById('profile-nom').value,
-        prenom: document.getElementById('profile-prenom').value,
+        user_id: currentUser.id,
+        last_name: document.getElementById('profile-nom').value,
+        first_name: document.getElementById('profile-prenom').value,
         email: document.getElementById('profile-email').value,
-        telephone: document.getElementById('profile-telephone').value,
-        adresse: document.getElementById('profile-adresse').value
+        phone: document.getElementById('profile-telephone').value,
+        address: document.getElementById('profile-adresse').value
     };
     
     try {
-        const response = await fetch('/api/user/profile', {
+        const response = await fetch('/api/user/update-profile.php', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(formData)
         });
@@ -403,9 +432,16 @@ async function handleProfileSubmit(e) {
         const result = await response.json();
         
         if (result.success) {
-            // Mettre à jour les infos utilisateur
-            currentUser = { ...currentUser, ...formData };
+            // Mettre à jour les infos utilisateur dans localStorage
+            currentUser.firstName = formData.first_name;
+            currentUser.lastName = formData.last_name;
+            currentUser.email = formData.email;
+            currentUser.phone = formData.phone;
+            currentUser.address = formData.address;
             localStorage.setItem('user', JSON.stringify(currentUser));
+            
+            // Mettre à jour l'affichage
+            displayUserInfo(currentUser);
             
             // Afficher un message de succès
             showSuccessMessage('Profil mis à jour avec succès');

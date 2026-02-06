@@ -175,7 +175,7 @@ async loginUser() {
                     redirectUrl = '/employe';
                     break;
                 case 'utilisateur':
-                    redirectUrl = '/user';
+                    redirectUrl = '/UserDashboard';
                     break;
                 default:
                     redirectUrl = '/';

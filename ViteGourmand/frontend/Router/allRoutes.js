@@ -10,6 +10,7 @@ export const allRoutes = [
     new Route("/Register", "Register", "/pages/register.html", "/js/auth.js"),
     new Route("/ForgotPassword", "ForgotPassword", "/pages/forgot-password.html", "/js/auth.js"),
     new Route("/ResetPassword", "ResetPassword", "/pages/reset-password.html", "/js/auth.js"),
+    new Route("/UserDashboard", "UserDashboard", "/pages/user-dashboard.html", "/js/user-dashboard.js"),
 ];
 
 //Le titre s'affiche comme ceci : Route.titre - websitename

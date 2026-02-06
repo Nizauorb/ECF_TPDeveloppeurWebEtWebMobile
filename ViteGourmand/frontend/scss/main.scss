@@ -1225,6 +1225,297 @@ section.py-5 {
   }
 }
 
+// ========================================
+// STYLES POUR LE USER DASHBOARD
+// ========================================
+
+.user-dashboard-layout {
+  min-height: 70vh;
+}
+
+// Sidebar : desktop = colonne latérale, mobile = barre horizontale
+.dashboard-sidebar {
+  border-bottom: 1px solid #e9ecef;
+}
+
+// Sidebar header : mobile = row, desktop = column centré
+.dashboard-sidebar-header {
+  gap: 0.75rem;
+  
+  .dashboard-user-avatar {
+    font-size: 1.75rem;
+  }
+}
+
+// Navigation sidebar : états actif et hover
+.dashboard-sidebar-nav {
+  .nav-item {
+    &.active .nav-link {
+      background: rgba($primary, 0.1);
+      color: $primary !important;
+      font-weight: 600;
+    }
+    
+    .nav-link {
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba($primary, 0.05);
+        color: $primary !important;
+      }
+    }
+  }
+}
+
+// Contenu principal : min-width pour éviter le shrink
+.dashboard-content {
+  min-width: 0;
+}
+
+// Desktop (md+) : sidebar en colonne latérale
+@media (min-width: 768px) {
+  .dashboard-sidebar {
+    width: 260px;
+    min-width: 260px;
+    border-bottom: none;
+    border-right: 1px solid #e9ecef;
+  }
+  
+  .dashboard-sidebar-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem !important;
+    gap: 0;
+    
+    .dashboard-user-avatar {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  .dashboard-sidebar-nav .nav-item.active .nav-link {
+    border-right: 3px solid $primary;
+  }
+  
+  .dashboard-header-actions {
+    width: auto;
+  }
+}
+
+// Orders : styles spécifiques non couverts par Bootstrap
+.orders-section .orders-container {
+  .order-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .order-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid #f1f3f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      
+      .order-info {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        
+        .order-ref {
+          font-weight: 600;
+          color: $dark;
+        }
+        
+        .order-date {
+          color: $secondary;
+          font-size: 0.9rem;
+        }
+        
+        .order-price {
+          font-weight: 600;
+          color: $primary;
+        }
+      }
+      
+      .order-status {
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        white-space: nowrap;
+        
+        &.status-en_attente {
+          background: rgba(255, 193, 7, 0.1);
+          color: #856404;
+        }
+        &.status-en_preparation {
+          background: rgba(23, 162, 184, 0.1);
+          color: #0c5460;
+        }
+        &.status-accepte,
+        &.status-pret,
+        &.status-livre {
+          background: rgba(40, 167, 69, 0.1);
+          color: #155724;
+        }
+        &.status-annule {
+          background: rgba(220, 53, 69, 0.1);
+          color: #721c24;
+        }
+      }
+    }
+    
+    .order-details {
+      padding: 1.25rem;
+      background: #f8f9fa;
+      display: none;
+      
+      &.show {
+        display: block;
+      }
+      
+      .order-content .detail-row {
+        display: flex;
+        margin-bottom: 0.5rem;
+        
+        .detail-label {
+          font-weight: 500;
+          color: $secondary;
+          min-width: 120px;
+        }
+        .detail-value {
+          color: $dark;
+        }
+      }
+      
+      .order-tracking {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        
+        h4 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin-bottom: 1rem;
+        }
+        
+        .tracking-step {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.75rem;
+          
+          .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 0.75rem;
+            
+            &.completed { background: $primary; color: white; }
+            &.current   { background: rgba($primary, 0.15); color: $primary; border: 2px solid $primary; }
+            &.pending    { background: #e9ecef; color: #6c757d; }
+          }
+          
+          .step-text {
+            .step-title { font-weight: 500; font-size: 0.9rem; }
+            .step-time  { font-size: 0.8rem; color: $secondary; }
+          }
+        }
+      }
+      
+      .order-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+// Profile : suppression de l'étoile * sur les labels
+.profile-form-group label::after {
+  content: none !important;
+}
+
+// Mobile header avec burger
+.dashboard-mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+// Responsive Dashboard (mobile)
+@media (max-width: 767.98px) {
+  // Header actions : boutons pleine largeur
+  .dashboard-header-actions {
+    width: 100%;
+    
+    .btn {
+      flex: 1;
+      font-size: 0.875rem;
+    }
+  }
+  
+  // Order items : empiler les infos verticalement
+  .orders-section .orders-container .order-item {
+    border-radius: 8px;
+    
+    .order-header {
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem;
+      
+      .order-info {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+    }
+    
+    .order-details {
+      padding: 1rem;
+      
+      .detail-row {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      
+      .order-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+    }
+  }
+  
+  // Profile : card responsive
+  .profile-card {
+    padding: 1.25rem !important;
+  }
+  
+  .profile-card-header {
+    flex-direction: column !important;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+  }
+}
+
+
 // Styles pour les exigences de mot de passe
 .password-requirements {
   margin-top: 0.75rem;
@@ -1260,3 +1551,5 @@ section.py-5 {
     }
   }
 }
+
+

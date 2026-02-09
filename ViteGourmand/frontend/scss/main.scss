@@ -1,0 +1,1543 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css");
+@import "custom";
+
+// Styles pour le header de menu
+.menu-header {
+  background-color: white;
+  box-shadow: none;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  
+  .logo-link {
+    flex: 0 0 auto;
+  }
+
+  .logo-img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+
+  .header-actions .btn,
+  .header-actions a.btn {
+    background-color: $primary;
+    border-color: $primary;
+    color: white;
+    border-radius: 8px;
+    padding: 0.65rem 1.6rem;
+  }
+
+  .header-actions .btn:hover,
+  .header-actions a.btn:hover {
+    background-color: darken($primary, 8%);
+    border-color: darken($primary, 8%);
+    color: white;
+  }
+
+  .header-actions .filter-btn {
+    background-color: white !important;
+    border-color: $primary !important;
+    border-width: 2px;
+    color: $primary !important;
+  }
+
+  .header-actions .filter-btn:hover {
+    background-color: rgba($primary, 0.08) !important;
+    border-color: $primary !important;
+    color: $primary !important;
+  }
+
+  .header-actions .login-btn {
+    background-color: $primary !important;
+    border-color: $primary !important;
+    color: white !important;
+  }
+
+  .header-actions .login-btn:hover {
+    background-color: darken($primary, 8%) !important;
+    border-color: darken($primary, 8%) !important;
+    color: white !important;
+  }
+
+  // Menu hamburger pour mobile
+  .mobile-menu-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: $primary;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      color: darken($primary, 10%);
+      transform: scale(1.1);
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba($primary, 0.25);
+    }
+  }
+}
+
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+// Style pour les boutons de catégories de menus en ligne
+.menu-category {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+// Style pour le conteneur des catégories de menus
+.header-actions:first-of-type {
+  flex: 1 1 auto;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 3rem;
+}
+
+// Style pour le conteneur des boutons filtrer et connexion
+.header-actions:last-of-type {
+  flex: 0 0 auto;
+  margin-left: auto; // Pousse les boutons tout à droite
+  justify-content: flex-end;
+}
+
+// Style du bouton flottant du menu
+.floating-menu-button {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: $primary;
+    color: white;
+    padding: 20px 14px;
+    border-radius: 0 30px 30px 0;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    
+    &:hover {
+        background-color: darken($primary, 10%);
+        transform: translateY(-50%) scale(1.08);
+        text-decoration: none;
+        color: white;
+        box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    .menu-icon {
+        font-size: 2rem;
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+    
+    .menu-text {
+        font-size: 1.3rem;
+        font-weight: 700;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        letter-spacing: 2px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        padding: 8px 0;
+    }
+    
+    // Animation au survol
+    &:hover .menu-text {
+        animation: bounce 0.5s ease infinite alternate;
+    }
+}
+
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-3px); }
+}
+
+// Responsive header + bouton flottant (mobile)
+@media (max-width: 768px) {
+  .menu-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-actions:first-of-type {
+    flex-wrap: wrap;
+  }
+
+  .header-actions:last-of-type {
+    margin-left: 0;
+  }
+
+  .floating-menu-button {
+    padding: 16px 10px;
+    .menu-icon {
+      font-size: 1.6rem;
+    }
+    .menu-text {
+      font-size: 1rem;
+    }
+  }
+}
+
+// Styles pour le header
+.site-header {
+  width: 100%;
+  background-color: #fff;
+}
+
+// Header par défaut : logo centré, responsive
+.default-header-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 0;
+
+  a {
+    display: block;
+    line-height: 0;
+  }
+
+  .default-logo {
+    height: 128px;
+    width: auto;
+    border-radius: 6px;
+
+    @media (max-width: 768px) {
+      height: 104px;
+    }
+
+    @media (max-width: 480px) {
+      height: 88px;
+    }
+  }
+}
+
+
+// Style pour le positionnement du footer en bas de page
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#main-content {
+  flex: 1 0 auto;
+}
+
+// Styles pour la section de présentation
+.company-presentation {
+  padding: 2rem 0;
+  
+  h1 {
+    font-size: 2.25rem; // 36px
+    margin-bottom: 1.5rem;
+    color: $dark;
+    text-align: center;
+    
+    @include media-breakpoint-down(md) {
+      font-size: 1.75rem; // 28px sur mobile
+      padding: 0 1rem;
+    }
+  }
+  
+  p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    padding: 0 1.5rem;
+    text-align: left;
+    
+    @include media-breakpoint-down(md) {
+      font-size: 1rem;
+      padding: 0 1rem;
+    }
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .row {
+    margin: 0;
+  }
+  
+  .col-12, .col-md-6 {
+    padding: 0 1rem;
+  }
+}
+
+// Ajustements pour les très petits écrans
+@include media-breakpoint-down(sm) {
+  .company-presentation {
+    padding: 1.5rem 0;
+    
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    p {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+  }
+}
+
+// Styles pour la section de présentation des patrons
+.team-presentation {
+  border-top: 4px solid $primary;
+  margin-top: 3rem;
+  padding: 4rem 0;
+  
+  h1 {
+    color: $dark;
+    font-size: 2.25rem;
+    margin-bottom: 3rem;
+    font-weight: 700;
+  }
+  
+  .team-member {
+    img {
+      border: 5px solid white;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      filter: contrast(1.05) saturate(0.85) brightness(1.02);
+      
+      &:hover {
+        transform: scale(1.05);
+        filter: contrast(1.05) saturate(0.9) brightness(1.02);
+      }
+    }
+    
+    h3 {
+      color: $primary;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+    
+    .text-muted {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: $dark !important;
+      opacity: 0.75;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+  }
+  
+  .team-description {
+    p {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: $secondary;
+      margin-bottom: 0;
+    }
+  }
+  
+  @include media-breakpoint-down(md) {
+    padding: 3rem 0;
+    
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+    }
+    
+    .team-member {
+      margin-bottom: 2rem;
+      
+      img {
+        max-width: 180px;
+      }
+    }
+    
+    .team-description {
+      order: -1;
+      margin-bottom: 2rem;
+      
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+// Ligne de séparation pour le footer
+.footer {
+  border-top: 4px solid $primary;
+  margin-top: 3rem;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+// Styles pour le menu mobile offcanvas
+.offcanvas {
+  &.offcanvas-start {
+    width: 280px;
+    max-width: 85vw;
+  }
+  
+  .offcanvas-header {
+    background-color: $primary;
+    color: white;
+    padding: 1rem;
+    
+    .offcanvas-title {
+      color: white;
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+    
+    .btn-close {
+      filter: brightness(0) invert(1);
+    }
+  }
+  
+  .offcanvas-body {
+    padding: 1.5rem;
+  }
+}
+
+.mobile-menu-section {
+  margin-bottom: 2rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .mobile-menu-section-title {
+    color: $primary;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba($primary, 0.2);
+  }
+}
+
+.mobile-menu-categories,
+.mobile-menu-actions {
+  .btn {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    
+    i {
+      width: 20px;
+      text-align: center;
+    }
+    
+    &:hover {
+      transform: translateX(5px);
+    }
+  }
+  
+  .menu-category {
+    background-color: white;
+    border-color: $primary;
+    color: $primary;
+    
+    &:hover {
+      background-color: rgba($primary, 0.1);
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+  
+  .filter-btn {
+    background-color: white;
+    border-color: $primary;
+    color: $primary;
+    
+    &:hover {
+      background-color: rgba($primary, 0.1);
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+  
+  .login-btn {
+    background-color: $primary;
+    border-color: $primary;
+    color: white;
+    
+    &:hover {
+      background-color: darken($primary, 10%);
+      border-color: darken($primary, 10%);
+      color: white;
+    }
+  }
+}
+
+// Styles pour les cartes de menu
+.menu-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .card-img-top {
+    height: 180px; // Réduit la hauteur des images
+    object-fit: cover;
+    filter: contrast(1.05) saturate(0.85) brightness(1.02);
+  }
+  
+  .card-body {
+    padding: 1rem; // Réduit le padding
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .h5 {
+    font-size: 1.1rem; // Réduit la taille du titre
+    margin-bottom: 0.75rem;
+    color: $dark;
+  }
+  
+  .card-text {
+    font-size: 0.875rem; // Réduit la taille du texte
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    color: $secondary;
+  }
+  
+  .menu-info {
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.35rem 0.65rem;
+      background-color: $primary;
+      
+      i {
+        margin-right: 0.25rem;
+      }
+    }
+    
+    .fw-bold {
+      font-size: 0.9rem;
+    }
+  }
+  
+  .btn-outline-primary {
+    border-color: $primary;
+    color: $primary;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: $primary;
+      border-color: $primary;
+      transform: translateY(-1px);
+    }
+    
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+// Responsive pour les cartes de menu
+@media (max-width: 768px) {
+  .menu-card {
+    .card-img-top {
+      height: 140px; // Encore plus petit sur mobile
+    }
+    
+    .card-body {
+      padding: 0.75rem;
+    }
+    
+    .h5 {
+      font-size: 1rem;
+    }
+    
+    .text-muted {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// Responsive pour mobile et tablette
+@media (max-width: 991.98px) {
+  .menu-header {
+    .logo-img {
+      width: 48px;
+      height: 48px;
+    }
+    
+    .mobile-menu-toggle {
+      font-size: 2.25rem;
+    }
+  }
+}
+
+// Responsive pour tablette uniquement
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .menu-header {
+    .logo-img {
+      width: 56px;
+      height: 56px;
+    }
+    
+    .menu-category {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+    
+    .filter-btn, .login-btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+  }
+}
+
+// Styles pour les formulaires d'authentification classiques
+section.py-5 {
+  .card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .card-body {
+      .text-center h3 {
+        color: $dark;
+        margin-bottom: 1.5rem;
+      }
+      
+      .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        
+        &:focus {
+          border-color: $primary;
+          box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+          outline: 0;
+        }
+        
+        &.is-valid {
+          border-color: #28a745;
+          padding-right: 2.25rem;
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+          background-repeat: no-repeat;
+          background-position: right calc(0.375em + 0.1875rem) center;
+          background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        
+        &.is-invalid {
+          border-color: #dc3545;
+          padding-right: 2.25rem;
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+          background-repeat: no-repeat;
+          background-position: right calc(0.375em + 0.1875rem) center;
+          background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+      }
+      
+      .form-label {
+        color: $dark;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+      
+      .form-check {
+        .form-check-input {
+          border: 1px solid #ced4da;
+          
+          &:checked {
+            background-color: $primary;
+            border-color: $primary;
+          }
+          
+          &:focus {
+            border-color: $primary;
+            box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+          }
+        }
+        
+        .form-check-label {
+          color: $dark;
+          font-size: 0.9rem;
+        }
+      }
+      
+      .btn-primary {
+        background-color: $primary;
+        border-color: $primary;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        
+        &:hover {
+          background-color: darken($primary, 7.5%);
+          border-color: darken($primary, 10%);
+        }
+        
+        &:focus {
+          box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+        }
+      }
+      
+      .text-decoration-none {
+        color: $primary;
+        font-size: 0.9rem;
+        
+        &:hover {
+          text-decoration: underline !important;
+          color: darken($primary, 10%);
+        }
+      }
+      
+      .invalid-feedback {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #dc3545;
+      }
+      
+      .is-invalid ~ .invalid-feedback {
+        display: block;
+      }
+    }
+  }
+}
+
+// Styles pour les alertes personnalisées
+.custom-alert {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  
+  &.alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+  
+  &.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+  }
+}
+
+// Animation pour les formulaires
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.alert {
+  animation: slideInRight 0.3s ease;
+}
+
+// Styles pour les pages d'authentification (forgot-password, reset-password)
+.auth-container {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($secondary, 0.02) 100%);
+  
+  @media (max-width: 768px) {
+    min-height: 70vh;
+    padding: 1rem;
+  }
+}
+
+.auth-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 3rem;
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid rgba($primary, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  // Version plus large pour la page d'inscription
+  &.auth-card-large {
+    max-width: 600px;
+    
+    @media (max-width: 768px) {
+      max-width: 100%;
+    }
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  
+  .auth-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, $primary, darken($primary, 10%));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba($primary, 0.3);
+    animation: float 3s ease-in-out infinite;
+    
+    i {
+      font-size: 2rem;
+      color: white;
+    }
+  }
+  
+  h2 {
+    color: $dark;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .auth-description {
+    color: $secondary;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.form-group {
+  margin-bottom: 1.75rem;
+  
+  // Pour les formulaires avec des rangées (nom/prénom)
+  &.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+  
+  label {
+    display: block;
+    color: $dark;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    
+    &::after {
+      content: ' *';
+      color: $primary;
+    }
+  }
+  
+  .input-group {
+    display: flex;
+    align-items: stretch;
+    
+    .input-group-text {
+      background: rgba($primary, 0.1);
+      border: 2px solid #e9ecef;
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      padding: 0.875rem 1rem;
+      color: $primary;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      
+      i {
+        width: 20px;
+        text-align: center;
+      }
+    }
+    
+    input {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e9ecef;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-color: #f8f9fa;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+        transform: translateY(-1px);
+        
+        & + .input-group-text {
+          border-color: $primary;
+          background-color: rgba($primary, 0.15);
+        }
+      }
+      
+      &:hover {
+        border-color: rgba($primary, 0.3);
+        background-color: white;
+        
+        & + .input-group-text {
+          border-color: rgba($primary, 0.3);
+        }
+      }
+      
+      &::placeholder {
+        color: #adb5bd;
+        font-style: italic;
+      }
+    }
+    
+    textarea {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e9ecef;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background-color: #f8f9fa;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+        transform: translateY(-1px);
+        
+        & + .input-group-text {
+          border-color: $primary;
+          background-color: rgba($primary, 0.15);
+        }
+      }
+      
+      &:hover {
+        border-color: rgba($primary, 0.3);
+        background-color: white;
+        
+        & + .input-group-text {
+          border-color: rgba($primary, 0.3);
+        }
+      }
+      
+      &::placeholder {
+        color: #adb5bd;
+        font-style: italic;
+      }
+    }
+  }
+  
+  // Style pour les inputs sans input-group
+  input:not(.input-group ~ input) {
+    width: 100%;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      background-color: white;
+      box-shadow: 0 0 0 4px rgba($primary, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    &:hover {
+      border-color: rgba($primary, 0.3);
+      background-color: white;
+    }
+    
+    &::placeholder {
+      color: #adb5bd;
+      font-style: italic;
+    }
+  }
+  
+  // Styles pour les checkboxes
+  .form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+    
+    .form-check-input {
+      width: 1.25rem !important;
+      height: 1.25rem !important;
+      border: 2px solid #e9ecef !important;
+      border-radius: 4px !important;
+      transition: all 0.3s ease !important;
+      margin-top: 0.125rem;
+      
+      &:checked {
+        background-color: $primary;
+        border-color: $primary;
+      }
+      
+      &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 4px rgba($primary, 0.1);
+      }
+    }
+    
+    .form-check-label {
+      color: $dark;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      padding-top: 0.125rem;
+      
+      .terms-link {
+        color: $primary;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          color: darken($primary, 10%);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+.error-message {
+  display: none;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(220, 53, 69, 0.1);
+  border-left: 3px solid #dc3545;
+  border-radius: 4px;
+  animation: slideInRight 0.3s ease;
+  
+  &.show {
+    display: block;
+  }
+  
+  &::before {
+    content: '⚠️';
+    margin-right: 0.5rem;
+  }
+}
+
+.auth-links {
+  margin-top: 2rem;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  
+  a {
+    color: $primary;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    i {
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+    }
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: $primary;
+      transition: width 0.3s ease;
+    }
+    
+    &:hover {
+      color: darken($primary, 10%);
+      text-decoration: none;
+      
+      i {
+        transform: translateX(-3px);
+      }
+      
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.auth-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  
+  .help-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    
+    i {
+      color: $primary;
+      font-size: 1rem;
+    }
+    
+    .register-link {
+      color: $primary;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        color: darken($primary, 10%);
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// Animation de chargement pour le bouton
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.btn-primary.loading {
+  animation: pulse 1.5s infinite;
+  
+  .btn-text::after {
+    content: '⏳';
+    margin-left: 0.5rem;
+  }
+}
+
+// Message de succès
+.success-message {
+  display: none;
+  color: #155724;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(40, 167, 69, 0.1);
+  border-left: 3px solid #28a745;
+  border-radius: 4px;
+  animation: slideInRight 0.3s ease;
+  
+  &.show {
+    display: block;
+  }
+  
+  &::before {
+    content: '✅';
+    margin-right: 0.5rem;
+  }
+}
+
+// ========================================
+// STYLES POUR LE USER DASHBOARD
+// ========================================
+
+.user-dashboard-layout {
+  min-height: 70vh;
+}
+
+// Sidebar : desktop = colonne latérale, mobile = barre horizontale
+.dashboard-sidebar {
+  border-bottom: 1px solid #e9ecef;
+}
+
+// Sidebar header : mobile = row, desktop = column centré
+.dashboard-sidebar-header {
+  gap: 0.75rem;
+  
+  .dashboard-user-avatar {
+    font-size: 1.75rem;
+  }
+}
+
+// Navigation sidebar : états actif et hover
+.dashboard-sidebar-nav {
+  .nav-item {
+    &.active .nav-link {
+      background: rgba($primary, 0.1);
+      color: $primary !important;
+      font-weight: 600;
+    }
+    
+    .nav-link {
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba($primary, 0.05);
+        color: $primary !important;
+      }
+    }
+  }
+}
+
+// Contenu principal : min-width pour éviter le shrink
+.dashboard-content {
+  min-width: 0;
+}
+
+// Desktop (md+) : sidebar en colonne latérale
+@media (min-width: 768px) {
+  .dashboard-sidebar {
+    width: 260px;
+    min-width: 260px;
+    border-bottom: none;
+    border-right: 1px solid #e9ecef;
+  }
+  
+  .dashboard-sidebar-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem !important;
+    gap: 0;
+    
+    .dashboard-user-avatar {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  .dashboard-sidebar-nav .nav-item.active .nav-link {
+    border-right: 3px solid $primary;
+  }
+  
+  .dashboard-header-actions {
+    width: auto;
+  }
+}
+
+// Orders : styles spécifiques non couverts par Bootstrap
+.orders-section .orders-container {
+  .order-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .order-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid #f1f3f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      
+      .order-info {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        
+        .order-ref {
+          font-weight: 600;
+          color: $dark;
+        }
+        
+        .order-date {
+          color: $secondary;
+          font-size: 0.9rem;
+        }
+        
+        .order-price {
+          font-weight: 600;
+          color: $primary;
+        }
+      }
+      
+      .order-status {
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        white-space: nowrap;
+        
+        &.status-en_attente {
+          background: rgba(255, 193, 7, 0.1);
+          color: #856404;
+        }
+        &.status-en_preparation {
+          background: rgba(23, 162, 184, 0.1);
+          color: #0c5460;
+        }
+        &.status-accepte,
+        &.status-pret,
+        &.status-livre {
+          background: rgba(40, 167, 69, 0.1);
+          color: #155724;
+        }
+        &.status-annule {
+          background: rgba(220, 53, 69, 0.1);
+          color: #721c24;
+        }
+      }
+    }
+    
+    .order-details {
+      padding: 1.25rem;
+      background: #f8f9fa;
+      display: none;
+      
+      &.show {
+        display: block;
+      }
+      
+      .order-content .detail-row {
+        display: flex;
+        margin-bottom: 0.5rem;
+        
+        .detail-label {
+          font-weight: 500;
+          color: $secondary;
+          min-width: 120px;
+        }
+        .detail-value {
+          color: $dark;
+        }
+      }
+      
+      .order-tracking {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        
+        h4 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin-bottom: 1rem;
+        }
+        
+        .tracking-step {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.75rem;
+          
+          .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 0.75rem;
+            
+            &.completed { background: $primary; color: white; }
+            &.current   { background: rgba($primary, 0.15); color: $primary; border: 2px solid $primary; }
+            &.pending    { background: #e9ecef; color: #6c757d; }
+          }
+          
+          .step-text {
+            .step-title { font-weight: 500; font-size: 0.9rem; }
+            .step-time  { font-size: 0.8rem; color: $secondary; }
+          }
+        }
+      }
+      
+      .order-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+// Profile : suppression de l'étoile * sur les labels
+.profile-form-group label::after {
+  content: none !important;
+}
+
+// Mobile header avec burger
+.dashboard-mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+// Responsive Dashboard (mobile)
+@media (max-width: 767.98px) {
+  // Header actions : boutons pleine largeur
+  .dashboard-header-actions {
+    width: 100%;
+    
+    .btn {
+      flex: 1;
+      font-size: 0.875rem;
+    }
+  }
+  
+  // Order items : empiler les infos verticalement
+  .orders-section .orders-container .order-item {
+    border-radius: 8px;
+    
+    .order-header {
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem;
+      
+      .order-info {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+    }
+    
+    .order-details {
+      padding: 1rem;
+      
+      .detail-row {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      
+      .order-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+    }
+  }
+  
+  // Profile : card responsive
+  .profile-card {
+    padding: 1.25rem !important;
+  }
+  
+  .profile-card-header {
+    flex-direction: column !important;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+  }
+}
+
+
+// Styles pour les exigences de mot de passe
+.password-requirements {
+  margin-top: 0.75rem;
+  
+  .requirement {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    
+    i {
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+      
+      &.bi-x-circle {
+        color: #dc3545;
+      }
+      
+      &.bi-check-circle {
+        color: #28a745;
+      }
+    }
+    
+    &.valid {
+      color: #155724;
+      
+      i {
+        &.bi-x-circle {
+          color: #28a745;
+        }
+      }
+    }
+  }
+}
+
+

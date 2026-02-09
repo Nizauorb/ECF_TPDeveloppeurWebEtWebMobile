@@ -1,0 +1,148 @@
+<div class="auth-container">
+    <div class="auth-card auth-card-large">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <h2>Inscription</h2>
+            <p class="auth-description">
+                Créez votre compte pour accéder à tous nos services.
+            </p>
+        </div>
+        
+        <form id="registerForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="lastName">Nom</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <input type="text" id="lastName" name="lastName" required 
+                               placeholder="Votre nom" autocomplete="family-name">
+                    </div>
+                    <div class="error-message" id="lastNameError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="firstName">Prénom</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <input type="text" id="firstName" name="firstName" required 
+                               placeholder="Votre prénom" autocomplete="given-name">
+                    </div>
+                    <div class="error-message" id="firstNameError"></div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Numéro de téléphone</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-telephone-fill"></i>
+                    </span>
+                    <input type="tel" id="phone" name="phone" required 
+                           placeholder="06 12 34 56 78" autocomplete="tel">
+                </div>
+                <div class="error-message" id="phoneError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Adresse email</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-envelope-fill"></i>
+                    </span>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="exemple@email.com" autocomplete="email">
+                </div>
+                <div class="error-message" id="emailError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Adresse postale</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </span>
+                    <textarea id="address" name="address" rows="2" required 
+                              placeholder="Votre adresse complète" autocomplete="street-address"></textarea>
+                </div>
+                <div class="error-message" id="addressError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-lock-fill"></i>
+                    </span>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Choisissez un mot de passe sécurisé" autocomplete="new-password">
+                </div>
+                <div class="error-message" id="passwordError"></div>
+                <div class="password-requirements">
+                    <small class="text-muted">
+                        <div class="requirement" data-requirement="length">
+                            <i class="bi bi-x-circle text-danger"></i> Au moins 10 caractères
+                        </div>
+                        <div class="requirement" data-requirement="uppercase">
+                            <i class="bi bi-x-circle text-danger"></i> Une majuscule
+                        </div>
+                        <div class="requirement" data-requirement="lowercase">
+                            <i class="bi bi-x-circle text-danger"></i> Une minuscule
+                        </div>
+                        <div class="requirement" data-requirement="number">
+                            <i class="bi bi-x-circle text-danger"></i> Un chiffre
+                        </div>
+                        <div class="requirement" data-requirement="special">
+                            <i class="bi bi-x-circle text-danger"></i> Un caractère spécial
+                        </div>
+                    </small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirmation du mot de passe</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-lock-fill"></i>
+                    </span>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required 
+                           placeholder="Confirmez votre mot de passe" autocomplete="new-password">
+                </div>
+                <div class="error-message" id="confirmPasswordError"></div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="terms" required>
+                    <label class="form-check-label" for="terms">
+                        J'accepte les <a href="/CGV" class="terms-link">conditions générales de vente</a>
+                    </label>
+                </div>
+                <div class="error-message" id="termsError"></div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span class="btn-text">S'inscrire</span>
+            </button>
+        </form>
+        
+        <div class="auth-links">
+            <a href="/Login">
+                <i class="bi bi-arrow-left"></i>
+                Déjà un compte ? Se connecter
+            </a>
+        </div>
+        
+        <div class="auth-footer">
+            <p class="help-text">
+                <i class="bi bi-shield-check"></i>
+                Vos données sont sécurisées et protégées.
+            </p>
+        </div>
+    </div>
+</div>

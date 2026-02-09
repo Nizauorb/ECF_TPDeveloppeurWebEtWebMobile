@@ -1,0 +1,375 @@
+<div class="user-dashboard-layout d-flex flex-column flex-md-row">
+    <!-- Mobile Header : burger + user info (visible < md) -->
+    <div class="dashboard-mobile-header d-flex d-md-none align-items-center justify-content-between bg-white shadow-sm p-3 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-primary fs-4">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="fw-semibold" id="sidebar-user-name-mobile">Chargement...</span>
+        </div>
+        <button class="mobile-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#dashboardMobileMenu" aria-controls="dashboardMobileMenu">
+            <i class="bi bi-list"></i>
+        </button>
+    </div>
+
+    <!-- Offcanvas mobile navigation -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboardMobileMenu" aria-labelledby="dashboardMobileMenuLabel">
+        <div class="offcanvas-header border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <div class="text-primary fs-4">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <h5 class="offcanvas-title fw-semibold mb-0" id="dashboardMobileMenuLabel">Mon Espace</h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <nav class="dashboard-sidebar-nav py-2">
+                <ul class="nav-list list-unstyled mb-0">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary">
+                            <i class="bi bi-house-door me-3 fs-5"></i>
+                            <span>Retour Accueil</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none" onclick="showMyOrders(); closeDashboardMenu();">
+                            <i class="bi bi-bag-check me-3 fs-5"></i>
+                            <span>Mes Commandes</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary" onclick="showProfile(); closeDashboardMenu();">
+                            <i class="bi bi-person-gear me-3 fs-5"></i>
+                            <span>Mon Profil</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <hr class="my-0">
+            <div class="p-3">
+                <a href="/Carte" class="btn btn-primary w-100">
+                    <i class="bi bi-plus-circle me-2"></i>Nouvelle Commande
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Desktop (visible >= md) -->
+    <aside class="dashboard-sidebar d-none d-md-flex flex-column bg-white shadow-sm">
+        <div class="dashboard-sidebar-header d-flex align-items-center p-3 border-bottom">
+            <div class="dashboard-user-avatar text-primary">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="user-name fw-semibold" id="sidebar-user-name">Chargement...</div>
+        </div>
+        
+        <nav class="dashboard-sidebar-nav py-3">
+            <ul class="nav-list list-unstyled mb-0">
+                <li class="nav-item">
+                    <a href="/" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary">
+                        <i class="bi bi-house-door me-3"></i>
+                        <span>Retour Accueil</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none" onclick="showMyOrders()">
+                        <i class="bi bi-bag-check me-3"></i>
+                        <span>Mes Commandes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary" onclick="showProfile()">
+                        <i class="bi bi-person-gear me-3"></i>
+                        <span>Mon Profil</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content flex-grow-1 p-3 p-md-4 bg-light">
+        <!-- Header -->
+        <div class="dashboard-content-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4 pb-3 border-bottom">
+            <h1 class="page-title h3 fw-semibold mb-0" id="page-title">Mes Commandes</h1>
+            <div class="dashboard-header-actions d-flex gap-2" id="dashboard-header-actions">
+                <button class="btn btn-outline-primary" onclick="loadAllCommands()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Actualiser
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='/Carte'">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nouvelle Commande
+                </button>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <section class="orders-section" id="orders-section">
+            <div class="orders-container">
+                <!-- Loading State -->
+                <div id="loading-state" class="loading-state text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <p class="text-muted">Chargement de vos commandes...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state text-center py-5" style="display: none;">
+                    <div class="empty-icon fs-1 text-muted mb-3">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h3 class="fw-semibold">Aucune commande</h3>
+                    <p class="text-muted mb-4">Vous n'avez pas encore passé de commande</p>
+                    <button class="btn btn-primary" onclick="window.location.href='/Carte'">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        Ma première commande
+                    </button>
+                </div>
+
+                <!-- Orders List -->
+                <div id="orders-list" class="orders-list" style="display: none;">
+                    <!-- Orders will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Section (Hidden by default) -->
+        <section class="profile-section" id="profile-section" style="display: none;">
+            <div class="profile-container" style="max-width: 800px;">
+                <div class="profile-card bg-white border rounded-3 shadow-sm p-4">
+                    <div class="profile-card-header d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="h4 fw-semibold mb-0">Informations du compte</h2>
+                        <button class="btn btn-sm btn-outline-primary" onclick="enableProfileEdit()">
+                            <i class="bi bi-pencil me-1"></i>
+                            Modifier
+                        </button>
+                    </div>
+                    
+                    <form id="profile-form">
+                        <div class="profile-form-grid row g-3 mb-4">
+                            <div class="profile-form-group col-md-6">
+                                <label for="profile-nom" class="form-label fw-medium">Nom</label>
+                                <input type="text" id="profile-nom" class="form-control" disabled>
+                            </div>
+                            <div class="profile-form-group col-md-6">
+                                <label for="profile-prenom" class="form-label fw-medium">Prénom</label>
+                                <input type="text" id="profile-prenom" class="form-control" disabled>
+                            </div>
+                            <div class="profile-form-group col-md-6">
+                                <label for="profile-email" class="form-label fw-medium">Email</label>
+                                <input type="email" id="profile-email" class="form-control" disabled>
+                            </div>
+                            <div class="profile-form-group col-md-6">
+                                <label for="profile-telephone" class="form-label fw-medium">Téléphone</label>
+                                <input type="tel" id="profile-telephone" class="form-control" disabled>
+                            </div>
+                            <div class="profile-form-group profile-form-group--full col-12">
+                                <label for="profile-adresse" class="form-label fw-medium">Adresse</label>
+                                <textarea id="profile-adresse" class="form-control" rows="3" disabled></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-actions d-flex gap-2" id="profile-actions" style="display: none;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Enregistrer
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelProfileEdit()">
+                                Annuler
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="password-section border-top pt-4 mt-4">
+                        <h3 class="h5 fw-semibold">Mot de passe</h3>
+                        <p class="text-muted">Pour changer votre mot de passe, un email de réinitialisation vous sera envoyé.</p>
+                        <button class="btn btn-outline-primary" id="change-password-btn" onclick="requestPasswordChange()">
+                            <i class="bi bi-key me-1"></i>
+                            Changer mon mot de passe
+                        </button>
+                        <div id="password-change-feedback" class="mt-2" style="display: none;"></div>
+                    </div>
+
+                    <div class="danger-zone border-top border-danger border-2 pt-4 mt-4">
+                        <h3 class="h5 fw-semibold text-danger">Zone de danger</h3>
+                        <p class="text-muted">Actions irréversibles sur votre compte</p>
+                        <button class="btn btn-outline-danger" onclick="showDeleteAccountModal()">
+                            <i class="bi bi-trash me-1"></i>
+                            Supprimer mon compte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-receipt me-2"></i>
+                    Détails de la commande #<span id="modal-order-id"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="order-details-content">
+                <!-- Content will be dynamically inserted -->
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <!-- Actions will be dynamically inserted -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div class="modal fade" id="editOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>
+                    Modifier la commande #<span id="edit-order-id"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-order-form">
+                    <div class="mb-3">
+                        <label for="edit-notes" class="form-label">Notes supplémentaires</label>
+                        <textarea id="edit-notes" class="form-control" rows="4" placeholder="Ajoutez des notes pour votre commande..."></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Note :</strong> Vous ne pouvez pas modifier le menu choisi, seulement les notes supplémentaires.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="saveOrderEdit()">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Verification Modal -->
+<div class="modal fade" id="emailVerificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-envelope-check me-2 text-primary"></i>
+                    Vérification du changement d'email
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Un code de vérification à <strong>6 chiffres</strong> a été envoyé à votre <strong>ancienne adresse email</strong>.
+                </div>
+                <p class="text-muted">Saisissez le code reçu pour confirmer le changement d'adresse email. Le code expire dans 15 minutes.</p>
+                <div class="mb-3">
+                    <label for="email-verification-code" class="form-label fw-medium">Code de vérification</label>
+                    <input type="text" id="email-verification-code" class="form-control form-control-lg text-center"
+                           maxlength="6" placeholder="000000"
+                           style="letter-spacing: 8px; font-size: 1.5rem; font-family: monospace;"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <div id="email-verification-feedback" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="confirm-email-change-btn" onclick="confirmEmailChange()">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Confirmation Modal - Étape 1 : taper SUPPRIMER -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Supprimer le compte
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Attention :</strong> Cette action est irréversible !
+                </div>
+                <p>Êtes-vous sûr de vouloir supprimer votre compte ? Toutes vos données seront définitivement perdues :</p>
+                <ul>
+                    <li>Vos informations personnelles</li>
+                    <li>Historique des commandes</li>
+                    <li>Préférences et paramètres</li>
+                </ul>
+                <div class="mt-3">
+                    <label for="delete-confirmation" class="form-label">Tapez "SUPPRIMER" pour confirmer :</label>
+                    <input type="text" id="delete-confirmation" class="form-control" placeholder="SUPPRIMER"
+                           oninput="document.getElementById('confirm-delete-btn').disabled = (this.value !== 'SUPPRIMER')">
+                </div>
+                <div id="delete-request-feedback" class="mt-2" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn" disabled onclick="requestDeleteAccount()">
+                    <i class="bi bi-envelope me-1"></i>
+                    Envoyer le code de confirmation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Verification Modal - Étape 2 : saisir le code -->
+<div class="modal fade" id="deleteVerificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-shield-exclamation me-2"></i>
+                    Confirmation de suppression
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-envelope-check me-2"></i>
+                    Un code de vérification à <strong>6 chiffres</strong> a été envoyé à votre adresse email.
+                </div>
+                <p class="text-muted">Saisissez le code reçu pour confirmer la suppression définitive de votre compte. Le code expire dans 15 minutes.</p>
+                <div class="mb-3">
+                    <label for="delete-verification-code" class="form-label fw-medium">Code de vérification</label>
+                    <input type="text" id="delete-verification-code" class="form-control form-control-lg text-center"
+                           maxlength="6" placeholder="000000"
+                           style="letter-spacing: 8px; font-size: 1.5rem; font-family: monospace;"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <div id="delete-verification-feedback" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-code-btn" onclick="confirmDeleteAccount()">
+                    <i class="bi bi-trash me-1"></i>
+                    Supprimer définitivement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

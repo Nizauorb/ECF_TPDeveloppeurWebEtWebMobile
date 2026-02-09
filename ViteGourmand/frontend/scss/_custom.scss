@@ -1,0 +1,30 @@
+// Custom.scss
+// Option A: Include all of Bootstrap
+
+// Import des polices Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Gotham:wght@400;500;700&family=Lato:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+
+// Variables de couleurs
+$primary: #627D4A;
+$secondary: #1A1A1A;
+$dark: #2E2E2E;
+$light: #EDEDED;
+$info: #BC6C25;
+
+// Configuration des polices
+$font-family-sans-serif: 'Lato', sans-serif !default;
+
+// Tailles de police
+$h1-font-size: 3rem;      // 48px
+$h2-font-size: 2.25rem;   // 36px
+$h3-font-size: 1.5rem;    // 24px
+$font-size-base: 1rem;    // 16px
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+// Classes personnalisées pour les variantes de police
+.text-light {
+  font-weight: 300;
+}
+
+// Then add additional custom code here

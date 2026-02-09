@@ -1,0 +1,16 @@
+# Configuration pour le routing SPA
+RewriteEngine On
+
+# Rediriger toutes les requêtes qui ne sont pas des fichiers ou dossiers existants
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rediriger vers index.html
+RewriteRule ^(.*)$ index.html [L,QSA]
+
+# Activer CORS si nécessaire
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type"
+</IfModule>

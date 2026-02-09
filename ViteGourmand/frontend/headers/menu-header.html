@@ -1,0 +1,172 @@
+<!-- Version Mobile (incluant tablettes et iPad Pro) -->
+<div class="header-container menu-header d-block d-xl-none">
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <!-- Logo Mobile -->
+        <div class="ms-2">
+            <a href="/" class="logo-link">
+                <img src="mini_logo_header.png" alt="Logo Vite & Gourmand" class="rounded-3 logo-img">
+            </a>
+        </div>
+        
+        <!-- Menu hamburger pour mobile/tablette -->
+        <div class="me-2">
+            <button class="mobile-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Version Desktop -->
+<div class="header-container menu-header d-none d-xl-block">
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <!-- Logo Desktop -->
+        <div class="ms-4">
+            <a href="/" class="logo-link">
+                <img src="mini_logo_header.png" alt="Logo Vite & Gourmand" class="rounded-3 logo-img">
+            </a>
+        </div>
+        
+        <!-- Navigation Desktop -->
+        <div class="header-filters flex-grow-1 justify-content-center align-items-center px-4 pt-3">
+            <div class="d-flex align-items-center flex-wrap justify-content-center">
+                <select class="form-select me-2" id="filterPeople" style="width: auto;">
+                    <option value="">Personnes</option>
+                    <option value="2-6">2-6 personnes</option>
+                    <option value="4-6">4-6 personnes</option>
+                    <option value="6-10">6-10 personnes</option>
+                    <option value="10+">10+ personnes</option>
+                </select>
+                <select class="form-select me-2" id="filterRegime" style="width: auto;">
+                    <option value="">Régime</option>
+                    <option value="Classique">Classique</option>
+                </select>
+                <select class="form-select me-2" id="filterAllergenes" style="width: auto;">
+                    <option value="">Sans allergène</option>
+                    <option value="Gluten">Sans Gluten</option>
+                    <option value="Lait et produits laitiers">Sans Lait</option>
+                    <option value="Œufs">Sans Œufs</option>
+                    <option value="Fruits à coque">Sans Fruits à coque</option>
+                    <option value="Mollusques">Sans Mollusques</option>
+                </select>
+                <select class="form-select me-2" id="filterStock" style="width: auto;">
+                    <option value="">Disponibilité</option>
+                    <option value="available">Disponibles</option>
+                    <option value="limited">Stock limité</option>
+                </select>
+                <div class="ms-5 pt-1">
+                    <button class="btn btn-primary me-2" onclick="applyFilters()">
+                        <i class="bi bi-funnel"></i> Appliquer
+                    </button>
+                    <button class="btn btn-outline-secondary me-3" onclick="resetFilters()">
+                        <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+                    </button>
+                </div>
+                <span class="ms-3 text-muted" id="filterResults">Affichage de tous les menus</span>
+            </div>
+        </div>
+        
+        <!-- Actions Desktop (injecté dynamiquement par le Router) -->
+        <div class="header-actions me-4 auth-actions">
+            <!-- Rempli par updateAuthUI() -->
+        </div>
+    </div>
+</div>
+
+<!-- Menu mobile/tablette offcanvas -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileMenuLabel">Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Filtres mobile/tablette -->
+        <div class="mobile-menu-section">
+            <h6 class="mobile-menu-section-title">Filtrer les menus</h6>
+            <div class="mobile-menu-filters">
+                <select class="form-select mb-2" id="filterPeople">
+                    <option value="">Nombre de personnes</option>
+                    <option value="2-6">2-6 personnes</option>
+                    <option value="4-6">4-6 personnes</option>
+                    <option value="6-10">6-10 personnes</option>
+                    <option value="10+">10+ personnes</option>
+                </select>
+                <select class="form-select mb-2" id="filterRegime">
+                    <option value="">Régime</option>
+                    <option value="Classique">Classique</option>
+                </select>
+                <select class="form-select mb-2" id="filterAllergenes">
+                    <option value="">Sans allergène</option>
+                    <option value="Gluten">Sans Gluten</option>
+                    <option value="Lait et produits laitiers">Sans Lait</option>
+                    <option value="Œufs">Sans Œufs</option>
+                    <option value="Fruits à coque">Sans Fruits à coque</option>
+                    <option value="Mollusques">Sans Mollusques</option>
+                </select>
+                <select class="form-select mb-2" id="filterStock">
+                    <option value="">Disponibilité</option>
+                    <option value="available">Disponibles</option>
+                    <option value="limited">Stock limité</option>
+                </select>
+                <button class="btn btn-primary w-100 mb-2" onclick="applyFilters()">
+                    <i class="bi bi-funnel me-2"></i> Appliquer les filtres
+                </button>
+                <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Réinitialiser
+                </button>
+                <div class="mt-2 text-muted small" id="filterResults">Affichage de tous les menus</div>
+            </div>
+        </div>
+        
+        <!-- Actions mobile/tablette (injecté dynamiquement par le Router) -->
+        <div class="mobile-menu-section">
+            <h6 class="mobile-menu-section-title">Mon compte</h6>
+            <div class="mobile-menu-actions auth-actions-mobile">
+                <!-- Rempli par updateAuthUI() -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Offcanvas Profil utilisateur (côté droit) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="userProfileMenu" aria-labelledby="userProfileMenuLabel">
+    <div class="offcanvas-header border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-primary fs-4">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div>
+                <h5 class="offcanvas-title fw-semibold mb-0" id="userProfileMenuLabel">Mon Espace</h5>
+                <small class="text-muted" id="offcanvas-user-email"></small>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <nav class="py-2">
+            <ul class="list-unstyled mb-0">
+                <li>
+                    <a href="/UserDashboard?section=orders" class="d-flex align-items-center px-4 py-3 text-decoration-none text-dark">
+                        <i class="bi bi-bag-check me-3 fs-5 text-primary"></i>
+                        <span>Mes Commandes</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/UserDashboard?section=profile" class="d-flex align-items-center px-4 py-3 text-decoration-none text-dark">
+                        <i class="bi bi-person-gear me-3 fs-5 text-primary"></i>
+                        <span>Mon Profil</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <hr class="my-0">
+        <div class="p-3">
+            <a href="/Carte" class="btn btn-outline-primary w-100 mb-2">
+                <i class="bi bi-plus-circle me-2"></i>Nouvelle Commande
+            </a>
+            <button class="btn btn-outline-danger w-100" id="offcanvas-logout-btn">
+                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+            </button>
+        </div>
+    </div>
+</div>

@@ -52,7 +52,7 @@ const orderMenuData = {
 // Ville du restaurant (pour calcul frais de livraison)
 const VILLE_RESTAURANT = 'bordeaux';
 const COORDS_RESTAURANT = { lat: 44.837789, lon: -0.57918 }; // Bordeaux centre
-const FRAIS_LIVRAISON_BASE = 0; // Gratuit dans Bordeaux
+const FRAIS_LIVRAISON_BASE = 5; // 5€ de base (cahier des charges)
 const FRAIS_KM = 0.59; // 0.59€/km hors Bordeaux
 const SEUIL_REDUCTION_PERSONNES = 5;
 const REDUCTION_POURCENT = 10;
@@ -96,20 +96,24 @@ async function calculateDeliveryFees() {
     
     // Géocoder l'adresse via l'API adresse.data.gouv.fr
     try {
-        const query = encodeURIComponent(`${adresse} ${codePostal} ${ville}`);
+        const fullAddress = `${adresse} ${codePostal} ${ville}`;
+        const query = encodeURIComponent(fullAddress);
+        console.log('[DeliveryFees] Géocodage de:', fullAddress);
         const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${query}&limit=1`);
         const data = await response.json();
+        console.log('[DeliveryFees] Réponse API:', data);
         
         if (data.features && data.features.length > 0) {
             const [lon, lat] = data.features[0].geometry.coordinates;
             const distance = haversineDistance(COORDS_RESTAURANT.lat, COORDS_RESTAURANT.lon, lat, lon);
-            // Appliquer un facteur 1.3 pour approximer la distance routière
             distanceLivraison = Math.round(distance * 1.3 * 100) / 100;
+            console.log(`[DeliveryFees] Coordonnées: ${lat}, ${lon} — Distance: ${distance.toFixed(2)} km (routière: ${distanceLivraison} km)`);
         } else {
+            console.warn('[DeliveryFees] Aucun résultat de géocodage');
             distanceLivraison = 0;
         }
     } catch (error) {
-        console.error('Erreur géocodage:', error);
+        console.error('[DeliveryFees] Erreur géocodage:', error);
         distanceLivraison = 0;
     }
     
@@ -123,9 +127,10 @@ function debouncedCalculateDeliveryFees() {
 }
 
 // Calculer les frais de livraison à partir de la distance
+// 5€ de base + 0.59€/km si hors Bordeaux
 function getDeliveryFees() {
     if (distanceLivraison <= 0) return FRAIS_LIVRAISON_BASE;
-    return Math.round(distanceLivraison * FRAIS_KM * 100) / 100;
+    return Math.round((FRAIS_LIVRAISON_BASE + distanceLivraison * FRAIS_KM) * 100) / 100;
 }
 
 // Vérification de l'authentification
@@ -211,6 +216,9 @@ function getCsrfHeaders() {
     
     // Écouteurs d'événements
     setupOrderListeners();
+    
+    // Calculer les frais de livraison si l'adresse est déjà pré-remplie
+    calculateDeliveryFees();
 })();
 
 // Pré-remplir les infos utilisateur
@@ -375,9 +383,10 @@ function updateRecap() {
     // Afficher les frais de livraison avec détail distance
     const fraisLivraisonEl = document.getElementById('recap-frais-livraison');
     if (distanceLivraison > 0) {
-        fraisLivraisonEl.innerHTML = `${formatPrice(fraisLivraison)} <small class="text-muted">(${distanceLivraison.toFixed(1)} km × ${FRAIS_KM.toFixed(2)} €)</small>`;
+        const majorationKm = Math.round(distanceLivraison * FRAIS_KM * 100) / 100;
+        fraisLivraisonEl.innerHTML = `${formatPrice(fraisLivraison)} <small class="text-muted">(${formatPrice(FRAIS_LIVRAISON_BASE)} + ${distanceLivraison.toFixed(1)} km × ${FRAIS_KM.toFixed(2)} €)</small>`;
     } else {
-        fraisLivraisonEl.textContent = 'Gratuit (Bordeaux)';
+        fraisLivraisonEl.textContent = formatPrice(FRAIS_LIVRAISON_BASE);
     }
     
     document.getElementById('recap-total').textContent = formatPrice(total);
@@ -488,6 +497,10 @@ async function handleOrderSubmit(e) {
         showFeedback('Veuillez remplir tous les champs obligatoires.', 'danger');
         return;
     }
+    
+    // Forcer le recalcul des frais de livraison (au cas où le debounce n'a pas fini)
+    if (deliveryFeeTimeout) clearTimeout(deliveryFeeTimeout);
+    await calculateDeliveryFees();
     
     // Calcul du prix
     const prixUnitaire = selectedMenu.price;

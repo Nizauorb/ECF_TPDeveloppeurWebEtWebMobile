@@ -22,6 +22,69 @@ var currentUser = null;
 var currentEditingOrder = null;
 var csrfToken = null;
 var loadedCommands = [];
+var editDistanceLivraison = 0;
+var editDeliveryFeeTimeout = null;
+
+// Constantes livraison (identiques à order.js)
+const COORDS_RESTAURANT = { lat: 44.837789, lon: -0.57918 };
+const FRAIS_LIVRAISON_BASE = 5;
+const FRAIS_KM = 0.59;
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+async function calculateEditDeliveryFees() {
+    const adresse = (document.getElementById('edit-adresse')?.value || '').trim();
+    const codePostal = (document.getElementById('edit-code-postal')?.value || '').trim();
+    const ville = (document.getElementById('edit-ville')?.value || '').trim();
+
+    if (!ville && !codePostal) {
+        editDistanceLivraison = 0;
+        return;
+    }
+
+    if (ville.toLowerCase().replace(/[àâ]/g, 'a').replace(/[éèêë]/g, 'e') === 'bordeaux') {
+        editDistanceLivraison = 0;
+        return;
+    }
+
+    try {
+        const query = encodeURIComponent(`${adresse} ${codePostal} ${ville}`);
+        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${query}&limit=1`);
+        const data = await response.json();
+        if (data.features && data.features.length > 0) {
+            const [lon, lat] = data.features[0].geometry.coordinates;
+            const distance = haversineDistance(COORDS_RESTAURANT.lat, COORDS_RESTAURANT.lon, lat, lon);
+            editDistanceLivraison = Math.round(distance * 1.3 * 100) / 100;
+        } else {
+            editDistanceLivraison = 0;
+        }
+    } catch (error) {
+        console.error('[EditDeliveryFees] Erreur géocodage:', error);
+        editDistanceLivraison = 0;
+    }
+}
+
+function getEditDeliveryFees() {
+    if (editDistanceLivraison <= 0) return FRAIS_LIVRAISON_BASE;
+    return Math.round((FRAIS_LIVRAISON_BASE + editDistanceLivraison * FRAIS_KM) * 100) / 100;
+}
+
+function debouncedEditDeliveryFees(command) {
+    if (editDeliveryFeeTimeout) clearTimeout(editDeliveryFeeTimeout);
+    editDeliveryFeeTimeout = setTimeout(async () => {
+        await calculateEditDeliveryFees();
+        updateEditRecap(command);
+    }, 500);
+}
 
 async function loadCSRFToken() {
     try {
@@ -847,7 +910,6 @@ function showOrderDetailsModal(orderId) {
     
     modalFooter.innerHTML = actionsHTML;
     
-    // Afficher la modale
     const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
     modal.show();
 }
@@ -861,43 +923,159 @@ function editOrder(orderId) {
         detailsModal.hide();
     }
     
-    // Ouvrir la modale d'édition
-    document.getElementById('edit-order-id').textContent = orderId;
+    // Trouver la commande dans les données locales
+    const command = loadedCommands.find(c => c.id == orderId);
+    if (!command) {
+        showErrorMessage('Commande introuvable');
+        return;
+    }
     
-    // Pré-remplir les notes existantes
-    // TODO: Charger les notes existantes depuis l'API
+    // Pré-remplir la modale
+    document.getElementById('edit-order-id').textContent = orderId;
+    document.getElementById('edit-menu-nom').textContent = command.menu_nom || 'Menu inconnu';
+    document.getElementById('edit-nb-personnes').value = command.nombre_personnes || 1;
+    document.getElementById('edit-nb-personnes').min = command.nombre_personnes_min || 1;
+    document.getElementById('edit-personnes-info').textContent = `Minimum ${command.nombre_personnes_min || 1} personnes`;
+    document.getElementById('edit-adresse').value = command.adresse_livraison || '';
+    document.getElementById('edit-code-postal').value = command.code_postal_livraison || '';
+    document.getElementById('edit-ville').value = command.ville_livraison || '';
+    document.getElementById('edit-date').value = command.date_prestation || '';
+    document.getElementById('edit-heure').value = command.heure_prestation || '';
+    document.getElementById('edit-notes').value = command.notes || '';
+    
+    // Mettre à jour le récap
+    updateEditRecap(command);
+    
+    // Initialiser la distance depuis la commande originale
+    editDistanceLivraison = parseFloat(command.distance_km) || 0;
+    
+    // Écouter les changements pour recalculer le récap
+    const nbInput = document.getElementById('edit-nb-personnes');
+    nbInput.onchange = () => updateEditRecap(command);
+    nbInput.oninput = () => updateEditRecap(command);
+    
+    // Écouter les changements d'adresse pour recalculer les frais de livraison
+    const editAdresse = document.getElementById('edit-adresse');
+    const editCp = document.getElementById('edit-code-postal');
+    const editVille = document.getElementById('edit-ville');
+    if (editAdresse) editAdresse.oninput = () => debouncedEditDeliveryFees(command);
+    if (editCp) editCp.oninput = () => debouncedEditDeliveryFees(command);
+    if (editVille) editVille.oninput = () => debouncedEditDeliveryFees(command);
+    
+    // Date minimum (demain)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('edit-date').min = tomorrow.toISOString().split('T')[0];
     
     const modal = new bootstrap.Modal(document.getElementById('editOrderModal'));
     modal.show();
 }
 
+function updateEditRecap(command) {
+    const nbPersonnes = parseInt(document.getElementById('edit-nb-personnes').value) || 1;
+    const prixUnitaire = parseFloat(command.prix_unitaire) || 0;
+    const nbMin = parseInt(command.nombre_personnes_min) || 1;
+    const sousTotal = prixUnitaire * nbPersonnes;
+    let reductionPourcent = 0;
+    let reductionMontant = 0;
+    if (nbPersonnes >= nbMin + 5) {
+        reductionPourcent = 10;
+        reductionMontant = sousTotal * 0.1;
+    }
+    
+    const fraisLivraison = getEditDeliveryFees();
+    const total = sousTotal - reductionMontant + fraisLivraison;
+    
+    const fmt = (v) => v.toFixed(2).replace('.', ',') + ' €';
+    
+    document.getElementById('edit-recap-sous-total').textContent = fmt(sousTotal);
+    if (editDistanceLivraison > 0) {
+        const majorationKm = Math.round(editDistanceLivraison * FRAIS_KM * 100) / 100;
+        document.getElementById('edit-recap-frais').textContent = `${fmt(fraisLivraison)} (${fmt(FRAIS_LIVRAISON_BASE)} + ${editDistanceLivraison.toFixed(1)} km)`;
+    } else {
+        document.getElementById('edit-recap-frais').textContent = fmt(fraisLivraison);
+    }
+    document.getElementById('edit-recap-total').textContent = fmt(total);
+    
+    const reductionRow = document.getElementById('edit-recap-reduction-row');
+    if (reductionPourcent > 0) {
+        reductionRow.style.cssText = '';
+        reductionRow.style.display = 'flex';
+        document.getElementById('edit-recap-reduction').textContent = `- ${fmt(reductionMontant)} (${reductionPourcent}%)`;
+    } else {
+        reductionRow.style.cssText = 'display: none !important;';
+    }
+}
+
 async function saveOrderEdit() {
     if (!currentEditingOrder) return;
     
-    const notes = document.getElementById('edit-notes').value;
+    const command = loadedCommands.find(c => c.id == currentEditingOrder);
+    if (!command) return;
+    
+    const nbPersonnes = parseInt(document.getElementById('edit-nb-personnes').value);
+    const adresse = document.getElementById('edit-adresse').value.trim();
+    const codePostal = document.getElementById('edit-code-postal').value.trim();
+    const ville = document.getElementById('edit-ville').value.trim();
+    const date = document.getElementById('edit-date').value;
+    const heure = document.getElementById('edit-heure').value;
+    const notes = document.getElementById('edit-notes').value.trim();
+    
+    if (!adresse || !codePostal || !ville || !date || !heure) {
+        showErrorMessage('Veuillez remplir tous les champs obligatoires.');
+        return;
+    }
+    
+    // Forcer le recalcul des frais de livraison avant envoi
+    if (editDeliveryFeeTimeout) clearTimeout(editDeliveryFeeTimeout);
+    await calculateEditDeliveryFees();
+    
+    const prixUnitaire = parseFloat(command.prix_unitaire) || 0;
+    const sousTotal = prixUnitaire * nbPersonnes;
+    let reductionPourcent = 0;
+    let reductionMontant = 0;
+    if (nbPersonnes >= command.nombre_personnes_min + 5) {
+        reductionPourcent = 10;
+        reductionMontant = sousTotal * 0.1;
+    }
+    const fraisLivraison = getEditDeliveryFees();
+    const total = sousTotal - reductionMontant + fraisLivraison;
+    
+    const payload = {
+        order_id: currentEditingOrder,
+        user_id: currentUser.id,
+        nombre_personnes: nbPersonnes,
+        prix_unitaire: prixUnitaire,
+        adresse_livraison: adresse,
+        code_postal_livraison: codePostal,
+        ville_livraison: ville,
+        date_prestation: date,
+        heure_prestation: heure,
+        frais_livraison: fraisLivraison,
+        distance_km: editDistanceLivraison > 0 ? editDistanceLivraison : null,
+        sous_total: sousTotal,
+        reduction_pourcent: reductionPourcent,
+        reduction_montant: reductionMontant,
+        total: total,
+        notes: notes || null
+    };
+    console.log('[saveOrderEdit] Payload envoyé:', payload);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/commands/${currentEditingOrder}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ notes })
+        const response = await fetch(`${API_BASE_URL}/commands/update.php`, {
+            method: 'POST',
+            headers: getCsrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify(payload)
         });
         
         const result = await response.json();
+        console.log('[saveOrderEdit] Réponse serveur:', response.status, result);
         
         if (result.success) {
             showSuccessMessage('Commande modifiée avec succès');
-            
-            // Fermer la modale
             const modal = bootstrap.Modal.getInstance(document.getElementById('editOrderModal'));
-            if (modal) {
-                modal.hide();
-            }
-            
-            // Recharger les commandes
+            if (modal) modal.hide();
             loadUserCommands(currentUser.id);
         } else {
             showErrorMessage(result.message || 'Erreur lors de la modification de la commande');

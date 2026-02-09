@@ -22,7 +22,7 @@ return [
         'delete_account'         => ['requests' => 3,  'window' => 900],   // 3 demandes / 15 min
         'delete_account_confirm' => ['requests' => 5,  'window' => 300],   // 5 essais code / 5 min
         'password_reset_request' => ['requests' => 3,  'window' => 900],   // 3 demandes / 15 min
-        'create_order'           => ['requests' => 10, 'window' => 300],   // 10 commandes / 5 min
+        'create_order'           => ['requests' => 5, 'window' => 300],   // 5 commandes / 5 min
     ],
 
     // Limite par défaut si l'action n'est pas définie ci-dessus

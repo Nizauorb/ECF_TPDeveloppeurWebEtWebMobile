@@ -228,24 +228,77 @@
 
 <!-- Edit Order Modal -->
 <div class="modal fade" id="editOrderModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     <i class="bi bi-pencil me-2"></i>
                     Modifier la commande #<span id="edit-order-id"></span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="edit-order-form">
-                    <div class="mb-3">
-                        <label for="edit-notes" class="form-label">Notes supplémentaires</label>
-                        <textarea id="edit-notes" class="form-control" rows="4" placeholder="Ajoutez des notes pour votre commande..."></textarea>
-                    </div>
-                    <div class="alert alert-info">
+                    <div class="alert alert-info mb-3">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>Note :</strong> Vous ne pouvez pas modifier le menu choisi, seulement les notes supplémentaires.
+                        <strong>Menu :</strong> <span id="edit-menu-nom" class="fw-bold"></span> — Le choix du menu ne peut pas être modifié.
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="edit-nb-personnes" class="form-label fw-medium">Nombre de personnes <span class="text-danger">*</span></label>
+                            <input type="number" id="edit-nb-personnes" class="form-control" min="1" required>
+                            <small id="edit-personnes-info" class="form-text text-muted"></small>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mt-3 mb-2"><i class="bi bi-truck me-1"></i> Livraison</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12">
+                            <label for="edit-adresse" class="form-label fw-medium">Adresse <span class="text-danger">*</span></label>
+                            <input type="text" id="edit-adresse" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="edit-code-postal" class="form-label fw-medium">Code postal <span class="text-danger">*</span></label>
+                            <input type="text" id="edit-code-postal" class="form-control" maxlength="5" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="edit-ville" class="form-label fw-medium">Ville <span class="text-danger">*</span></label>
+                            <input type="text" id="edit-ville" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit-date" class="form-label fw-medium">Date de prestation <span class="text-danger">*</span></label>
+                            <input type="date" id="edit-date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit-heure" class="form-label fw-medium">Heure souhaitée <span class="text-danger">*</span></label>
+                            <input type="time" id="edit-heure" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-notes" class="form-label fw-medium">Notes (optionnel)</label>
+                        <textarea id="edit-notes" class="form-control" rows="3" placeholder="Allergies, demandes spéciales..."></textarea>
+                    </div>
+
+                    <div class="alert alert-light border">
+                        <div class="d-flex justify-content-between">
+                            <span>Sous-total :</span>
+                            <span id="edit-recap-sous-total" class="fw-medium">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between" id="edit-recap-reduction-row" style="display: none !important;">
+                            <span class="text-success">Réduction :</span>
+                            <span id="edit-recap-reduction" class="fw-medium text-success">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Frais de livraison :</span>
+                            <span id="edit-recap-frais" class="fw-medium">-</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold fs-5">Total :</span>
+                            <span id="edit-recap-total" class="fw-bold fs-5 text-primary">-</span>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -253,7 +306,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-primary" onclick="saveOrderEdit()">
                     <i class="bi bi-check-circle me-1"></i>
-                    Enregistrer
+                    Enregistrer les modifications
                 </button>
             </div>
         </div>

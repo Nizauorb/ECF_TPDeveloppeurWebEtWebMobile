@@ -10,6 +10,7 @@ require_once __DIR__ . '/../../classes/SecurityHeaders.php';
 require_once __DIR__ . '/../../classes/RateLimiter.php';
 require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
+require_once __DIR__ . '/../../classes/Mailer.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -96,21 +97,9 @@ try {
     // Envoyer l'email
     try {
         $config = require __DIR__ . '/../../config/config.php';
-
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = $config['mail']['host'];
-        $mail->Port = $config['mail']['port'];
-        $mail->SMTPAuth = $config['mail']['smtp_auth'];
-        $mail->CharSet = $config['mail']['charset'];
-        $mail->setFrom($config['mail']['from_email'], $config['mail']['from_name']);
-        $mail->addAddress($email);
-        $mail->isHTML(true);
-        $mail->Subject = 'Changement de mot de passe - Vite&Gourmand';
-
         $resetLink = $config['mail']['base_url'] . "/ResetPassword?token=" . $token;
 
-        $mail->Body = "
+        $emailBody = "
         <!DOCTYPE html>
         <html lang='fr'>
         <head>
@@ -165,9 +154,7 @@ try {
         </body>
         </html>";
 
-        $mail->AltBody = "Bonjour {$user['first_name']},\n\nChangez votre mot de passe ici : {$resetLink}\n\nCe lien expire dans 10 minutes.";
-
-        $mail->send();
+        Mailer::send($email, 'Changement de mot de passe - Vite&Gourmand', $emailBody);
 
         echo json_encode([
             'success' => true,

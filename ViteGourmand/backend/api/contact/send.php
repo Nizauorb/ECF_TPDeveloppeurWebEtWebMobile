@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../classes/SecurityHeaders.php';
 require_once __DIR__ . '/../../classes/RateLimiter.php';
 require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
+require_once __DIR__ . '/../../classes/Mailer.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -94,34 +95,10 @@ try {
     try {
         error_log("Envoi email contact direct...");
         
-        // Importer PHPMailer directement
-        require_once __DIR__ . '/../../vendor/autoload.php';
-        
         $config = require __DIR__ . '/../../config/config.php';
-        
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        
-        // Configuration SMTP
-        $mail->isSMTP();
-        $mail->Host = $config['mail']['host'];
-        $mail->Port = $config['mail']['port'];
-        $mail->SMTPAuth = $config['mail']['smtp_auth'];
-        $mail->CharSet = $config['mail']['charset'];
-        
-        // Expéditeur
-        $mail->setFrom($config['mail']['from_email'], $config['mail']['from_name']);
-        
-        // Destinataire = email de l'entreprise
-        $mail->addAddress($config['mail']['admin_email']);
-        
-        // Répondre au client
-        $mail->addReplyTo($email, $name);
-        
-        $mail->isHTML(true);
-        $mail->Subject = "Nouveau message de contact de {$name} - {$email}";
 
         // Template HTML moderne
-        $mail->Body = "
+        $emailBody = "
         <!DOCTYPE html>
         <html lang='fr'>
         <head>
@@ -165,19 +142,8 @@ try {
         </body>
         </html>";
         
-        // Version texte
-        $mail->AltBody = "Vite & Gourmand - Nouveau message de contact\n\n" .
-               "Informations du client :\n" .
-               "Nom : {$name}\n" .
-               "Email : {$email}\n" .
-               "Date : " . date('d/m/Y H:i:s') . "\n" .
-               "IP : " . ($_SERVER['REMOTE_ADDR'] ?? 'Inconnue') . "\n\n" .
-               "Message :\n" .
-               "{$message}\n\n" .
-               "© 2024 Vite & Gourmand. Tous droits réservés.";
-
-        $result = $mail->send();
-        error_log("Email contact envoyé avec succès: " . ($result ? 'true' : 'false'));
+        Mailer::send($config['mail']['admin_email'], "Nouveau message de contact de {$name} - {$email}", $emailBody, $email, $name);
+        error_log("Email contact envoyé avec succès");
         
     } catch (Exception $emailError) {
         error_log("Erreur envoi email contact: " . $emailError->getMessage());

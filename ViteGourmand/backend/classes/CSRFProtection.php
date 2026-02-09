@@ -3,12 +3,28 @@
 
 class CSRFProtection {
     /**
+     * Configurer les cookies de session pour la production
+     */
+    private static function configureSession(): void {
+        if (session_status() === PHP_SESSION_NONE) {
+            $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+            session_set_cookie_params([
+                'lifetime' => 0,
+                'path' => '/',
+                'domain' => '',
+                'secure' => $isSecure,
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
+            session_start();
+        }
+    }
+
+    /**
      * Générer un token CSRF sécurisé
      */
     public static function generateToken(): string {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::configureSession();
         
         // Générer un token aléatoire sécurisé
         $token = bin2hex(random_bytes(32));
@@ -36,9 +52,7 @@ class CSRFProtection {
      * Valider un token CSRF
      */
     public static function validateToken(string $token): bool {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::configureSession();
         
         // Vérifier si le token existe en session
         if (!isset($_SESSION['csrf_token']) || !isset($_SESSION['csrf_token_time'])) {
@@ -67,9 +81,7 @@ class CSRFProtection {
      * Nettoyer le token CSRF
      */
     public static function clearToken(): void {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::configureSession();
         
         unset($_SESSION['csrf_token']);
         unset($_SESSION['csrf_token_time']);
@@ -79,9 +91,7 @@ class CSRFProtection {
      * Obtenir le token CSRF actuel (ou en générer un nouveau)
      */
     public static function getToken(): string {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::configureSession();
         
         // Générer un nouveau token si inexistant ou expiré
         $maxAge = self::getTokenLifetime();

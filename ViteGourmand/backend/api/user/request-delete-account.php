@@ -10,6 +10,7 @@ require_once __DIR__ . '/../../classes/SecurityHeaders.php';
 require_once __DIR__ . '/../../classes/RateLimiter.php';
 require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
+require_once __DIR__ . '/../../classes/Mailer.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -99,18 +100,7 @@ try {
 
     // Envoyer le code par email
     try {
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = $config['mail']['host'];
-        $mail->Port = $config['mail']['port'];
-        $mail->SMTPAuth = $config['mail']['smtp_auth'];
-        $mail->CharSet = $config['mail']['charset'];
-        $mail->setFrom($config['mail']['from_email'], $config['mail']['from_name']);
-        $mail->addAddress($user['email']);
-        $mail->isHTML(true);
-        $mail->Subject = 'Confirmation de suppression de compte - Vite&Gourmand';
-
-        $mail->Body = "
+        $emailBody = "
         <!DOCTYPE html>
         <html lang='fr'>
         <head>
@@ -163,9 +153,7 @@ try {
         </body>
         </html>";
 
-        $mail->AltBody = "Bonjour {$user['first_name']},\n\nCode de confirmation pour supprimer votre compte : {$verificationCode}\n\nCe code expire dans 15 minutes. Cette action est irréversible.";
-
-        $mail->send();
+        Mailer::send($user['email'], 'Confirmation de suppression de compte - Vite&Gourmand', $emailBody);
     } catch (Exception $emailError) {
         error_log("Erreur envoi email suppression compte: " . $emailError->getMessage());
     }

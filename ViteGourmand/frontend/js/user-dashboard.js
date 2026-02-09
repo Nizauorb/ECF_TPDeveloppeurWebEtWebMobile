@@ -24,7 +24,7 @@ var csrfToken = null;
 
 async function loadCSRFToken() {
     try {
-        const response = await fetch('/api/csrf/token.php', {
+        const response = await fetch(`${API_BASE_URL}/csrf/token.php`, {
             method: 'GET',
             credentials: 'include'
         });
@@ -207,7 +207,7 @@ async function loadUserCommands(userId) {
         document.getElementById('orders-list').style.display = 'none';
         
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/commands/user-commands.php?user_id=${userId}`, {
+        const response = await fetch(`${API_BASE_URL}/commands/user-commands.php?user_id=${userId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -448,7 +448,7 @@ async function handleProfileSubmit(e) {
     };
     
     try {
-        const response = await fetch('/api/user/update-profile.php', {
+        const response = await fetch(`${API_BASE_URL}/user/update-profile.php`, {
             method: 'PUT',
             headers: getCsrfHeaders(),
             credentials: 'include',
@@ -499,7 +499,7 @@ async function requestPasswordChange() {
     feedback.style.display = 'none';
     
     try {
-        const response = await fetch('/api/user/request-password-reset.php', {
+        const response = await fetch(`${API_BASE_URL}/user/request-password-reset.php`, {
             method: 'POST',
             headers: getCsrfHeaders(),
             credentials: 'include',
@@ -553,7 +553,7 @@ async function confirmEmailChange() {
     feedback.style.display = 'none';
     
     try {
-        const response = await fetch('/api/user/confirm-email-change.php', {
+        const response = await fetch(`${API_BASE_URL}/user/confirm-email-change.php`, {
             method: 'POST',
             headers: getCsrfHeaders(),
             credentials: 'include',
@@ -608,7 +608,7 @@ async function requestDeleteAccount() {
     feedback.style.display = 'none';
     
     try {
-        const response = await fetch('/api/user/request-delete-account.php', {
+        const response = await fetch(`${API_BASE_URL}/user/request-delete-account.php`, {
             method: 'POST',
             headers: getCsrfHeaders(),
             credentials: 'include',
@@ -664,7 +664,7 @@ async function confirmDeleteAccount() {
     feedback.style.display = 'none';
     
     try {
-        const response = await fetch('/api/user/confirm-delete-account.php', {
+        const response = await fetch(`${API_BASE_URL}/user/confirm-delete-account.php`, {
             method: 'POST',
             headers: getCsrfHeaders(),
             credentials: 'include',
@@ -704,7 +704,7 @@ async function confirmDeleteAccount() {
 // Gestion des commandes
 async function showOrderDetailsModal(orderId) {
     try {
-        const response = await fetch(`/api/commands/${orderId}`);
+        const response = await fetch(`${API_BASE_URL}/commands/${orderId}`);
         const result = await response.json();
         
         if (result.success) {
@@ -816,7 +816,7 @@ async function saveOrderEdit() {
     const notes = document.getElementById('edit-notes').value;
     
     try {
-        const response = await fetch(`/api/commands/${currentEditingOrder}`, {
+        const response = await fetch(`${API_BASE_URL}/commands/${currentEditingOrder}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -853,7 +853,7 @@ async function cancelOrder(orderId) {
     }
     
     try {
-        const response = await fetch(`/api/commands/${orderId}/cancel`, {
+        const response = await fetch(`${API_BASE_URL}/commands/${orderId}/cancel`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`

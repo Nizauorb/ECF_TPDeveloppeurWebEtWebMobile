@@ -11,7 +11,8 @@ class Database {
         $dbConfig = $config['db'];
 
         try {
-            $dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['dbname']};charset={$dbConfig['charset']}";
+            $port = $dbConfig['port'] ?? 3306;
+            $dsn = "mysql:host={$dbConfig['host']};port={$port};dbname={$dbConfig['dbname']};charset={$dbConfig['charset']}";
             $this->connection = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -35,7 +36,7 @@ class Database {
         return self::$instance;
     }
 
-    public function getConnection() {
+    public function getConnection(): PDO {
         return $this->connection;
     }
 }

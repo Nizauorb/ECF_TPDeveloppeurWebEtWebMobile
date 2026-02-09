@@ -14,7 +14,7 @@ class ContactForm {
 
     async loadCSRFToken() {
         try {
-            const response = await fetch('/api/csrf/token.php', {
+            const response = await fetch(`${API_BASE_URL}/csrf/token.php`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -181,7 +181,7 @@ class ContactForm {
                 throw new Error('Token CSRF non disponible. Veuillez réessayer.');
             }
             
-            const response = await fetch('/api/contact/send.php', {
+            const response = await fetch(`${API_BASE_URL}/contact/send.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

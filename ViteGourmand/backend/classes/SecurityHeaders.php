@@ -107,7 +107,7 @@ class SecurityHeaders {
      */
     public static function setSecureCORS(?string $allowedOrigin = null): void {
         // Origin par défaut ou celui spécifié
-        $origin = $allowedOrigin ?? ($_SERVER['HTTP_ORIGIN'] ?? 'http://localhost:3000');
+        $origin = $allowedOrigin ?? ($_SERVER['HTTP_ORIGIN'] ?? '');
         
         // Validation de l'origine
         if (self::isAllowedOrigin($origin)) {
@@ -172,7 +172,10 @@ class SecurityHeaders {
      * Headers pour les requêtes OPTIONS (pre-flight)
      */
     public static function setOptionsHeaders(): void {
-        header("Access-Control-Allow-Origin: " . ($_SERVER['HTTP_ORIGIN'] ?? 'http://localhost:3000'));
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if (self::isAllowedOrigin($origin)) {
+            header("Access-Control-Allow-Origin: {$origin}");
+        }
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
         header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token");
         header("Access-Control-Max-Age: 86400");

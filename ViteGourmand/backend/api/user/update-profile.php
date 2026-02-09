@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../classes/SecurityHeaders.php';
 require_once __DIR__ . '/../../classes/RateLimiter.php';
 require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
+require_once __DIR__ . '/../../classes/Mailer.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -155,18 +156,7 @@ try {
 
         // Envoyer le code par email à l'ANCIENNE adresse
         try {
-            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-            $mail->isSMTP();
-            $mail->Host = $config['mail']['host'];
-            $mail->Port = $config['mail']['port'];
-            $mail->SMTPAuth = $config['mail']['smtp_auth'];
-            $mail->CharSet = $config['mail']['charset'];
-            $mail->setFrom($config['mail']['from_email'], $config['mail']['from_name']);
-            $mail->addAddress($currentEmail);
-            $mail->isHTML(true);
-            $mail->Subject = 'Vérification de changement d\'email - Vite&Gourmand';
-
-            $mail->Body = "
+            $emailBody = "
             <!DOCTYPE html>
             <html lang='fr'>
             <head>
@@ -218,8 +208,7 @@ try {
             </body>
             </html>";
 
-            $mail->AltBody = "Bonjour {$firstName},\n\nCode de vérification pour changer votre email vers {$email} : {$verificationCode}\n\nCe code expire dans 15 minutes.";
-            $mail->send();
+            Mailer::send($currentEmail, 'Vérification de changement d\'email - Vite&Gourmand', $emailBody);
         } catch (Exception $emailError) {
             error_log("Erreur envoi email vérification changement email: " . $emailError->getMessage());
         }
@@ -232,18 +221,7 @@ try {
     } else {
         // Pas de changement d'email : envoyer un mail de confirmation classique
         try {
-            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-            $mail->isSMTP();
-            $mail->Host = $config['mail']['host'];
-            $mail->Port = $config['mail']['port'];
-            $mail->SMTPAuth = $config['mail']['smtp_auth'];
-            $mail->CharSet = $config['mail']['charset'];
-            $mail->setFrom($config['mail']['from_email'], $config['mail']['from_name']);
-            $mail->addAddress($currentEmail);
-            $mail->isHTML(true);
-            $mail->Subject = 'Confirmation de modification de profil - Vite&Gourmand';
-
-            $mail->Body = "
+            $emailBody = "
             <!DOCTYPE html>
             <html lang='fr'>
             <head>
@@ -292,8 +270,7 @@ try {
             </body>
             </html>";
 
-            $mail->AltBody = "Bonjour {$firstName},\n\nVos informations de profil ont été mises à jour.\nNom: {$lastName}\nPrénom: {$firstName}\nEmail: {$currentEmail}\nTéléphone: {$phone}\nAdresse: {$address}";
-            $mail->send();
+            Mailer::send($currentEmail, 'Confirmation de modification de profil - Vite&Gourmand', $emailBody);
         } catch (Exception $emailError) {
             error_log("Erreur envoi email confirmation profil: " . $emailError->getMessage());
         }

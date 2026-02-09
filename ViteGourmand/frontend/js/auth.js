@@ -16,7 +16,7 @@ class AuthValidator {
 
     async loadCSRFToken() {
         try {
-            const response = await fetch('/api/csrf/token.php', {
+            const response = await fetch(`${API_BASE_URL}/csrf/token.php`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -90,7 +90,7 @@ async loginUser() {
         const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
         if (this.csrfToken) headers['X-CSRF-Token'] = this.csrfToken;
         
-        const response = await fetch('/api/auth/login.php', {
+        const response = await fetch(`${API_BASE_URL}/auth/login.php`, {
             method: 'POST',
             headers: headers,
             credentials: 'include',
@@ -226,7 +226,7 @@ async loginUser() {
                     const regHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
                     if (this.csrfToken) regHeaders['X-CSRF-Token'] = this.csrfToken;
                     
-                    const response = await fetch('/api/auth/register.php', {
+                    const response = await fetch(`${API_BASE_URL}/auth/register.php`, {
                         method: 'POST',
                         headers: regHeaders,
                         credentials: 'include',
@@ -386,7 +386,7 @@ async loginUser() {
                     throw new Error('Token CSRF non disponible. Veuillez réessayer.');
                 }
 
-                const response = await fetch('/api/auth/forgot-password.php', {
+                const response = await fetch(`${API_BASE_URL}/auth/forgot-password.php`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -497,7 +497,7 @@ async loginUser() {
                 const resetHeaders = { 'Content-Type': 'application/json' };
                 if (this.csrfToken) resetHeaders['X-CSRF-Token'] = this.csrfToken;
                 
-                const response = await fetch('/api/auth/reset-password.php', {
+                const response = await fetch(`${API_BASE_URL}/auth/reset-password.php`, {
                     method: 'POST',
                     headers: resetHeaders,
                     credentials: 'include',

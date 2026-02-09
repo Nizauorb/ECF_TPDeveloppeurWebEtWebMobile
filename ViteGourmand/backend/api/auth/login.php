@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../classes/SecurityHeaders.php';
 require_once __DIR__ . '/../../classes/RateLimiter.php';
 require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
+require_once __DIR__ . '/../../classes/JWTHelper.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -102,11 +103,12 @@ try {
         exit();
     }
 
-    // Générer un token JWT (à implémenter)
-    $token = bin2hex(random_bytes(32));
-    
-    // Ici, vous devriez stocker le token dans la base de données
-    // avec une date d'expiration
+    // Générer un token JWT signé
+    $token = JWTHelper::generate([
+        'user_id' => (int) $user['id'],
+        'email' => $user['email'],
+        'role' => $user['role']
+    ]);
 
     // Réponse de succès
     echo json_encode([

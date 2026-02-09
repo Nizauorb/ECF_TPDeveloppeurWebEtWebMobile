@@ -55,12 +55,25 @@ export default defineConfig({
     {
       name: 'copy-backend',
       buildStart: async () => {
-        // Copier le backend vers le dossier Apache à chaque build
         await copyBackendToApache();
       },
-      handleHotUpdate: async () => {
-        // Copier en mode développement quand les fichiers changent
-        await copyBackendToApache();
+      configureServer(server) {
+        // Surveiller le dossier backend et copier vers Apache à chaque modification
+        const backendPath = resolve(__dirname, '../backend')
+        const chokidar = server.watcher
+        chokidar.add(backendPath)
+        chokidar.on('change', (filePath) => {
+          if (filePath.includes('backend')) {
+            copyBackendToApache()
+            console.log(`✓ Backend mis à jour (${path.basename(filePath)})`)
+          }
+        })
+        chokidar.on('add', (filePath) => {
+          if (filePath.includes('backend')) {
+            copyBackendToApache()
+            console.log(`✓ Nouveau fichier backend copié (${path.basename(filePath)})`)
+          }
+        })
       }
     },
     {

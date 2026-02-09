@@ -5,6 +5,7 @@ ini_set('display_errors', 0);
 
 require_once __DIR__ . '/../../classes/Database.php';
 require_once __DIR__ . '/../../classes/SecurityHeaders.php';
+require_once __DIR__ . '/../../classes/JWTHelper.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -26,12 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit();
 }
 
-// TODO: Implémenter une vraie validation de token JWT
-// Pour l'instant, on se fie au user_id passé en paramètre
-// (le token n'est pas encore stocké/validé côté serveur)
-
-// Récupérer l'ID utilisateur depuis les paramètres
-$userId = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+// Validation du token JWT
+$jwtPayload = JWTHelper::getFromRequest();
+if ($jwtPayload && isset($jwtPayload['user_id'])) {
+    $userId = (int) $jwtPayload['user_id'];
+} else {
+    // Fallback sur le paramètre GET (rétrocompatibilité tokens existants)
+    $userId = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+}
 
 if ($userId <= 0) {
     http_response_code(400);
@@ -47,7 +50,13 @@ try {
 
     // Récupérer les commandes de l'utilisateur
     $stmt = $db->prepare("
-        SELECT id, user_id, menu_nom, quantite, total, statut, notes, date_commande, updated_at
+        SELECT id, user_id, client_nom, client_prenom, client_email, client_telephone,
+               menu_key, menu_nom, prix_unitaire, nombre_personnes, nombre_personnes_min,
+               adresse_livraison, ville_livraison, code_postal_livraison,
+               date_prestation, heure_prestation, frais_livraison, distance_km,
+               sous_total, reduction_pourcent, reduction_montant, total,
+               notes, statut, motif_annulation, mode_contact_annulation,
+               date_commande, updated_at
         FROM commandes
         WHERE user_id = ?
         ORDER BY date_commande DESC
@@ -59,8 +68,15 @@ try {
     foreach ($commands as &$command) {
         $command['id'] = (int) $command['id'];
         $command['user_id'] = (int) $command['user_id'];
-        $command['quantite'] = (int) $command['quantite'];
+        $command['nombre_personnes'] = (int) $command['nombre_personnes'];
+        $command['nombre_personnes_min'] = (int) $command['nombre_personnes_min'];
+        $command['prix_unitaire'] = (float) $command['prix_unitaire'];
+        $command['frais_livraison'] = (float) $command['frais_livraison'];
+        $command['sous_total'] = (float) $command['sous_total'];
+        $command['reduction_pourcent'] = (float) $command['reduction_pourcent'];
+        $command['reduction_montant'] = (float) $command['reduction_montant'];
         $command['total'] = (float) $command['total'];
+        if ($command['distance_km'] !== null) $command['distance_km'] = (float) $command['distance_km'];
     }
 
     echo json_encode([

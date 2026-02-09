@@ -21,6 +21,7 @@ function requireAuth() {
 var currentUser = null;
 var currentEditingOrder = null;
 var csrfToken = null;
+var loadedCommands = [];
 
 async function loadCSRFToken() {
     try {
@@ -41,6 +42,10 @@ function getCsrfHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     if (csrfToken) {
         headers['X-CSRF-Token'] = csrfToken;
+    }
+    const token = localStorage.getItem('token');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
 }
@@ -238,6 +243,9 @@ function displayOrders(commands) {
         return;
     }
     
+    // Stocker les commandes pour accès local
+    loadedCommands = commands;
+    
     // Vider la liste
     ordersList.innerHTML = '';
     
@@ -276,6 +284,11 @@ function createOrderElement(command) {
     // Vérifier si la commande peut être modifiée/annulée
     const canModify = canModifyOrder(command.statut);
     
+    // Formater la date de prestation
+    const datePrestation = command.date_prestation ? new Date(command.date_prestation + 'T00:00:00').toLocaleDateString('fr-FR', {
+        day: '2-digit', month: 'long', year: 'numeric'
+    }) : '';
+    
     orderDiv.innerHTML = `
         <div class="order-header" onclick="toggleOrderDetails(${command.id})">
             <div class="order-info">
@@ -291,6 +304,36 @@ function createOrderElement(command) {
                     <span class="detail-label">Menu :</span>
                     <span class="detail-value">${command.menu_nom || 'Menu inconnu'}</span>
                 </div>
+                <div class="detail-row">
+                    <span class="detail-label">Personnes :</span>
+                    <span class="detail-value">${command.nombre_personnes || '-'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Prix unitaire :</span>
+                    <span class="detail-value">${command.prix_unitaire ? command.prix_unitaire.toFixed(2) + ' €/pers.' : '-'}</span>
+                </div>
+                ${command.reduction_pourcent > 0 ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Réduction :</span>
+                        <span class="detail-value text-success">-${command.reduction_montant.toFixed(2)} € (${command.reduction_pourcent}%)</span>
+                    </div>
+                ` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">Frais livraison :</span>
+                    <span class="detail-value">${command.frais_livraison ? command.frais_livraison.toFixed(2) + ' €' : '-'}</span>
+                </div>
+                ${command.date_prestation ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Prestation :</span>
+                        <span class="detail-value">${datePrestation} à ${command.heure_prestation || ''}</span>
+                    </div>
+                ` : ''}
+                ${command.adresse_livraison ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Livraison :</span>
+                        <span class="detail-value">${command.adresse_livraison}, ${command.code_postal_livraison || ''} ${command.ville_livraison || ''}</span>
+                    </div>
+                ` : ''}
                 ${command.notes ? `
                     <div class="detail-row">
                         <span class="detail-label">Notes :</span>
@@ -299,7 +342,7 @@ function createOrderElement(command) {
                 ` : ''}
             </div>
             
-            ${command.statut !== 'en_attente' ? `
+            ${command.statut !== 'en_attente' && command.statut !== 'annulee' ? `
                 <div class="order-tracking">
                     <h4>Suivi de la commande</h4>
                     ${generateOrderTracking(command.statut)}
@@ -321,7 +364,7 @@ function createOrderElement(command) {
                         Annuler
                     </button>
                 ` : ''}
-                ${command.statut === 'livre' ? `
+                ${command.statut === 'terminee' ? `
                     <button class="btn btn-sm btn-success" onclick="reorderCommand(${command.id})">
                         <i class="bi bi-arrow-repeat me-1"></i>
                         Commander à nouveau
@@ -346,22 +389,25 @@ function toggleOrderDetails(orderId) {
 function generateOrderTracking(status) {
     const steps = [
         { id: 'en_attente', title: 'Commande reçue', icon: 'bi-clock' },
-        { id: 'accepte', title: 'Commande acceptée', icon: 'bi-check-circle' },
+        { id: 'acceptee', title: 'Acceptée', icon: 'bi-check-circle' },
         { id: 'en_preparation', title: 'En préparation', icon: 'bi-fire' },
-        { id: 'pret', title: 'Prête', icon: 'bi-check2-square' },
-        { id: 'livre', title: 'Livrée', icon: 'bi-truck' }
+        { id: 'en_livraison', title: 'En livraison', icon: 'bi-truck' },
+        { id: 'livree', title: 'Livrée', icon: 'bi-check2-all' },
+        { id: 'attente_retour_materiel', title: 'Retour matériel', icon: 'bi-box-seam' },
+        { id: 'terminee', title: 'Terminée', icon: 'bi-check-circle-fill' }
     ];
     
+    // Trouver l'index du statut courant
+    const currentIndex = steps.findIndex(s => s.id === status);
+    
     let html = '';
-    let foundCurrent = false;
     
     steps.forEach((step, index) => {
         let stepClass = 'pending';
-        if (step.id === status) {
-            stepClass = 'current';
-            foundCurrent = true;
-        } else if (foundCurrent || (status === 'livre' && index < 4)) {
+        if (index < currentIndex) {
             stepClass = 'completed';
+        } else if (index === currentIndex) {
+            stepClass = 'current';
         }
         
         html += `
@@ -383,30 +429,34 @@ function generateOrderTracking(status) {
 // Fonctions utilitaires pour le statut
 function getStatusClass(status) {
     const statusMap = {
-        'en_attente': 'status-en_attente',
-        'accepte': 'status-accepte',
-        'en_preparation': 'status-en_preparation',
-        'pret': 'status-pret',
-        'livre': 'status-livre',
-        'annule': 'status-annule'
+        'en_attente': 'bg-warning text-dark',
+        'acceptee': 'bg-info text-dark',
+        'en_preparation': 'bg-info text-white',
+        'en_livraison': 'bg-primary text-white',
+        'livree': 'bg-success text-white',
+        'attente_retour_materiel': 'bg-secondary text-white',
+        'terminee': 'bg-success text-white',
+        'annulee': 'bg-danger text-white'
     };
-    return statusMap[status] || 'status-en_attente';
+    return statusMap[status] || 'bg-warning text-dark';
 }
 
 function getStatusText(status) {
     const statusMap = {
         'en_attente': 'En attente',
-        'accepte': 'Acceptée',
+        'acceptee': 'Acceptée',
         'en_preparation': 'En préparation',
-        'pret': 'Prête',
-        'livre': 'Livrée',
-        'annule': 'Annulée'
+        'en_livraison': 'En livraison',
+        'livree': 'Livrée',
+        'attente_retour_materiel': 'Retour matériel',
+        'terminee': 'Terminée',
+        'annulee': 'Annulée'
     };
     return statusMap[status] || 'Inconnu';
 }
 
 function canModifyOrder(status) {
-    return status === 'en_attente' || status === 'accepte';
+    return status === 'en_attente';
 }
 
 // Gestion du profil
@@ -702,93 +752,104 @@ async function confirmDeleteAccount() {
 }
 
 // Gestion des commandes
-async function showOrderDetailsModal(orderId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/commands/${orderId}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const command = result.data;
-            
-            // Remplir la modale
-            document.getElementById('modal-order-id').textContent = command.id;
-            
-            const modalContent = document.getElementById('order-details-content');
-            modalContent.innerHTML = `
-                <div class="order-details">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Informations de la commande</h6>
-                            <p><strong>N° Commande:</strong> #${command.id}</p>
-                            <p><strong>Date:</strong> ${new Date(command.date_commande).toLocaleDateString('fr-FR')}</p>
-                            <p><strong>Statut:</strong> ${getStatusText(command.statut)}</p>
-                            <p><strong>Total:</strong> ${command.total ? command.total.toFixed(2) + ' €' : 'N/A'}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Menu commandé</h6>
-                            <p><strong>Nom:</strong> ${command.menu_nom || 'N/A'}</p>
-                            <p><strong>Description:</strong> ${command.menu_description || 'N/A'}</p>
+function showOrderDetailsModal(orderId) {
+    const command = loadedCommands.find(c => c.id === orderId);
+    
+    if (!command) {
+        showErrorMessage('Commande non trouvée');
+        return;
+    }
+    
+    // Remplir la modale
+    document.getElementById('modal-order-id').textContent = command.id;
+    
+    const dateCommande = new Date(command.date_commande).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+    const datePrestation = command.date_prestation ? new Date(command.date_prestation + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
+    
+    const modalContent = document.getElementById('order-details-content');
+    modalContent.innerHTML = `
+        <div class="order-details">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-receipt me-1"></i>Commande</h6>
+                    <p><strong>N° :</strong> #${command.id}</p>
+                    <p><strong>Date :</strong> ${dateCommande}</p>
+                    <p><strong>Statut :</strong> <span class="badge ${getStatusClass(command.statut)}">${getStatusText(command.statut)}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-egg-fried me-1"></i>Menu</h6>
+                    <p><strong>Menu :</strong> ${command.menu_nom || 'N/A'}</p>
+                    <p><strong>Personnes :</strong> ${command.nombre_personnes}</p>
+                    <p><strong>Prix unitaire :</strong> ${command.prix_unitaire ? command.prix_unitaire.toFixed(2) + ' €/pers.' : '-'}</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-geo-alt me-1"></i>Livraison</h6>
+                    <p><strong>Adresse :</strong> ${command.adresse_livraison || '-'}</p>
+                    <p><strong>Ville :</strong> ${command.code_postal_livraison || ''} ${command.ville_livraison || '-'}</p>
+                    <p><strong>Date :</strong> ${datePrestation}</p>
+                    <p><strong>Heure :</strong> ${command.heure_prestation || '-'}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-calculator me-1"></i>Tarification</h6>
+                    <p><strong>Sous-total :</strong> ${command.sous_total ? command.sous_total.toFixed(2) + ' €' : '-'}</p>
+                    ${command.reduction_pourcent > 0 ? `<p class="text-success"><strong>Réduction (${command.reduction_pourcent}%) :</strong> -${command.reduction_montant.toFixed(2)} €</p>` : ''}
+                    <p><strong>Frais livraison :</strong> ${command.frais_livraison ? command.frais_livraison.toFixed(2) + ' €' : '-'}</p>
+                    <p class="fs-5 fw-bold"><strong>Total :</strong> ${command.total ? command.total.toFixed(2) + ' €' : 'N/A'}</p>
+                </div>
+            </div>
+            ${command.notes ? `
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="fw-bold text-primary"><i class="bi bi-chat-left-text me-1"></i>Notes</h6>
+                        <p class="text-muted">${command.notes}</p>
+                    </div>
+                </div>
+            ` : ''}
+            ${command.statut !== 'en_attente' && command.statut !== 'annulee' ? `
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="fw-bold text-primary"><i class="bi bi-truck me-1"></i>Suivi</h6>
+                        <div class="order-tracking">
+                            ${generateOrderTracking(command.statut)}
                         </div>
                     </div>
-                    ${command.notes ? `
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Notes</h6>
-                                <p class="text-muted">${command.notes}</p>
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${command.statut !== 'en_attente' ? `
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Suivi de la commande</h6>
-                                <div class="order-tracking">
-                                    ${generateOrderTracking(command.statut)}
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
                 </div>
-            `;
-            
-            // Configurer les actions
-            const modalFooter = document.getElementById('modal-footer');
-            let actionsHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>';
-            
-            if (canModifyOrder(command.statut)) {
-                actionsHTML += `
-                    <button type="button" class="btn btn-warning" onclick="editOrder(${command.id})">
-                        <i class="bi bi-pencil me-1"></i>
-                        Modifier
-                    </button>
-                    <button type="button" class="btn btn-danger" onclick="cancelOrder(${command.id})">
-                        <i class="bi bi-x-circle me-1"></i>
-                        Annuler
-                    </button>
-                `;
-            }
-            
-            if (command.statut === 'livre') {
-                actionsHTML += `
-                    <button type="button" class="btn btn-success" onclick="reorderCommand(${command.id})">
-                        <i class="bi bi-arrow-repeat me-1"></i>
-                        Commander à nouveau
-                    </button>
-                `;
-            }
-            
-            modalFooter.innerHTML = actionsHTML;
-            
-            // Afficher la modale
-            const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-            modal.show();
-        } else {
-            showErrorMessage(result.message || 'Erreur lors du chargement des détails');
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        showErrorMessage('Erreur de communication avec le serveur');
+            ` : ''}
+        </div>
+    `;
+    
+    // Configurer les actions
+    const modalFooter = document.getElementById('modal-footer');
+    let actionsHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>';
+    
+    if (canModifyOrder(command.statut)) {
+        actionsHTML += `
+            <button type="button" class="btn btn-danger" onclick="cancelOrder(${command.id})">
+                <i class="bi bi-x-circle me-1"></i>
+                Annuler
+            </button>
+        `;
     }
+    
+    if (command.statut === 'terminee') {
+        actionsHTML += `
+            <button type="button" class="btn btn-success" onclick="reorderCommand(${command.id})">
+                <i class="bi bi-arrow-repeat me-1"></i>
+                Commander à nouveau
+            </button>
+        `;
+    }
+    
+    modalFooter.innerHTML = actionsHTML;
+    
+    // Afficher la modale
+    const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+    modal.show();
 }
 
 function editOrder(orderId) {
@@ -853,11 +914,11 @@ async function cancelOrder(orderId) {
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/commands/${orderId}/cancel`, {
+        const response = await fetch(`${API_BASE_URL}/commands/cancel.php`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+            headers: getCsrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify({ order_id: orderId, user_id: currentUser.id })
         });
         
         const result = await response.json();

@@ -4,8 +4,8 @@ export const menuData = {
         title: "Menu Classique",
         price: "35€",
         image: "Classique.png",
-        description: "Un festin convivial et raffiné pour 2 à 6 convives. Savourez une terrine de campagne généreuse, un filet de bœuf Rossini accompagné d'un gratin dauphinois crémeux, et une crème brûlée à la vanille parfaitement caramélisée. Une expérience gastronomique élégante, parfaite pour un repas familial ou entre amis.",
-        minPeople: "2-6",
+        description: "Un festin convivial et raffiné à partir de 2 convives. Savourez une terrine de campagne généreuse, un filet de bœuf Rossini accompagné d'un gratin dauphinois crémeux, et une crème brûlée à la vanille parfaitement caramélisée. Une expérience gastronomique élégante, parfaite pour un repas familial ou entre amis.",
+        minPeople: "2+",
         allergenes: ["Gluten", "Lait et produits laitiers", "Œufs"],
         conditionsCommande: "Commande à effectuer au minimum 3 jours avant la prestation. Conservation au réfrigérateur entre 0°C et 4°C.",
         regime: "Classique",
@@ -26,8 +26,8 @@ export const menuData = {
         title: "Menu de Noël",
         price: "55€",
         image: "Noel.png",
-        description: "Un festin de Noël généreux pour 6 à 10 convives. Dégustez des huîtres fraîches en entrée, un chapon rôti farci aux châtaignes accompagné d'un gratin de pommes de terre au Reblochon fondant, et une bûche de Noël traditionnelle au chocolat et marron glacé. Une table scintillante aux couleurs de fête pour célébrer ensemble dans une ambiance chaleureuse et raffinée.",
-        minPeople: "6-10",
+        description: "Un festin de Noël généreux à partir de 6 convives. Dégustez des huîtres fraîches en entrée, un chapon rôti farci aux châtaignes accompagné d'un gratin de pommes de terre au Reblochon fondant, et une bûche de Noël traditionnelle au chocolat et marron glacé. Une table scintillante aux couleurs de fête pour célébrer ensemble dans une ambiance chaleureuse et raffinée.",
+        minPeople: "6+",
         allergenes: ["Mollusques", "Lait et produits laitiers", "Fruits à coque", "Œufs", "Gluten"],
         conditionsCommande: "Commande à effectuer au minimum 2 semaines avant la prestation en raison de la disponibilité saisonnière des produits (huîtres fraîches, chapon). Les huîtres doivent être conservées vivantes au frais (5-10°C) et consommées rapidement. Le chapon nécessite une préparation spécifique.",
         regime: "Classique",
@@ -48,8 +48,8 @@ export const menuData = {
         title: "Menu de Pâques",
         price: "38€",
         image: "Paques.png",
-        description: "Un menu de Pâques automnal et réconfortant pour 4 à 6 convives. Dégustez un velouté de potimarron onctueux au foie gras poêlé, un jarret de bœuf braisé fondant accompagné d'une purée de céleri-rave au Comté et de carottes glacées, et une délicate tarte fine aux poires confites. Une ambiance sereine et chaleureuse aux couleurs automnales pour célébrer ce moment festif.",
-        minPeople: "4-6",
+        description: "Un menu de Pâques automnal et réconfortant à partir de 4 convives. Dégustez un velouté de potimarron onctueux au foie gras poêlé, un jarret de bœuf braisé fondant accompagné d'une purée de céleri-rave au Comté et de carottes glacées, et une délicate tarte fine aux poires confites. Une ambiance sereine et chaleureuse aux couleurs automnales pour célébrer ce moment festif.",
+        minPeople: "4+",
         allergenes: ["Lait et produits laitiers", "Fruits à coque", "Gluten", "Œufs"],
         conditionsCommande: "Commande à effectuer au minimum 5 jours avant la prestation. Le jarret de bœuf nécessite un temps de préparation prolongé. Conservation au réfrigérateur entre 0°C et 4°C.",
         regime: "Classique",
@@ -70,7 +70,7 @@ export const menuData = {
         title: "Menu d'Evénements",
         price: "48€",
         image: "Event.png",
-        description: "Un menu événementiel raffiné pour 10 convives et plus. Savourez des asperges vertes rôties aux œufs mollets mimosa, un carré d'agneau rôti aux herbes de Provence accompagné d'un risotto crémeux aux petits pois et menthe fraîche, et un fraisier revisité à la crème mousseline. Une table élégante et sophistiquée, parfaite pour célébrer vos grands événements dans une ambiance festive et raffinée.",
+        description: "Un menu événementiel raffiné à partir de 10 convives. Savourez des asperges vertes rôties aux œufs mollets mimosa, un carré d'agneau rôti aux herbes de Provence accompagné d'un risotto crémeux aux petits pois et menthe fraîche, et un fraisier revisité à la crème mousseline. Une table élégante et sophistiquée, parfaite pour célébrer vos grands événements dans une ambiance festive et raffinée.",
         minPeople: "10+",
         allergenes: ["Lait et produits laitiers", "Œufs", "Gluten"],
         conditionsCommande: "Commande à effectuer au minimum 3 semaines avant la prestation pour garantir la disponibilité des produits et la préparation soignée. Les asperges fraîches dépendent de la saison. Service traiteur sur place recommandé pour les groupes de plus de 15 personnes.",
@@ -187,7 +187,7 @@ export function showMenuDetails(menuType) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                        <button type="button" class="btn btn-primary">
+                        <button type="button" class="btn btn-primary" onclick="orderMenu('${menuType}')">
                             <i class="bi bi-cart-plus me-2"></i>Commander ce menu
                         </button>
                     </div>
@@ -434,6 +434,33 @@ export function updateFilterResults(count) {
     } else {
         resultsElement.textContent = `${count} menu${count > 1 ? 's' : ''} trouvé${count > 1 ? 's' : ''} sur ${totalMenus}`;
     }
+}
+
+// Fonction pour commander un menu (redirige vers la page de commande)
+export function orderMenu(menuKey) {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (!token || !userStr) {
+        // Fermer la modale si ouverte
+        const modal = document.getElementById('menuDetailsModal');
+        if (modal) {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) bsModal.hide();
+        }
+        // Rediriger vers la connexion
+        alert('Vous devez être connecté pour passer une commande.');
+        window.location.href = '/Login';
+        return;
+    }
+    
+    // Fermer la modale et rediriger vers la page de commande avec le menu pré-sélectionné
+    const modal = document.getElementById('menuDetailsModal');
+    if (modal) {
+        const bsModal = bootstrap.Modal.getInstance(modal);
+        if (bsModal) bsModal.hide();
+    }
+    window.location.href = `/Commander?menu=${menuKey}`;
 }
 
 // Initialisation quand le script est chargé

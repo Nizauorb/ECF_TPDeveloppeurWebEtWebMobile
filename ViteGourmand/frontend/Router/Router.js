@@ -4,6 +4,37 @@ import { allRoutes, websiteName } from "./allRoutes.js";
 // Création d'une route pour la page 404 (page introuvable)
 const route404 = new Route("404", "Page introuvable", "/pages/404.html");
 
+// Retourne l'URL du dashboard selon le rôle de l'utilisateur
+const getDashboardUrlByRole = (role) => {
+  switch (role) {
+    case 'administrateur': return '/admin';
+    case 'employe': return '/EmployeDashboard';
+    default: return '/UserDashboard';
+  }
+};
+
+// Retourne les éléments de navigation de l'offcanvas selon le rôle
+const getNavItemsByRole = (role, dashboardUrl) => {
+  const items = [];
+
+  if (role === 'employe' || role === 'administrateur') {
+    items.push(
+      { href: dashboardUrl + '?section=orders', icon: 'bi-clipboard-check', label: 'Les Commandes' },
+      { href: dashboardUrl + '?section=menus', icon: 'bi-book', label: 'Les Menus' },
+      { href: dashboardUrl + '?section=horaires', icon: 'bi-clock', label: 'Les Horaires' },
+      { href: dashboardUrl + '?section=avis', icon: 'bi-chat-dots', label: 'Les Avis' },
+      { href: dashboardUrl + '?section=profile', icon: 'bi-person-gear', label: 'Mon Profil' }
+    );
+  } else {
+    items.push(
+      { href: dashboardUrl + '?section=orders', icon: 'bi-bag-check', label: 'Mes Commandes' },
+      { href: dashboardUrl + '?section=profile', icon: 'bi-person-gear', label: 'Mon Profil' }
+    );
+  }
+
+  return items;
+};
+
 // Mise à jour de l'interface selon l'état de connexion
 const updateAuthUI = () => {
   const token = localStorage.getItem('token');
@@ -44,6 +75,36 @@ const updateAuthUI = () => {
     if (offcanvasEmail) offcanvasEmail.textContent = user.email || '';
     const offcanvasName = document.getElementById('userProfileMenuLabel');
     if (offcanvasName) offcanvasName.textContent = `${user.firstName || ''} ${user.lastName || ''}`;
+
+    // Générer dynamiquement le contenu de l'offcanvas selon le rôle
+    const navBody = document.getElementById('offcanvas-nav-body');
+    if (navBody) {
+      const dashboardUrl = getDashboardUrlByRole(user.role);
+      const navItems = getNavItemsByRole(user.role, dashboardUrl);
+      navBody.innerHTML = `
+        <nav class="py-2">
+          <ul class="list-unstyled mb-0">
+            ${navItems.map(item => `
+              <li>
+                <a href="${item.href}" class="d-flex align-items-center px-4 py-3 text-decoration-none text-dark">
+                  <i class="bi ${item.icon} me-3 fs-5 text-primary"></i>
+                  <span>${item.label}</span>
+                </a>
+              </li>
+            `).join('')}
+          </ul>
+        </nav>
+        <hr class="my-0">
+        <div class="p-3">
+          <a href="/Carte" class="btn btn-outline-primary w-100 mb-2">
+            <i class="bi bi-plus-circle me-2"></i>Nouvelle Commande
+          </a>
+          <button class="btn btn-outline-danger w-100" id="offcanvas-logout-btn">
+            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+          </button>
+        </div>
+      `;
+    }
 
     // Bouton déconnexion dans l'offcanvas
     const logoutBtn = document.getElementById('offcanvas-logout-btn');

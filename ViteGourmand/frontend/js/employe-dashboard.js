@@ -72,6 +72,15 @@ function getAuthHeaders() {
         loadCSRFToken();
         displayEmployeInfo(currentEmploye);
         loadAllCommands();
+        
+        // Lire le paramètre ?section= de l'URL pour afficher la bonne section
+        const urlParams = new URLSearchParams(window.location.search);
+        const sectionParam = urlParams.get('section');
+        if (sectionParam) {
+            const sectionMap = { 'orders': 'commandes', 'menus': 'menus', 'horaires': 'horaires', 'avis': 'avis', 'profile': 'profil' };
+            const targetSection = sectionMap[sectionParam] || sectionParam;
+            showSection(targetSection);
+        }
     }
 })();
 

@@ -326,11 +326,13 @@ function refreshCommands() {
 // ============================================
 function updateStats(commands) {
     const enAttente = commands.filter(c => c.statut === 'en_attente').length;
-    const enCours = commands.filter(c => ['acceptee', 'en_preparation', 'en_livraison'].includes(c.statut)).length;
+    const enCours = commands.filter(c => ['acceptee', 'en_preparation', 'en_livraison', 'livree'].includes(c.statut)).length;
+    const retourMateriel = commands.filter(c => c.statut === 'attente_retour_materiel').length;
     const terminees = commands.filter(c => c.statut === 'terminee').length;
     
     document.getElementById('stat-en-attente').textContent = enAttente;
     document.getElementById('stat-en-cours').textContent = enCours;
+    document.getElementById('stat-retour-materiel').textContent = retourMateriel;
     document.getElementById('stat-terminees').textContent = terminees;
 }
 

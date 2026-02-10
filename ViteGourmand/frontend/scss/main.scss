@@ -1221,6 +1221,12 @@ section.py-5 {
   min-height: 70vh;
 }
 
+// Layout spécifique employé : sidebar fixe + contenu scrollable
+.employe-dashboard-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
 // Sidebar : desktop = colonne latérale, mobile = barre horizontale
 .dashboard-sidebar {
   border-bottom: 1px solid #e9ecef;
@@ -1260,11 +1266,17 @@ section.py-5 {
   min-width: 0;
 }
 
+// Contenu scrollable pour le layout employé
+.employe-dashboard-layout .dashboard-content {
+  overflow-y: auto;
+}
+
 // Desktop (md+) : sidebar en colonne latérale
 @media (min-width: 768px) {
   .dashboard-sidebar {
     width: 260px;
     min-width: 260px;
+    min-height: 100vh;
     border-bottom: none;
     border-right: 1px solid #e9ecef;
   }

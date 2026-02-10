@@ -1,4 +1,4 @@
-<div class="user-dashboard-layout d-flex flex-column flex-md-row">
+<div class="user-dashboard-layout employe-dashboard-layout d-flex flex-column flex-md-row">
     <!-- Mobile Header : burger + user info (visible < md) -->
     <div class="dashboard-mobile-header d-flex d-md-none align-items-center justify-content-between bg-white shadow-sm p-3 border-bottom">
         <div class="d-flex align-items-center gap-2">
@@ -88,7 +88,7 @@
             </div>
         </div>
         
-        <nav class="dashboard-sidebar-nav py-3 flex-grow-1">
+        <nav class="dashboard-sidebar-nav py-3">
             <ul class="nav-list list-unstyled mb-0">
                 <li class="nav-item">
                     <a href="/" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary">
@@ -103,21 +103,21 @@
                     </a>
                 </li>
                 <li class="nav-item" data-section="menus">
-                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section" onclick="showSection('menus')">
                         <i class="bi bi-book me-3"></i>
                         <span>Les Menus</span>
                         <span class="badge bg-secondary ms-auto">Bientôt</span>
                     </a>
                 </li>
                 <li class="nav-item" data-section="horaires">
-                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section" onclick="showSection('horaires')">
                         <i class="bi bi-clock me-3"></i>
                         <span>Les Horaires</span>
                         <span class="badge bg-secondary ms-auto">Bientôt</span>
                     </a>
                 </li>
                 <li class="nav-item" data-section="avis">
-                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section" onclick="showSection('avis')">
                         <i class="bi bi-star me-3"></i>
                         <span>Les Avis</span>
                         <span class="badge bg-secondary ms-auto">Bientôt</span>

@@ -161,6 +161,10 @@ const LoadContentPage = async () => {
   const actualRoute = getRouteByUrl(path);
   console.log('Route trouvée:', actualRoute); // Debug
   
+  // Réafficher le footer (peut avoir été masqué par le dashboard employé)
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.display = '';
+
   // Récupération du contenu HTML de la route
   const html = await fetch(actualRoute.pathHtml).then((data) => data.text());
   // Ajout du contenu HTML à l'élément avec l'ID "main-content"

@@ -12,7 +12,7 @@ export const allRoutes = [
     new Route("/ResetPassword", "Réinitialisation du mot de passe", "/pages/reset-password.html", "/js/auth.js"),
     new Route("/UserDashboard", "Espace Client", "/pages/user-dashboard.html", "/js/user-dashboard.js"),
     new Route("/Commander", "Commander", "/pages/order.html", "/js/order.js"),
-    new Route("/EmployeDashboard", "Espace Employé", "/pages/employe-dashboard.html", "/js/employe-dashboard.js", "/headers/employe-header.html"),
+    new Route("/EmployeDashboard", "Espace Employé", "/pages/employe-dashboard.html", "/js/employe-dashboard.js"),
 ];
 
 //Le titre s'affiche comme ceci : Route.titre - websitename

@@ -32,20 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Protection CSRF
 CSRFProtection::requireValidation();
 
-// Rate Limiting
-RateLimiter::setRateLimitHeaders('create_order');
-
-if (!RateLimiter::checkLimit('create_order')) {
-    $waitTime = RateLimiter::getWaitTime('create_order');
-    http_response_code(429);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Trop de tentatives. Veuillez réessayer dans ' . ceil($waitTime / 60) . ' minute(s).',
-        'retry_after' => $waitTime
-    ]);
-    exit();
-}
-
 $data = json_decode(file_get_contents('php://input'), true);
 
 // Validation JWT : vérifier que c'est un employé ou admin
@@ -57,6 +43,21 @@ if (!$jwtPayload || !isset($jwtPayload['user_id'])) {
 }
 
 $operatorId = (int) $jwtPayload['user_id'];
+$operatorRole = $jwtPayload['role'] ?? 'utilisateur';
+
+// Rate Limiting par rôle (employés/admins ont des limites plus souples)
+RateLimiter::setRateLimitHeadersByRole('update_order_status', $operatorRole);
+
+if (!RateLimiter::checkLimitByRole('update_order_status', $operatorRole)) {
+    $waitTime = RateLimiter::getWaitTimeByRole('update_order_status', $operatorRole);
+    http_response_code(429);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Trop de tentatives. Veuillez réessayer dans ' . ceil($waitTime / 60) . ' minute(s).',
+        'retry_after' => $waitTime
+    ]);
+    exit();
+}
 $orderId = isset($data['order_id']) ? (int) $data['order_id'] : 0;
 $newStatus = isset($data['statut']) ? trim($data['statut']) : '';
 $motif = isset($data['motif']) ? htmlspecialchars(trim($data['motif']), ENT_QUOTES, 'UTF-8') : null;

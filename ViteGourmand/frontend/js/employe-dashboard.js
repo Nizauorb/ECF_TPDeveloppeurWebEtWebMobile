@@ -211,9 +211,14 @@ function showSection(section) {
     const sections = ['commandes', 'menus', 'horaires', 'avis', 'profil'];
     
     // Sections désactivées (placeholder)
-    const disabledSections = ['menus', 'horaires', 'avis'];
+    const disabledSections = ['horaires', 'avis'];
     if (disabledSections.includes(section)) {
         // Quand même afficher le placeholder
+    }
+    
+    // Charger les menus si on navigue vers la section menus
+    if (section === 'menus') {
+        loadAllMenus();
     }
     
     // Masquer toutes les sections
@@ -252,6 +257,18 @@ function showSection(section) {
             siteHeader.innerHTML = employeFiltersHeaderHTML;
         } else {
             siteHeader.innerHTML = '';
+        }
+    }
+    
+    // Mettre à jour le bouton d'action du header
+    const headerActions = document.getElementById('employe-header-actions');
+    if (headerActions) {
+        if (section === 'commandes') {
+            headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="refreshCommands()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
+        } else if (section === 'menus') {
+            headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadAllMenus()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
+        } else {
+            headerActions.innerHTML = '';
         }
     }
     
@@ -795,4 +812,354 @@ function showEmployeToast(message, type) {
     setTimeout(() => {
         if (alert.parentNode) alert.remove();
     }, 5000);
+}
+
+// ============================================
+// GESTION DES MENUS — CRUD
+// ============================================
+var allMenusData = [];
+var allPlatsData = [];
+var menuToDeleteId = null;
+
+async function loadAllMenus() {
+    const loadingState = document.getElementById('menus-loading-state');
+    const emptyState = document.getElementById('menus-empty-state');
+    const menusList = document.getElementById('menus-list');
+
+    if (loadingState) loadingState.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
+    if (menusList) menusList.style.display = 'none';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/menus/list.php?include_inactive=1`, {
+            headers: getAuthHeaders()
+        });
+        const result = await response.json();
+
+        if (loadingState) loadingState.style.display = 'none';
+
+        if (!result.success) {
+            showEmployeError('Erreur lors du chargement des menus');
+            return;
+        }
+
+        allMenusData = result.data || [];
+
+        if (allMenusData.length === 0) {
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+
+        if (menusList) menusList.style.display = 'flex';
+        renderMenusList(allMenusData);
+        updateMenusStats(allMenusData);
+
+    } catch (error) {
+        console.error('Erreur chargement menus:', error);
+        if (loadingState) loadingState.style.display = 'none';
+        showEmployeError('Erreur de connexion au serveur');
+    }
+}
+
+function renderMenusList(menus) {
+    const container = document.getElementById('menus-list');
+    if (!container) return;
+
+    container.innerHTML = menus.map(menu => {
+        const stockClass = menu.stock_disponible >= 8 ? 'bg-success' : menu.stock_disponible >= 4 ? 'bg-warning' : 'bg-danger';
+        const statusBadge = menu.actif
+            ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Actif</span>'
+            : '<span class="badge bg-secondary"><i class="bi bi-eye-slash me-1"></i>Inactif</span>';
+
+        const themeLabels = { 'Classique': 'Classique', 'Noel': 'Noël', 'Paques': 'Pâques', 'Event': 'Événement' };
+        const themeLabel = themeLabels[menu.theme] || menu.theme;
+
+        const platsCount = (menu.plats || []).length;
+        const allergenes = (menu.allergenes || []).slice(0, 3).join(', ');
+        const allergenesMore = (menu.allergenes || []).length > 3 ? ` +${menu.allergenes.length - 3}` : '';
+
+        return `
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100 ${!menu.actif ? 'opacity-50' : ''}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0">${escapeHtml(menu.titre)}</h5>
+                            ${statusBadge}
+                        </div>
+                        <p class="text-muted small mb-2">${escapeHtml((menu.description || '').substring(0, 100))}${(menu.description || '').length > 100 ? '...' : ''}</p>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <span class="badge bg-primary">${themeLabel}</span>
+                            <span class="badge bg-info">${escapeHtml(menu.regime)}</span>
+                            <span class="badge ${stockClass}">${menu.stock_disponible} en stock</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-primary">${parseFloat(menu.prix_par_personne).toFixed(2)}€/pers.</span>
+                            <span class="text-muted small">${menu.nombre_personnes_min}+ pers.</span>
+                        </div>
+                        <div class="text-muted small mb-3">
+                            <i class="bi bi-egg-fried me-1"></i>${platsCount} plat(s)
+                            ${allergenes ? ` · <i class="bi bi-exclamation-triangle me-1"></i>${escapeHtml(allergenes)}${allergenesMore}` : ''}
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm flex-grow-1" onclick="openMenuEditModal(${menu.id})">
+                                <i class="bi bi-pencil me-1"></i>Modifier
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="openMenuDeleteModal(${menu.id}, '${escapeHtml(menu.titre)}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateMenusStats(menus) {
+    const actifs = menus.filter(m => m.actif).length;
+    const inactifs = menus.filter(m => !m.actif).length;
+    const stockBas = menus.filter(m => m.actif && m.stock_disponible < 4).length;
+
+    // Compter les plats uniques
+    const platIds = new Set();
+    menus.forEach(m => (m.plats || []).forEach(p => platIds.add(p.id)));
+
+    document.getElementById('stat-menus-total').textContent = actifs;
+    document.getElementById('stat-plats-total').textContent = platIds.size;
+    document.getElementById('stat-menus-stock-bas').textContent = stockBas;
+    document.getElementById('stat-menus-inactifs').textContent = inactifs;
+}
+
+// --- Chargement des plats pour la modale ---
+async function loadPlatsForForm(selectedPlatIds = []) {
+    const container = document.getElementById('menu-form-plats-list');
+    if (!container) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/menus/plats/list.php`, {
+            headers: getAuthHeaders()
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            container.innerHTML = '<p class="text-danger small mb-0">Erreur de chargement des plats</p>';
+            return;
+        }
+
+        allPlatsData = result.data || [];
+
+        if (allPlatsData.length === 0) {
+            container.innerHTML = '<p class="text-muted small mb-0">Aucun plat disponible</p>';
+            return;
+        }
+
+        const typeLabels = { 'entree': 'Entrées', 'plat': 'Plats principaux', 'dessert': 'Desserts' };
+        const grouped = { 'entree': [], 'plat': [], 'dessert': [] };
+        allPlatsData.forEach(p => {
+            if (grouped[p.type]) grouped[p.type].push(p);
+        });
+
+        let html = '';
+        for (const [type, plats] of Object.entries(grouped)) {
+            if (plats.length === 0) continue;
+            html += `<div class="mb-2"><strong class="small text-uppercase text-muted">${typeLabels[type]}</strong></div>`;
+            plats.forEach(p => {
+                const checked = selectedPlatIds.includes(p.id) ? 'checked' : '';
+                html += `
+                    <div class="form-check mb-1">
+                        <input class="form-check-input" type="checkbox" value="${p.id}" id="plat-check-${p.id}" ${checked}>
+                        <label class="form-check-label small" for="plat-check-${p.id}">
+                            ${escapeHtml(p.nom)}
+                            ${(p.allergenes || []).length > 0 ? `<span class="text-warning ms-1"><i class="bi bi-exclamation-triangle-fill"></i></span>` : ''}
+                        </label>
+                    </div>
+                `;
+            });
+        }
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Erreur chargement plats:', error);
+        container.innerHTML = '<p class="text-danger small mb-0">Erreur de connexion</p>';
+    }
+}
+
+// --- Ouvrir la modale de création ---
+function openMenuCreateModal() {
+    document.getElementById('menu-form-id').value = '';
+    document.getElementById('menu-form-titre').value = '';
+    document.getElementById('menu-form-key').value = '';
+    document.getElementById('menu-form-key').removeAttribute('readonly');
+    document.getElementById('menu-form-description').value = '';
+    document.getElementById('menu-form-theme').value = '';
+    document.getElementById('menu-form-regime').value = 'Classique';
+    document.getElementById('menu-form-image').value = '';
+    document.getElementById('menu-form-prix').value = '';
+    document.getElementById('menu-form-personnes-min').value = '2';
+    document.getElementById('menu-form-stock').value = '10';
+    document.getElementById('menu-form-conditions').value = '';
+    document.getElementById('menu-form-actif').checked = true;
+
+    document.getElementById('menuFormModalLabel').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Nouveau menu';
+    document.getElementById('menu-form-submit-btn').innerHTML = '<i class="bi bi-check-circle me-1"></i>Créer le menu';
+
+    loadPlatsForForm([]);
+
+    const modal = new bootstrap.Modal(document.getElementById('menuFormModal'));
+    modal.show();
+}
+
+// --- Ouvrir la modale d'édition ---
+function openMenuEditModal(menuId) {
+    const menu = allMenusData.find(m => m.id === menuId);
+    if (!menu) return;
+
+    document.getElementById('menu-form-id').value = menu.id;
+    document.getElementById('menu-form-titre').value = menu.titre || '';
+    document.getElementById('menu-form-key').value = menu.menu_key || '';
+    document.getElementById('menu-form-key').setAttribute('readonly', 'readonly');
+    document.getElementById('menu-form-description').value = menu.description || '';
+    document.getElementById('menu-form-theme').value = menu.theme || '';
+    document.getElementById('menu-form-regime').value = menu.regime || 'Classique';
+    document.getElementById('menu-form-image').value = menu.image || '';
+    document.getElementById('menu-form-prix').value = menu.prix_par_personne || '';
+    document.getElementById('menu-form-personnes-min').value = menu.nombre_personnes_min || 2;
+    document.getElementById('menu-form-stock').value = menu.stock_disponible ?? 10;
+    document.getElementById('menu-form-conditions').value = menu.conditions_commande || '';
+    document.getElementById('menu-form-actif').checked = menu.actif;
+
+    document.getElementById('menuFormModalLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Modifier le menu';
+    document.getElementById('menu-form-submit-btn').innerHTML = '<i class="bi bi-check-circle me-1"></i>Enregistrer';
+
+    const selectedPlatIds = (menu.plats || []).map(p => p.id);
+    loadPlatsForForm(selectedPlatIds);
+
+    const modal = new bootstrap.Modal(document.getElementById('menuFormModal'));
+    modal.show();
+}
+
+// --- Soumettre le formulaire (création ou modification) ---
+async function submitMenuForm() {
+    const menuId = document.getElementById('menu-form-id').value;
+    const isEdit = menuId !== '';
+
+    const titre = document.getElementById('menu-form-titre').value.trim();
+    const menuKey = document.getElementById('menu-form-key').value.trim();
+    const theme = document.getElementById('menu-form-theme').value;
+    const prix = document.getElementById('menu-form-prix').value;
+    const nbMin = document.getElementById('menu-form-personnes-min').value;
+
+    if (!titre || !menuKey || !theme || !prix || !nbMin) {
+        showEmployeError('Veuillez remplir tous les champs obligatoires');
+        return;
+    }
+
+    // Récupérer les plats cochés
+    const platCheckboxes = document.querySelectorAll('#menu-form-plats-list input[type="checkbox"]:checked');
+    const platIds = Array.from(platCheckboxes).map(cb => parseInt(cb.value));
+
+    const data = {
+        titre: titre,
+        menu_key: menuKey,
+        description: document.getElementById('menu-form-description').value.trim(),
+        theme: theme,
+        regime: document.getElementById('menu-form-regime').value,
+        image: document.getElementById('menu-form-image').value.trim(),
+        prix_par_personne: parseFloat(prix),
+        nombre_personnes_min: parseInt(nbMin),
+        stock_disponible: parseInt(document.getElementById('menu-form-stock').value) || 0,
+        conditions_commande: document.getElementById('menu-form-conditions').value.trim(),
+        actif: document.getElementById('menu-form-actif').checked,
+        plat_ids: platIds
+    };
+
+    if (isEdit) {
+        data.id = parseInt(menuId);
+    }
+
+    const submitBtn = document.getElementById('menu-form-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>En cours...';
+
+    try {
+        const url = isEdit ? `${API_BASE_URL}/menus/update.php` : `${API_BASE_URL}/menus/create.php`;
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showEmployeSuccess(isEdit ? 'Menu modifié avec succès' : 'Menu créé avec succès');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('menuFormModal'));
+            if (modal) modal.hide();
+            loadAllMenus();
+        } else {
+            showEmployeError(result.message || 'Erreur lors de l\'opération');
+        }
+
+    } catch (error) {
+        console.error('Erreur soumission menu:', error);
+        showEmployeError('Erreur de connexion au serveur');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = isEdit
+            ? '<i class="bi bi-check-circle me-1"></i>Enregistrer'
+            : '<i class="bi bi-check-circle me-1"></i>Créer le menu';
+    }
+}
+
+// --- Suppression (soft delete) ---
+function openMenuDeleteModal(menuId, menuTitre) {
+    menuToDeleteId = menuId;
+    document.getElementById('menu-delete-name').textContent = menuTitre;
+    const modal = new bootstrap.Modal(document.getElementById('menuDeleteModal'));
+    modal.show();
+}
+
+async function confirmDeleteMenu() {
+    if (!menuToDeleteId) return;
+
+    const confirmBtn = document.getElementById('menu-delete-confirm-btn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>En cours...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/menus/delete.php?id=${menuToDeleteId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showEmployeSuccess(result.message || 'Menu désactivé avec succès');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('menuDeleteModal'));
+            if (modal) modal.hide();
+            loadAllMenus();
+        } else {
+            showEmployeError(result.message || 'Erreur lors de la désactivation');
+        }
+
+    } catch (error) {
+        console.error('Erreur suppression menu:', error);
+        showEmployeError('Erreur de connexion au serveur');
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Désactiver';
+        menuToDeleteId = null;
+    }
+}
+
+// --- Utilitaire : échapper le HTML ---
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

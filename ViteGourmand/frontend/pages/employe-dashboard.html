@@ -39,10 +39,9 @@
                         </a>
                     </li>
                     <li class="nav-item" data-section="menus">
-                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary disabled-section" onclick="showSection('menus'); closeEmployeMenu();">
+                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary" onclick="showSection('menus'); closeEmployeMenu();">
                             <i class="bi bi-book me-3 fs-5"></i>
                             <span>Les Menus</span>
-                            <span class="badge bg-secondary ms-auto">Bientôt</span>
                         </a>
                     </li>
                     <li class="nav-item" data-section="horaires">
@@ -103,10 +102,9 @@
                     </a>
                 </li>
                 <li class="nav-item" data-section="menus">
-                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section" onclick="showSection('menus')">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary" onclick="showSection('menus')">
                         <i class="bi bi-book me-3"></i>
                         <span>Les Menus</span>
-                        <span class="badge bg-secondary ms-auto">Bientôt</span>
                     </a>
                 </li>
                 <li class="nav-item" data-section="horaires">
@@ -214,14 +212,72 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- SECTION : Menus (placeholder) -->
+        <!-- SECTION : Menus -->
         <!-- ============================================ -->
         <div id="section-menus" style="display: none;">
-            <div class="text-center py-5">
-                <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
-                <h4 class="text-muted mt-3">Gestion des Menus</h4>
-                <p class="text-muted">Cette fonctionnalité sera disponible prochainement.</p>
+            <!-- Stats rapides menus -->
+            <div class="row g-3 mb-4" id="menus-stats">
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-primary fs-3"><i class="bi bi-book"></i></div>
+                            <div class="fw-bold fs-4" id="stat-menus-total">0</div>
+                            <small class="text-muted">Menus actifs</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-success fs-3"><i class="bi bi-egg-fried"></i></div>
+                            <div class="fw-bold fs-4" id="stat-plats-total">0</div>
+                            <small class="text-muted">Plats</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-warning fs-3"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div class="fw-bold fs-4" id="stat-menus-stock-bas">0</div>
+                            <small class="text-muted">Stock bas (&lt;4)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-secondary fs-3"><i class="bi bi-eye-slash"></i></div>
+                            <div class="fw-bold fs-4" id="stat-menus-inactifs">0</div>
+                            <small class="text-muted">Inactifs</small>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- Bouton ajouter un menu -->
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-primary" onclick="openMenuCreateModal()">
+                    <i class="bi bi-plus-circle me-2"></i>Nouveau menu
+                </button>
+            </div>
+
+            <!-- État de chargement -->
+            <div id="menus-loading-state" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p class="text-muted mt-3">Chargement des menus...</p>
+            </div>
+
+            <!-- État vide -->
+            <div id="menus-empty-state" class="text-center py-5" style="display: none;">
+                <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">Aucun menu trouvé</p>
+            </div>
+
+            <!-- Liste des menus -->
+            <div id="menus-list" class="row g-3" style="display: none;"></div>
         </div>
 
         <!-- ============================================ -->
@@ -371,6 +427,130 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Retour</button>
                 <button type="button" class="btn btn-danger" id="confirm-cancel-btn" onclick="confirmCancelOrder()">
                     <i class="bi bi-x-circle me-1"></i>Confirmer l'annulation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODALE : Créer / Modifier un menu -->
+<!-- ============================================ -->
+<div class="modal fade" id="menuFormModal" tabindex="-1" aria-labelledby="menuFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title" id="menuFormModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Nouveau menu
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <form id="menuForm" onsubmit="return false;">
+                    <input type="hidden" id="menu-form-id" value="">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-medium">Titre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="menu-form-titre" required placeholder="Ex: Menu Classique">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Clé unique <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="menu-form-key" required placeholder="Ex: classique" pattern="[a-z0-9_-]+">
+                            <small class="text-muted">Minuscules, chiffres, tirets</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Description</label>
+                            <textarea class="form-control" id="menu-form-description" rows="3" placeholder="Description du menu..."></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Thème <span class="text-danger">*</span></label>
+                            <select class="form-select" id="menu-form-theme" required>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="Classique">Classique</option>
+                                <option value="Noel">Noël</option>
+                                <option value="Paques">Pâques</option>
+                                <option value="Event">Événement</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Régime <span class="text-danger">*</span></label>
+                            <select class="form-select" id="menu-form-regime" required>
+                                <option value="Classique">Classique</option>
+                                <option value="Végétarien">Végétarien</option>
+                                <option value="Vegan">Vegan</option>
+                                <option value="Halal">Halal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Image</label>
+                            <input type="text" class="form-control" id="menu-form-image" placeholder="Ex: Classique.png">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Prix / personne (€) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="menu-form-prix" required min="1" step="0.01" placeholder="35.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Personnes min. <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="menu-form-personnes-min" required min="1" value="2">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Stock disponible</label>
+                            <input type="number" class="form-control" id="menu-form-stock" min="0" value="10">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Conditions de commande</label>
+                            <textarea class="form-control" id="menu-form-conditions" rows="2" placeholder="Ex: Commande à effectuer au minimum 3 jours avant..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="menu-form-actif" checked>
+                                <label class="form-check-label fw-medium" for="menu-form-actif">Menu actif (visible par les clients)</label>
+                            </div>
+                        </div>
+                        <!-- Association des plats -->
+                        <div class="col-12">
+                            <hr>
+                            <label class="form-label fw-medium"><i class="bi bi-link-45deg me-1"></i>Plats associés</label>
+                            <div id="menu-form-plats-list" class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                <p class="text-muted small mb-0">Chargement des plats...</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="menu-form-submit-btn" onclick="submitMenuForm()">
+                    <i class="bi bi-check-circle me-1"></i>Créer le menu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODALE : Confirmation suppression menu -->
+<!-- ============================================ -->
+<div class="modal fade" id="menuDeleteModal" tabindex="-1" aria-labelledby="menuDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title" id="menuDeleteModalLabel">
+                    <i class="bi bi-trash me-2"></i>Désactiver le menu
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir désactiver le menu <strong id="menu-delete-name"></strong> ?</p>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Le menu ne sera plus visible par les clients mais restera dans la base de données.
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="menu-delete-confirm-btn" onclick="confirmDeleteMenu()">
+                    <i class="bi bi-trash me-1"></i>Désactiver
                 </button>
             </div>
         </div>

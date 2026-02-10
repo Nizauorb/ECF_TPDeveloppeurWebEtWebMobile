@@ -134,10 +134,16 @@ try {
             echo json_encode(['success' => false, 'message' => 'L\'heure d\'ouverture du matin doit être avant l\'heure de fermeture']);
             exit();
         }
+        // Pour le soir, on autorise la fermeture après minuit (ex: 18:30 → 00:30)
+        // Donc on ne vérifie que si les deux heures sont du même côté de minuit
         if ($hasSoirSlot && $finalSoirOuv >= $finalSoirFerm) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'L\'heure d\'ouverture du soir doit être avant l\'heure de fermeture']);
-            exit();
+            // Si la fermeture est après minuit (00:00 - 05:00), c'est valide
+            $fermNormalized = substr($finalSoirFerm, 0, 5);
+            if ($fermNormalized > '05:00') {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'L\'heure d\'ouverture du soir doit être avant l\'heure de fermeture (fermeture après minuit autorisée jusqu\'à 05:00)']);
+                exit();
+            }
         }
     }
 

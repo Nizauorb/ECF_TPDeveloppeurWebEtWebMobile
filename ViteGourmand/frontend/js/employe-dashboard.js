@@ -1546,6 +1546,14 @@ function openHoraireEditModal(horaireId) {
     document.getElementById('horaire-edit-soir-ouv').value = horaire.soir_ouverture || '';
     document.getElementById('horaire-edit-soir-ferm').value = horaire.soir_fermeture || '';
 
+    // Déterminer si chaque créneau est actif
+    const matinActif = !!(horaire.matin_ouverture && horaire.matin_fermeture);
+    const soirActif = !!(horaire.soir_ouverture && horaire.soir_fermeture);
+    document.getElementById('horaire-edit-matin-actif').checked = matinActif;
+    document.getElementById('horaire-edit-soir-actif').checked = soirActif;
+    toggleHoraireCreneauMatin(matinActif);
+    toggleHoraireCreneauSoir(soirActif);
+
     // Afficher/masquer les créneaux selon le toggle ouvert
     toggleHoraireSlots(horaire.ouvert);
 
@@ -1566,6 +1574,22 @@ function toggleHoraireSlots(isOpen) {
     }
 }
 
+function toggleHoraireCreneauMatin(actif) {
+    const fields = document.getElementById('horaire-edit-matin-fields');
+    if (fields) {
+        fields.style.opacity = actif ? '1' : '0.4';
+        fields.querySelectorAll('input').forEach(input => input.disabled = !actif);
+    }
+}
+
+function toggleHoraireCreneauSoir(actif) {
+    const fields = document.getElementById('horaire-edit-soir-fields');
+    if (fields) {
+        fields.style.opacity = actif ? '1' : '0.4';
+        fields.querySelectorAll('input').forEach(input => input.disabled = !actif);
+    }
+}
+
 async function submitHoraireEdit() {
     const horaireId = document.getElementById('horaire-edit-id').value;
     const ouvert = document.getElementById('horaire-edit-ouvert').checked;
@@ -1576,10 +1600,13 @@ async function submitHoraireEdit() {
     };
 
     if (ouvert) {
-        data.matin_ouverture = document.getElementById('horaire-edit-matin-ouv').value || null;
-        data.matin_fermeture = document.getElementById('horaire-edit-matin-ferm').value || null;
-        data.soir_ouverture = document.getElementById('horaire-edit-soir-ouv').value || null;
-        data.soir_fermeture = document.getElementById('horaire-edit-soir-ferm').value || null;
+        const matinActif = document.getElementById('horaire-edit-matin-actif').checked;
+        const soirActif = document.getElementById('horaire-edit-soir-actif').checked;
+
+        data.matin_ouverture = matinActif ? (document.getElementById('horaire-edit-matin-ouv').value || null) : null;
+        data.matin_fermeture = matinActif ? (document.getElementById('horaire-edit-matin-ferm').value || null) : null;
+        data.soir_ouverture = soirActif ? (document.getElementById('horaire-edit-soir-ouv').value || null) : null;
+        data.soir_fermeture = soirActif ? (document.getElementById('horaire-edit-soir-ferm').value || null) : null;
     }
 
     const submitBtn = document.getElementById('horaire-edit-submit-btn');

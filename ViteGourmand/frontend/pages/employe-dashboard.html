@@ -255,29 +255,98 @@
                 </div>
             </div>
 
-            <!-- Bouton ajouter un menu -->
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-primary" onclick="openMenuCreateModal()">
-                    <i class="bi bi-plus-circle me-2"></i>Nouveau menu
-                </button>
-            </div>
+            <!-- Onglets Menus / Plats -->
+            <ul class="nav nav-tabs mb-3" id="menusPlatsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-menus" data-bs-toggle="tab" data-bs-target="#tabpanel-menus" type="button" role="tab" aria-controls="tabpanel-menus" aria-selected="true">
+                        <i class="bi bi-book me-1"></i>Menus
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-plats" data-bs-toggle="tab" data-bs-target="#tabpanel-plats" type="button" role="tab" aria-controls="tabpanel-plats" aria-selected="false" onclick="loadAllPlats()">
+                        <i class="bi bi-egg-fried me-1"></i>Plats
+                    </button>
+                </li>
+            </ul>
 
-            <!-- État de chargement -->
-            <div id="menus-loading-state" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Chargement...</span>
+            <div class="tab-content" id="menusPlatsTabContent">
+                <!-- ======== TAB : Menus ======== -->
+                <div class="tab-pane fade show active" id="tabpanel-menus" role="tabpanel" aria-labelledby="tab-menus">
+                    <!-- Bouton ajouter un menu -->
+                    <div class="d-flex justify-content-end mb-3">
+                        <button class="btn btn-primary" onclick="openMenuCreateModal()">
+                            <i class="bi bi-plus-circle me-2"></i>Nouveau menu
+                        </button>
+                    </div>
+
+                    <!-- État de chargement -->
+                    <div id="menus-loading-state" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="text-muted mt-3">Chargement des menus...</p>
+                    </div>
+
+                    <!-- État vide -->
+                    <div id="menus-empty-state" class="text-center py-5" style="display: none;">
+                        <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">Aucun menu trouvé</p>
+                    </div>
+
+                    <!-- Liste des menus -->
+                    <div id="menus-list" class="row g-3" style="display: none;"></div>
                 </div>
-                <p class="text-muted mt-3">Chargement des menus...</p>
-            </div>
 
-            <!-- État vide -->
-            <div id="menus-empty-state" class="text-center py-5" style="display: none;">
-                <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-3">Aucun menu trouvé</p>
-            </div>
+                <!-- ======== TAB : Plats ======== -->
+                <div class="tab-pane fade" id="tabpanel-plats" role="tabpanel" aria-labelledby="tab-plats">
+                    <!-- Bouton ajouter un plat -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" id="plats-filter-type" style="width: auto;" onchange="filterPlatsDisplay()">
+                                <option value="">Tous les types</option>
+                                <option value="entree">Entrées</option>
+                                <option value="plat">Plats principaux</option>
+                                <option value="dessert">Desserts</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="openPlatCreateModal()">
+                            <i class="bi bi-plus-circle me-2"></i>Nouveau plat
+                        </button>
+                    </div>
 
-            <!-- Liste des menus -->
-            <div id="menus-list" class="row g-3" style="display: none;"></div>
+                    <!-- État de chargement -->
+                    <div id="plats-loading-state" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <p class="text-muted mt-3">Chargement des plats...</p>
+                    </div>
+
+                    <!-- État vide -->
+                    <div id="plats-empty-state" class="text-center py-5" style="display: none;">
+                        <i class="bi bi-egg-fried text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">Aucun plat trouvé</p>
+                    </div>
+
+                    <!-- Liste des plats (tableau) -->
+                    <div id="plats-table-container" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Type</th>
+                                        <th>Allergènes</th>
+                                        <th>Menus associés</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plats-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ============================================ -->
@@ -551,6 +620,94 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-danger" id="menu-delete-confirm-btn" onclick="confirmDeleteMenu()">
                     <i class="bi bi-trash me-1"></i>Désactiver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODALE : Créer / Modifier un plat -->
+<!-- ============================================ -->
+<div class="modal fade" id="platFormModal" tabindex="-1" aria-labelledby="platFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title" id="platFormModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Nouveau plat
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <form id="platForm" onsubmit="return false;">
+                    <input type="hidden" id="plat-form-id" value="">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Nom du plat <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="plat-form-nom" required placeholder="Ex: Filet de bœuf Rossini...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="plat-form-type" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="entree">Entrée</option>
+                            <option value="plat">Plat principal</option>
+                            <option value="dessert">Dessert</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Allergènes</label>
+                        <div id="plat-form-allergenes" class="d-flex flex-wrap gap-2">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Gluten" id="allerg-gluten"><label class="form-check-label small" for="allerg-gluten">Gluten</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Lait et produits laitiers" id="allerg-lait"><label class="form-check-label small" for="allerg-lait">Lait</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Œufs" id="allerg-oeufs"><label class="form-check-label small" for="allerg-oeufs">Œufs</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Fruits à coque" id="allerg-coque"><label class="form-check-label small" for="allerg-coque">Fruits à coque</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Mollusques" id="allerg-mollusques"><label class="form-check-label small" for="allerg-mollusques">Mollusques</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Crustacés" id="allerg-crustaces"><label class="form-check-label small" for="allerg-crustaces">Crustacés</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Poisson" id="allerg-poisson"><label class="form-check-label small" for="allerg-poisson">Poisson</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Arachides" id="allerg-arachides"><label class="form-check-label small" for="allerg-arachides">Arachides</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Soja" id="allerg-soja"><label class="form-check-label small" for="allerg-soja">Soja</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Céleri" id="allerg-celeri"><label class="form-check-label small" for="allerg-celeri">Céleri</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Moutarde" id="allerg-moutarde"><label class="form-check-label small" for="allerg-moutarde">Moutarde</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Sésame" id="allerg-sesame"><label class="form-check-label small" for="allerg-sesame">Sésame</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Lupin" id="allerg-lupin"><label class="form-check-label small" for="allerg-lupin">Lupin</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Sulfites" id="allerg-sulfites"><label class="form-check-label small" for="allerg-sulfites">Sulfites</label></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="plat-form-submit-btn" onclick="submitPlatForm()">
+                    <i class="bi bi-check-circle me-1"></i>Créer le plat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODALE : Confirmation suppression plat -->
+<!-- ============================================ -->
+<div class="modal fade" id="platDeleteModal" tabindex="-1" aria-labelledby="platDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title" id="platDeleteModalLabel">
+                    <i class="bi bi-trash me-2"></i>Supprimer le plat
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer le plat <strong id="plat-delete-name"></strong> ?</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Cette action est irréversible. Le plat sera retiré de tous les menus auxquels il est associé.
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="plat-delete-confirm-btn" onclick="confirmDeletePlat()">
+                    <i class="bi bi-trash me-1"></i>Supprimer définitivement
                 </button>
             </div>
         </div>

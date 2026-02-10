@@ -1163,3 +1163,252 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// ============================================
+// GESTION DES PLATS — CRUD
+// ============================================
+var allPlatsDisplayData = [];
+var platToDeleteId = null;
+
+async function loadAllPlats() {
+    const loadingState = document.getElementById('plats-loading-state');
+    const emptyState = document.getElementById('plats-empty-state');
+    const tableContainer = document.getElementById('plats-table-container');
+
+    if (loadingState) loadingState.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
+    if (tableContainer) tableContainer.style.display = 'none';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/menus/plats/list.php`, {
+            headers: getAuthHeaders()
+        });
+        const result = await response.json();
+
+        if (loadingState) loadingState.style.display = 'none';
+
+        if (!result.success) {
+            showEmployeError('Erreur lors du chargement des plats');
+            return;
+        }
+
+        allPlatsDisplayData = result.data || [];
+
+        if (allPlatsDisplayData.length === 0) {
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+
+        if (tableContainer) tableContainer.style.display = 'block';
+        renderPlatsTable(allPlatsDisplayData);
+
+    } catch (error) {
+        console.error('Erreur chargement plats:', error);
+        if (loadingState) loadingState.style.display = 'none';
+        showEmployeError('Erreur de connexion au serveur');
+    }
+}
+
+function renderPlatsTable(plats) {
+    const tbody = document.getElementById('plats-table-body');
+    if (!tbody) return;
+
+    const typeLabels = { 'entree': 'Entrée', 'plat': 'Plat principal', 'dessert': 'Dessert' };
+    const typeBadgeClass = { 'entree': 'bg-info', 'plat': 'bg-primary', 'dessert': 'bg-success' };
+
+    // Trouver les menus associés à chaque plat
+    const platMenusMap = {};
+    allMenusData.forEach(menu => {
+        (menu.plats || []).forEach(p => {
+            if (!platMenusMap[p.id]) platMenusMap[p.id] = [];
+            platMenusMap[p.id].push(menu.titre);
+        });
+    });
+
+    tbody.innerHTML = plats.map(plat => {
+        const allergenes = (plat.allergenes || []);
+        const allergenesHtml = allergenes.length > 0
+            ? allergenes.map(a => `<span class="badge bg-warning text-dark me-1 mb-1">${escapeHtml(a)}</span>`).join('')
+            : '<span class="text-muted small">Aucun</span>';
+
+        const menusAssocies = platMenusMap[plat.id] || [];
+        const menusHtml = menusAssocies.length > 0
+            ? menusAssocies.map(m => `<span class="badge bg-light text-dark border me-1 mb-1">${escapeHtml(m)}</span>`).join('')
+            : '<span class="text-muted small">Aucun menu</span>';
+
+        return `
+            <tr>
+                <td class="fw-medium">${escapeHtml(plat.nom)}</td>
+                <td><span class="badge ${typeBadgeClass[plat.type] || 'bg-secondary'}">${typeLabels[plat.type] || plat.type}</span></td>
+                <td><div class="d-flex flex-wrap">${allergenesHtml}</div></td>
+                <td><div class="d-flex flex-wrap">${menusHtml}</div></td>
+                <td class="text-end">
+                    <button class="btn btn-outline-primary btn-sm me-1" onclick="openPlatEditModal(${plat.id})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="openPlatDeleteModal(${plat.id}, '${escapeHtml(plat.nom).replace(/'/g, "\\'")}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterPlatsDisplay() {
+    const filterType = document.getElementById('plats-filter-type').value;
+    if (!filterType) {
+        renderPlatsTable(allPlatsDisplayData);
+    } else {
+        const filtered = allPlatsDisplayData.filter(p => p.type === filterType);
+        renderPlatsTable(filtered);
+
+        const emptyState = document.getElementById('plats-empty-state');
+        const tableContainer = document.getElementById('plats-table-container');
+        if (filtered.length === 0) {
+            if (emptyState) emptyState.style.display = 'block';
+            if (tableContainer) tableContainer.style.display = 'none';
+        } else {
+            if (emptyState) emptyState.style.display = 'none';
+            if (tableContainer) tableContainer.style.display = 'block';
+        }
+    }
+}
+
+// --- Ouvrir la modale de création de plat ---
+function openPlatCreateModal() {
+    document.getElementById('plat-form-id').value = '';
+    document.getElementById('plat-form-nom').value = '';
+    document.getElementById('plat-form-type').value = '';
+    // Décocher tous les allergènes
+    document.querySelectorAll('#plat-form-allergenes input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    document.getElementById('platFormModalLabel').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Nouveau plat';
+    document.getElementById('plat-form-submit-btn').innerHTML = '<i class="bi bi-check-circle me-1"></i>Créer le plat';
+
+    const modal = new bootstrap.Modal(document.getElementById('platFormModal'));
+    modal.show();
+}
+
+// --- Ouvrir la modale d'édition de plat ---
+function openPlatEditModal(platId) {
+    const plat = allPlatsDisplayData.find(p => p.id === platId);
+    if (!plat) return;
+
+    document.getElementById('plat-form-id').value = plat.id;
+    document.getElementById('plat-form-nom').value = plat.nom || '';
+    document.getElementById('plat-form-type').value = plat.type || '';
+
+    // Cocher les allergènes du plat
+    document.querySelectorAll('#plat-form-allergenes input[type="checkbox"]').forEach(cb => {
+        cb.checked = (plat.allergenes || []).includes(cb.value);
+    });
+
+    document.getElementById('platFormModalLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Modifier le plat';
+    document.getElementById('plat-form-submit-btn').innerHTML = '<i class="bi bi-check-circle me-1"></i>Enregistrer';
+
+    const modal = new bootstrap.Modal(document.getElementById('platFormModal'));
+    modal.show();
+}
+
+// --- Soumettre le formulaire plat ---
+async function submitPlatForm() {
+    const platId = document.getElementById('plat-form-id').value;
+    const isEdit = platId !== '';
+
+    const nom = document.getElementById('plat-form-nom').value.trim();
+    const type = document.getElementById('plat-form-type').value;
+
+    if (!nom || !type) {
+        showEmployeError('Veuillez remplir le nom et le type du plat');
+        return;
+    }
+
+    // Récupérer les allergènes cochés
+    const allergeneCheckboxes = document.querySelectorAll('#plat-form-allergenes input[type="checkbox"]:checked');
+    const allergenes = Array.from(allergeneCheckboxes).map(cb => cb.value);
+
+    const data = { nom, type, allergenes };
+    if (isEdit) data.id = parseInt(platId);
+
+    const submitBtn = document.getElementById('plat-form-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>En cours...';
+
+    try {
+        const url = isEdit ? `${API_BASE_URL}/menus/plats/update.php` : `${API_BASE_URL}/menus/plats/create.php`;
+        const method = isEdit ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showEmployeSuccess(isEdit ? 'Plat modifié avec succès' : 'Plat créé avec succès');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('platFormModal'));
+            if (modal) modal.hide();
+            loadAllPlats();
+            // Recharger aussi les menus pour mettre à jour les stats
+            loadAllMenus();
+        } else {
+            showEmployeError(result.message || 'Erreur lors de l\'opération');
+        }
+
+    } catch (error) {
+        console.error('Erreur soumission plat:', error);
+        showEmployeError('Erreur de connexion au serveur');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = isEdit
+            ? '<i class="bi bi-check-circle me-1"></i>Enregistrer'
+            : '<i class="bi bi-check-circle me-1"></i>Créer le plat';
+    }
+}
+
+// --- Suppression de plat (hard delete) ---
+function openPlatDeleteModal(platId, platNom) {
+    platToDeleteId = platId;
+    document.getElementById('plat-delete-name').textContent = platNom;
+    const modal = new bootstrap.Modal(document.getElementById('platDeleteModal'));
+    modal.show();
+}
+
+async function confirmDeletePlat() {
+    if (!platToDeleteId) return;
+
+    const confirmBtn = document.getElementById('plat-delete-confirm-btn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>En cours...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/menus/plats/delete.php?id=${platToDeleteId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showEmployeSuccess(result.message || 'Plat supprimé avec succès');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('platDeleteModal'));
+            if (modal) modal.hide();
+            loadAllPlats();
+            // Recharger les menus car les associations ont pu changer
+            loadAllMenus();
+        } else {
+            showEmployeError(result.message || 'Erreur lors de la suppression');
+        }
+
+    } catch (error) {
+        console.error('Erreur suppression plat:', error);
+        showEmployeError('Erreur de connexion au serveur');
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Supprimer définitivement';
+        platToDeleteId = null;
+    }
+}

@@ -442,15 +442,14 @@ export function orderMenu(menuKey) {
     const userStr = localStorage.getItem('user');
     
     if (!token || !userStr) {
-        // Fermer la modale si ouverte
-        const modal = document.getElementById('menuDetailsModal');
-        if (modal) {
-            const bsModal = bootstrap.Modal.getInstance(modal);
-            if (bsModal) bsModal.hide();
+        // Fermer la modale de détails si ouverte
+        const detailsModal = document.getElementById('menuDetailsModal');
+        if (detailsModal) {
+            const bsDetailsModal = bootstrap.Modal.getInstance(detailsModal);
+            if (bsDetailsModal) bsDetailsModal.hide();
         }
-        // Rediriger vers la connexion
-        alert('Vous devez être connecté pour passer une commande.');
-        window.location.href = '/Login';
+        // Afficher la modale de connexion requise
+        showLoginRequiredModal();
         return;
     }
     
@@ -461,6 +460,52 @@ export function orderMenu(menuKey) {
         if (bsModal) bsModal.hide();
     }
     window.location.href = `/Commander?menu=${menuKey}`;
+}
+
+// Modale de connexion requise (stylisée)
+function showLoginRequiredModal() {
+    // Supprimer si déjà existante
+    const existing = document.getElementById('loginRequiredModal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title" id="loginRequiredModalLabel">
+                            <i class="bi bi-lock-fill me-2"></i>Connexion requise
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-circle" style="font-size: 3.5rem; color: #627D4A;"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">Vous devez être connecté pour commander</h6>
+                        <p class="text-muted mb-0">Connectez-vous à votre compte ou créez-en un pour passer commande et profiter de nos menus.</p>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+                        <a href="/Login" class="btn btn-primary px-4">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+                        </a>
+                        <a href="/Register" class="btn btn-outline-primary px-4">
+                            <i class="bi bi-person-plus me-1"></i>Créer un compte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modal = new bootstrap.Modal(document.getElementById('loginRequiredModal'));
+    modal.show();
+
+    // Nettoyage après fermeture
+    document.getElementById('loginRequiredModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
 }
 
 // Initialisation quand le script est chargé

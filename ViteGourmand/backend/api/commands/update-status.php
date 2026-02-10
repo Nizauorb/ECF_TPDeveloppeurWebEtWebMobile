@@ -83,8 +83,8 @@ if ($newStatus === 'annulee' && empty($motif)) {
 try {
     $db = Database::getInstance()->getConnection();
 
-    // Vérifier que l'opérateur est employé ou admin
-    $stmtOp = $db->prepare("SELECT id, role FROM users WHERE id = ? AND role IN ('employe', 'admin')");
+    // Vérifier que l'opérateur est employé ou administrateur
+    $stmtOp = $db->prepare("SELECT id, role FROM users WHERE id = ? AND role IN ('employe', 'administrateur')");
     $stmtOp->execute([$operatorId]);
     $operator = $stmtOp->fetch();
 
@@ -105,9 +105,14 @@ try {
         exit();
     }
 
-    // Mettre à jour le statut
-    $stmtUpdate = $db->prepare("UPDATE commandes SET statut = ?, updated_at = NOW() WHERE id = ?");
-    $stmtUpdate->execute([$newStatus, $orderId]);
+    // Mettre à jour le statut (+ motif si annulation)
+    if ($newStatus === 'annulee' && !empty($motif)) {
+        $stmtUpdate = $db->prepare("UPDATE commandes SET statut = ?, motif_annulation = ?, updated_at = NOW() WHERE id = ?");
+        $stmtUpdate->execute([$newStatus, $motif, $orderId]);
+    } else {
+        $stmtUpdate = $db->prepare("UPDATE commandes SET statut = ?, updated_at = NOW() WHERE id = ?");
+        $stmtUpdate->execute([$newStatus, $orderId]);
+    }
 
     // Si le statut passe à "terminée", envoyer un mail de demande d'avis
     if ($newStatus === 'terminee') {

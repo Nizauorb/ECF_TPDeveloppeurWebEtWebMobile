@@ -1,6 +1,9 @@
 # Activer les réécritures d'URL
 RewriteEngine On
 
+# Passer le header Authorization à PHP (supprimé par défaut par Apache CGI/FastCGI)
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
 # Headers CORS
 <IfModule mod_headers.c>
     Header always set Access-Control-Allow-Origin "*"

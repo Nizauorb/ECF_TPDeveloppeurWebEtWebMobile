@@ -218,7 +218,7 @@ function showSection(section) {
     const sections = ['commandes', 'menus', 'horaires', 'avis', 'profil'];
     
     // Sections désactivées (placeholder)
-    const disabledSections = ['horaires', 'avis'];
+    const disabledSections = ['avis'];
     if (disabledSections.includes(section)) {
         // Quand même afficher le placeholder
     }
@@ -226,6 +226,11 @@ function showSection(section) {
     // Charger les menus si on navigue vers la section menus
     if (section === 'menus') {
         loadAllMenus();
+    }
+    
+    // Charger les horaires si on navigue vers la section horaires
+    if (section === 'horaires') {
+        loadHoraires();
     }
     
     // Masquer toutes les sections
@@ -274,6 +279,8 @@ function showSection(section) {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="refreshCommands()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else if (section === 'menus') {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadAllMenus()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
+        } else if (section === 'horaires') {
+            headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadHoraires()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else {
             headerActions.innerHTML = '';
         }
@@ -1444,5 +1451,163 @@ async function confirmDeletePlat() {
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Supprimer définitivement';
         platToDeleteId = null;
+    }
+}
+
+// ============================================
+// GESTION DES HORAIRES
+// ============================================
+var allHorairesData = [];
+
+async function loadHoraires() {
+    const loading = document.getElementById('horaires-loading');
+    const content = document.getElementById('horaires-content');
+
+    if (loading) loading.style.display = 'block';
+    if (content) content.style.display = 'none';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/horaires/list.php`, {
+            headers: getAuthHeaders()
+        });
+        const result = await response.json();
+
+        if (loading) loading.style.display = 'none';
+
+        if (result.success && result.data) {
+            allHorairesData = result.data;
+            renderHorairesTable(allHorairesData);
+            if (content) content.style.display = 'block';
+        } else {
+            showEmployeError('Erreur lors du chargement des horaires');
+        }
+    } catch (error) {
+        console.error('Erreur chargement horaires:', error);
+        if (loading) loading.style.display = 'none';
+        showEmployeError('Erreur de connexion au serveur');
+    }
+}
+
+function renderHorairesTable(horaires) {
+    const tbody = document.getElementById('horaires-table-body');
+    if (!tbody) return;
+
+    const jourLabels = {
+        'lundi': 'Lundi', 'mardi': 'Mardi', 'mercredi': 'Mercredi',
+        'jeudi': 'Jeudi', 'vendredi': 'Vendredi', 'samedi': 'Samedi', 'dimanche': 'Dimanche'
+    };
+
+    tbody.innerHTML = horaires.map(h => {
+        const jourLabel = jourLabels[h.jour] || h.jour;
+        const isOpen = h.ouvert;
+
+        const statusBadge = isOpen
+            ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Ouvert</span>'
+            : '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Fermé</span>';
+
+        const matinSlot = (isOpen && h.matin_ouverture && h.matin_fermeture)
+            ? `<i class="bi bi-sun text-warning me-1"></i>${h.matin_ouverture} — ${h.matin_fermeture}`
+            : '<span class="text-muted">—</span>';
+
+        const soirSlot = (isOpen && h.soir_ouverture && h.soir_fermeture)
+            ? `<i class="bi bi-moon text-primary me-1"></i>${h.soir_ouverture} — ${h.soir_fermeture}`
+            : '<span class="text-muted">—</span>';
+
+        return `
+            <tr class="${!isOpen ? 'table-light text-muted' : ''}">
+                <td class="fw-medium">${jourLabel}</td>
+                <td class="text-center">${statusBadge}</td>
+                <td>${matinSlot}</td>
+                <td>${soirSlot}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary" onclick="openHoraireEditModal(${h.id})" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openHoraireEditModal(horaireId) {
+    const horaire = allHorairesData.find(h => h.id === horaireId);
+    if (!horaire) return;
+
+    const jourLabels = {
+        'lundi': 'Lundi', 'mardi': 'Mardi', 'mercredi': 'Mercredi',
+        'jeudi': 'Jeudi', 'vendredi': 'Vendredi', 'samedi': 'Samedi', 'dimanche': 'Dimanche'
+    };
+
+    document.getElementById('horaire-edit-id').value = horaire.id;
+    document.getElementById('horaire-edit-jour').value = jourLabels[horaire.jour] || horaire.jour;
+    document.getElementById('horaire-edit-ouvert').checked = horaire.ouvert;
+    document.getElementById('horaire-edit-matin-ouv').value = horaire.matin_ouverture || '';
+    document.getElementById('horaire-edit-matin-ferm').value = horaire.matin_fermeture || '';
+    document.getElementById('horaire-edit-soir-ouv').value = horaire.soir_ouverture || '';
+    document.getElementById('horaire-edit-soir-ferm').value = horaire.soir_fermeture || '';
+
+    // Afficher/masquer les créneaux selon le toggle ouvert
+    toggleHoraireSlots(horaire.ouvert);
+
+    // Écouter le changement du toggle
+    const ouvertCheckbox = document.getElementById('horaire-edit-ouvert');
+    ouvertCheckbox.onchange = function() {
+        toggleHoraireSlots(this.checked);
+    };
+
+    const modal = new bootstrap.Modal(document.getElementById('horaireEditModal'));
+    modal.show();
+}
+
+function toggleHoraireSlots(isOpen) {
+    const slotsContainer = document.getElementById('horaire-edit-slots');
+    if (slotsContainer) {
+        slotsContainer.style.display = isOpen ? 'block' : 'none';
+    }
+}
+
+async function submitHoraireEdit() {
+    const horaireId = document.getElementById('horaire-edit-id').value;
+    const ouvert = document.getElementById('horaire-edit-ouvert').checked;
+
+    const data = {
+        id: parseInt(horaireId),
+        ouvert: ouvert
+    };
+
+    if (ouvert) {
+        data.matin_ouverture = document.getElementById('horaire-edit-matin-ouv').value || null;
+        data.matin_fermeture = document.getElementById('horaire-edit-matin-ferm').value || null;
+        data.soir_ouverture = document.getElementById('horaire-edit-soir-ouv').value || null;
+        data.soir_fermeture = document.getElementById('horaire-edit-soir-ferm').value || null;
+    }
+
+    const submitBtn = document.getElementById('horaire-edit-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>En cours...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/horaires/update.php`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showEmployeSuccess(result.message || 'Horaires mis à jour');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('horaireEditModal'));
+            if (modal) modal.hide();
+            loadHoraires();
+        } else {
+            showEmployeError(result.message || 'Erreur lors de la mise à jour');
+        }
+    } catch (error) {
+        console.error('Erreur mise à jour horaire:', error);
+        showEmployeError('Erreur de connexion au serveur');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Enregistrer';
     }
 }

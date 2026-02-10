@@ -45,10 +45,9 @@
                         </a>
                     </li>
                     <li class="nav-item" data-section="horaires">
-                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary disabled-section" onclick="showSection('horaires'); closeEmployeMenu();">
+                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary" onclick="showSection('horaires'); closeEmployeMenu();">
                             <i class="bi bi-clock me-3 fs-5"></i>
                             <span>Les Horaires</span>
-                            <span class="badge bg-secondary ms-auto">Bientôt</span>
                         </a>
                     </li>
                     <li class="nav-item" data-section="avis">
@@ -108,10 +107,9 @@
                     </a>
                 </li>
                 <li class="nav-item" data-section="horaires">
-                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section" onclick="showSection('horaires')">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary" onclick="showSection('horaires')">
                         <i class="bi bi-clock me-3"></i>
                         <span>Les Horaires</span>
-                        <span class="badge bg-secondary ms-auto">Bientôt</span>
                     </a>
                 </li>
                 <li class="nav-item" data-section="avis">
@@ -350,13 +348,41 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- SECTION : Horaires (placeholder) -->
+        <!-- SECTION : Horaires -->
         <!-- ============================================ -->
         <div id="section-horaires" style="display: none;">
-            <div class="text-center py-5">
-                <i class="bi bi-clock text-muted" style="font-size: 3rem;"></i>
-                <h4 class="text-muted mt-3">Gestion des Horaires</h4>
-                <p class="text-muted">Cette fonctionnalité sera disponible prochainement.</p>
+            <!-- État de chargement -->
+            <div id="horaires-loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+                <p class="text-muted mt-3">Chargement des horaires...</p>
+            </div>
+
+            <!-- Tableau des horaires -->
+            <div id="horaires-content" style="display: none;">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-clock me-2"></i>Horaires d'ouverture</h6>
+                        <span class="text-muted small" id="horaires-last-update"></span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 140px;">Jour</th>
+                                        <th style="width: 100px;" class="text-center">Statut</th>
+                                        <th>Créneau midi</th>
+                                        <th>Créneau soir</th>
+                                        <th class="text-end" style="width: 100px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="horaires-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -708,6 +734,73 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                 <button type="button" class="btn btn-danger" id="plat-delete-confirm-btn" onclick="confirmDeletePlat()">
                     <i class="bi bi-trash me-1"></i>Supprimer définitivement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODALE : Édition horaire d'un jour -->
+<!-- ============================================ -->
+<div class="modal fade" id="horaireEditModal" tabindex="-1" aria-labelledby="horaireEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-light">
+                <h5 class="modal-title fw-bold" id="horaireEditModalLabel">
+                    <i class="bi bi-clock me-2"></i>Modifier les horaires
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="horaire-edit-id">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Jour</label>
+                    <input type="text" class="form-control" id="horaire-edit-jour" readonly disabled>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="horaire-edit-ouvert" checked>
+                        <label class="form-check-label fw-medium" for="horaire-edit-ouvert">Ouvert ce jour</label>
+                    </div>
+                </div>
+                <div id="horaire-edit-slots">
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body py-2">
+                            <h6 class="card-title small fw-bold text-muted mb-2"><i class="bi bi-sun me-1"></i>Créneau midi</h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small">Ouverture</label>
+                                    <input type="time" class="form-control form-control-sm" id="horaire-edit-matin-ouv">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">Fermeture</label>
+                                    <input type="time" class="form-control form-control-sm" id="horaire-edit-matin-ferm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-light border-0">
+                        <div class="card-body py-2">
+                            <h6 class="card-title small fw-bold text-muted mb-2"><i class="bi bi-moon me-1"></i>Créneau soir</h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small">Ouverture</label>
+                                    <input type="time" class="form-control form-control-sm" id="horaire-edit-soir-ouv">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">Fermeture</label>
+                                    <input type="time" class="form-control form-control-sm" id="horaire-edit-soir-ferm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="horaire-edit-submit-btn" onclick="submitHoraireEdit()">
+                    <i class="bi bi-check-circle me-1"></i>Enregistrer
                 </button>
             </div>
         </div>

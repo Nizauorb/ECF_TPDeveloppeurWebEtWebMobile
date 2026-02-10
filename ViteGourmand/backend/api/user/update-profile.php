@@ -74,29 +74,81 @@ if (!$data || !isset($data['user_id'])) {
 }
 
 $userId = intval($data['user_id']);
-$firstName = trim($data['first_name'] ?? '');
-$lastName = trim($data['last_name'] ?? '');
-$email = trim($data['email'] ?? '');
-$phone = trim($data['phone'] ?? '');
-$address = trim($data['address'] ?? '');
+$pays = trim($data['pays'] ?? 'France');
 
-// Validation basique
-if (empty($firstName) || empty($lastName) || empty($email)) {
+// Validation du prénom
+$firstNameValidation = InputValidator::validateName($data['first_name'] ?? '');
+if (!$firstNameValidation['valid']) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Nom, prénom et email sont obligatoires'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Prénom : ' . $firstNameValidation['error']]);
     exit();
 }
+$firstName = $firstNameValidation['sanitized'];
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+// Validation du nom
+$lastNameValidation = InputValidator::validateName($data['last_name'] ?? '');
+if (!$lastNameValidation['valid']) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Format d\'email invalide'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Nom : ' . $lastNameValidation['error']]);
     exit();
+}
+$lastName = $lastNameValidation['sanitized'];
+
+// Validation de l'email
+$emailValidation = InputValidator::validateEmail($data['email'] ?? '');
+if (!$emailValidation['valid']) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Email : ' . $emailValidation['error']]);
+    exit();
+}
+$email = $emailValidation['sanitized'];
+
+// Validation du téléphone (optionnel mais validé si renseigné)
+$phone = '';
+if (!empty($data['phone'])) {
+    $phoneValidation = InputValidator::validatePhone($data['phone']);
+    if (!$phoneValidation['valid']) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Téléphone : ' . $phoneValidation['error']]);
+        exit();
+    }
+    $phone = $phoneValidation['sanitized'];
+}
+
+// Validation de l'adresse (optionnelle mais validée si renseignée)
+$adresse = '';
+if (!empty($data['adresse'])) {
+    $adresseValidation = InputValidator::validateAddress($data['adresse']);
+    if (!$adresseValidation['valid']) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Adresse : ' . $adresseValidation['error']]);
+        exit();
+    }
+    $adresse = $adresseValidation['sanitized'];
+}
+
+// Validation du code postal (optionnel mais validé si renseigné)
+$codePostal = '';
+if (!empty($data['code_postal'])) {
+    $codePostalValidation = InputValidator::validatePostalCode($data['code_postal']);
+    if (!$codePostalValidation['valid']) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Code postal : ' . $codePostalValidation['error']]);
+        exit();
+    }
+    $codePostal = $codePostalValidation['sanitized'];
+}
+
+// Validation de la ville (optionnelle mais validée si renseignée)
+$ville = '';
+if (!empty($data['ville'])) {
+    $villeValidation = InputValidator::validateCity($data['ville']);
+    if (!$villeValidation['valid']) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Ville : ' . $villeValidation['error']]);
+        exit();
+    }
+    $ville = $villeValidation['sanitized'];
 }
 
 try {
@@ -132,10 +184,10 @@ try {
     // Mettre à jour les champs SANS l'email (l'email actuel reste)
     $stmt = $db->prepare("
         UPDATE users 
-        SET first_name = ?, last_name = ?, phone = ?, address = ?
+        SET first_name = ?, last_name = ?, phone = ?, adresse = ?, code_postal = ?, ville = ?, pays = ?
         WHERE id = ?
     ");
-    $stmt->execute([$firstName, $lastName, $phone, $address, $userId]);
+    $stmt->execute([$firstName, $lastName, $phone, $adresse, $codePostal, $ville, $pays, $userId]);
 
     // Si l'email a changé : envoyer un code de vérification à l'ANCIENNE adresse
     if ($emailChanged) {
@@ -258,7 +310,10 @@ try {
                             <p><strong>Prénom :</strong> " . htmlspecialchars($firstName) . "</p>
                             <p><strong>Email :</strong> " . htmlspecialchars($currentEmail) . "</p>
                             <p><strong>Téléphone :</strong> " . htmlspecialchars($phone ?: 'Non renseigné') . "</p>
-                            <p><strong>Adresse :</strong> " . htmlspecialchars($address ?: 'Non renseignée') . "</p>
+                            <p><strong>Adresse :</strong> " . htmlspecialchars($adresse ?: 'Non renseignée') . "</p>
+                            <p><strong>Code postal :</strong> " . htmlspecialchars($codePostal ?: 'Non renseigné') . "</p>
+                            <p><strong>Ville :</strong> " . htmlspecialchars($ville ?: 'Non renseignée') . "</p>
+                            <p><strong>Pays :</strong> " . htmlspecialchars($pays ?: 'Non renseigné') . "</p>
                         </div>
                         <p>Si vous n'êtes pas à l'origine de cette modification, veuillez contacter notre support immédiatement.</p>
                     </div>

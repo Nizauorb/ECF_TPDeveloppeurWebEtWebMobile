@@ -86,7 +86,7 @@ try {
 
     // Récupérer l'utilisateur par email
     $stmt = $db->prepare("
-        SELECT id, email, password_hash, first_name, last_name, phone, address, role 
+        SELECT id, email, password_hash, first_name, last_name, phone, adresse, code_postal, ville, pays, role 
         FROM users 
         WHERE email = ?
     ");
@@ -122,7 +122,10 @@ try {
                 'firstName' => $user['first_name'],
                 'lastName' => $user['last_name'],
                 'phone' => $user['phone'],
-                'address' => $user['address'],
+                'adresse' => $user['adresse'],
+                'code_postal' => $user['code_postal'],
+                'ville' => $user['ville'],
+                'pays' => $user['pays'],
                 'role' => $user['role']
             ]
         ]

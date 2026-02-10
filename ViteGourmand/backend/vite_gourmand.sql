@@ -98,7 +98,10 @@ CREATE TABLE `users` (
   `first_name` varchar(100) NOT NULL,
   `last_name` varchar(100) NOT NULL,
   `phone` varchar(20) NOT NULL,
-  `address` text NOT NULL,
+  `adresse` varchar(255) NOT NULL DEFAULT '',
+  `code_postal` varchar(10) NOT NULL DEFAULT '',
+  `ville` varchar(100) NOT NULL DEFAULT '',
+  `pays` varchar(100) NOT NULL DEFAULT 'France',
   `role` enum('utilisateur','employe','administrateur') NOT NULL DEFAULT 'utilisateur',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()

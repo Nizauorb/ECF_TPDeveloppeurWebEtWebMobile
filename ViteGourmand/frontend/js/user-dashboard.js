@@ -195,7 +195,9 @@ function displayUserInfo(user) {
     document.getElementById('profile-prenom').value = user.firstName || '';
     document.getElementById('profile-email').value = user.email || '';
     document.getElementById('profile-telephone').value = user.phone || '';
-    document.getElementById('profile-adresse').value = user.address || '';
+    document.getElementById('profile-adresse').value = user.adresse || '';
+    document.getElementById('profile-code-postal').value = user.code_postal || '';
+    document.getElementById('profile-ville').value = user.ville || '';
 }
 
 // Navigation
@@ -557,7 +559,9 @@ async function handleProfileSubmit(e) {
         first_name: document.getElementById('profile-prenom').value,
         email: document.getElementById('profile-email').value,
         phone: document.getElementById('profile-telephone').value,
-        address: document.getElementById('profile-adresse').value
+        adresse: document.getElementById('profile-adresse').value,
+        code_postal: document.getElementById('profile-code-postal').value,
+        ville: document.getElementById('profile-ville').value
     };
     
     try {
@@ -575,7 +579,9 @@ async function handleProfileSubmit(e) {
             currentUser.firstName = formData.first_name;
             currentUser.lastName = formData.last_name;
             currentUser.phone = formData.phone;
-            currentUser.address = formData.address;
+            currentUser.adresse = formData.adresse;
+            currentUser.code_postal = formData.code_postal;
+            currentUser.ville = formData.ville;
             
             if (result.email_change_pending) {
                 // L'email n'a PAS été changé, un code a été envoyé à l'ancienne adresse

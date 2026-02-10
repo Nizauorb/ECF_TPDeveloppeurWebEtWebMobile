@@ -230,7 +230,9 @@ function fillUserInfo() {
         'order-prenom': currentUser.firstName || '',
         'order-email': currentUser.email || '',
         'order-telephone': currentUser.phone || '',
-        'order-adresse': currentUser.address || ''
+        'order-adresse': currentUser.adresse || '',
+        'order-code-postal': currentUser.code_postal || '',
+        'order-ville': currentUser.ville || ''
     };
     
     Object.entries(fields).forEach(([id, value]) => {

@@ -63,7 +63,7 @@ if (!RateLimiter::checkLimit('register')) {
 $data = json_decode(file_get_contents('php://input'), true);
 
 // Validation des champs requis
-$requiredFields = ['lastName', 'firstName', 'email', 'password', 'confirmPassword', 'phone', 'address'];
+$requiredFields = ['lastName', 'firstName', 'email', 'password', 'confirmPassword', 'phone', 'adresse', 'code_postal', 'ville'];
 $missingFields = [];
 
 foreach ($requiredFields as $field) {
@@ -156,8 +156,8 @@ try {
 
     // Insertion du nouvel utilisateur
     $stmt = $db->prepare("
-        INSERT INTO users (email, password_hash, first_name, last_name, phone, address)
-        VALUES (:email, :password_hash, :first_name, :last_name, :phone, :address)
+        INSERT INTO users (email, password_hash, first_name, last_name, phone, adresse, code_postal, ville, pays)
+        VALUES (:email, :password_hash, :first_name, :last_name, :phone, :adresse, :code_postal, :ville, :pays)
     ");
 
     $stmt->execute([
@@ -166,7 +166,10 @@ try {
         ':first_name' => $firstNameValidation['sanitized'],
         ':last_name' => $lastNameValidation['sanitized'],
         ':phone' => $data['phone'],
-        ':address' => $data['address']
+        ':adresse' => trim($data['adresse']),
+        ':code_postal' => trim($data['code_postal']),
+        ':ville' => trim($data['ville']),
+        ':pays' => trim($data['pays'] ?? 'France')
     ]);
 
     $userId = $db->lastInsertId();

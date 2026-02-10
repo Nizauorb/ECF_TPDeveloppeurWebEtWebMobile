@@ -217,7 +217,9 @@ async loginUser() {
                         firstName: document.getElementById('firstName').value,
                         email: document.getElementById('email').value,
                         phone: document.getElementById('phone').value,
-                        address: document.getElementById('address').value,
+                        adresse: document.getElementById('adresse').value,
+                        code_postal: document.getElementById('code_postal').value,
+                        ville: document.getElementById('ville').value,
                         password: document.getElementById('password').value,
                         confirmPassword: document.getElementById('confirmPassword').value
                     };
@@ -261,7 +263,9 @@ async loginUser() {
         this.setupFieldValidation('firstName', (value) => value.trim().length >= 2);
         this.setupFieldValidation('phone', this.validatePhone.bind(this));
         this.setupFieldValidation('email', this.validateEmail.bind(this));
-        this.setupFieldValidation('address', (value) => value.trim().length >= 10);
+        this.setupFieldValidation('adresse', (value) => value.trim().length >= 5);
+        this.setupFieldValidation('code_postal', (value) => /^[0-9]{5}$/.test(value.trim()));
+        this.setupFieldValidation('ville', (value) => value.trim().length >= 2);
         this.setupFieldValidation('password', (value) => this.updatePasswordRequirements(value));
         this.setupFieldValidation('confirmPassword', (value) => {
             const password = document.getElementById('password')?.value;
@@ -338,7 +342,9 @@ async loginUser() {
             { id: 'firstName', validator: (value) => value.trim().length >= 2 },
             { id: 'phone', validator: this.validatePhone.bind(this) },
             { id: 'email', validator: this.validateEmail.bind(this) },
-            { id: 'address', validator: (value) => value.trim().length >= 10 },
+            { id: 'adresse', validator: (value) => value.trim().length >= 5 },
+            { id: 'code_postal', validator: (value) => /^[0-9]{5}$/.test(value.trim()) },
+            { id: 'ville', validator: (value) => value.trim().length >= 2 },
             { id: 'password', validator: (value) => this.updatePasswordRequirements(value) },
             { id: 'confirmPassword', validator: (value) => {
                 const password = document.getElementById('password')?.value;

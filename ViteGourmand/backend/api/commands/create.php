@@ -43,11 +43,18 @@ if (!InputValidator::validateContentType()) {
 // Protection CSRF
 CSRFProtection::requireValidation();
 
-// Rate Limiting
-RateLimiter::setRateLimitHeaders('create_order');
+$data = json_decode(file_get_contents('php://input'), true);
 
-if (!RateLimiter::checkLimit('create_order')) {
-    $waitTime = RateLimiter::getWaitTime('create_order');
+// Validation JWT : extraire le user_id et le rôle du token si disponible
+$jwtPayload = JWTHelper::getFromRequest();
+$userId = ($jwtPayload && isset($jwtPayload['user_id'])) ? (int) $jwtPayload['user_id'] : intval($data['user_id'] ?? 0);
+$userRole = ($jwtPayload && isset($jwtPayload['role'])) ? $jwtPayload['role'] : 'utilisateur';
+
+// Rate Limiting par rôle (employés/admins ont des limites plus souples)
+RateLimiter::setRateLimitHeadersByRole('create_order', $userRole);
+
+if (!RateLimiter::checkLimitByRole('create_order', $userRole)) {
+    $waitTime = RateLimiter::getWaitTimeByRole('create_order', $userRole);
     http_response_code(429);
     echo json_encode([
         'success' => false,
@@ -56,8 +63,6 @@ if (!RateLimiter::checkLimit('create_order')) {
     ]);
     exit();
 }
-
-$data = json_decode(file_get_contents('php://input'), true);
 
 // Validation des champs obligatoires
 $requiredFields = [
@@ -75,10 +80,6 @@ foreach ($requiredFields as $field) {
         exit();
     }
 }
-
-// Validation JWT : extraire le user_id du token si disponible
-$jwtPayload = JWTHelper::getFromRequest();
-$userId = ($jwtPayload && isset($jwtPayload['user_id'])) ? (int) $jwtPayload['user_id'] : intval($data['user_id']);
 $nbPersonnes = intval($data['nombre_personnes']);
 $nbPersonnesMin = intval($data['nombre_personnes_min']);
 $prixUnitaire = floatval($data['prix_unitaire']);

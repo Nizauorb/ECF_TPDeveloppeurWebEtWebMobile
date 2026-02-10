@@ -40,6 +40,7 @@ var allCommands = [];
 var currentSection = 'commandes';
 var currentStatusChangeOrderId = null;
 var currentCancelOrderId = null;
+var orderSortDirection = 'desc';
 
 // HTML de la barre de filtres injecté dynamiquement dans .site-header
 var employeFiltersHeaderHTML = `
@@ -76,6 +77,9 @@ var employeFiltersHeaderHTML = `
         </button>
         <button class="btn btn-outline-light btn-sm" onclick="resetEmployeFilters()">
             <i class="bi bi-arrow-clockwise me-1"></i> Réinitialiser
+        </button>
+        <button class="btn btn-outline-light btn-sm" onclick="toggleOrderSort()" id="btnSortOrders" title="Inverser le tri">
+            <i class="bi bi-sort-down me-1"></i> Plus récentes
         </button>
         <span class="text-white-50 small" id="employeFilterResults"></span>
     </div>
@@ -122,6 +126,9 @@ var employeFiltersHeaderHTML = `
         </button>
         <button class="btn btn-outline-secondary w-100" onclick="resetEmployeFiltersMobile()">
             <i class="bi bi-arrow-clockwise me-2"></i>Réinitialiser
+        </button>
+        <button class="btn btn-outline-primary w-100 mt-2" onclick="toggleOrderSort()" id="btnSortOrdersMobile">
+            <i class="bi bi-sort-down me-1"></i> Plus récentes d'abord
         </button>
         <div class="mt-2 text-muted small" id="employeFilterResultsMobile"></div>
     </div>
@@ -364,9 +371,14 @@ function displayEmployeOrders(commands) {
         return;
     }
     
+    // Trier les commandes selon la direction choisie (par ID = ordre de création)
+    const sorted = [...commands].sort((a, b) => {
+        return orderSortDirection === 'desc' ? b.id - a.id : a.id - b.id;
+    });
+    
     list.innerHTML = '';
     
-    commands.forEach(command => {
+    sorted.forEach(command => {
         const el = createEmployeOrderElement(command);
         list.appendChild(el);
     });
@@ -786,6 +798,28 @@ function updateFilterResultsCount(count) {
     if (el) el.textContent = text;
     const elMobile = document.getElementById('employeFilterResultsMobile');
     if (elMobile) elMobile.textContent = text;
+}
+
+// ============================================
+// Tri des commandes
+// ============================================
+function toggleOrderSort() {
+    orderSortDirection = orderSortDirection === 'desc' ? 'asc' : 'desc';
+    
+    // Mettre à jour le texte et l'icône des boutons (desktop + mobile)
+    const isDesc = orderSortDirection === 'desc';
+    const icon = isDesc ? 'bi-sort-down' : 'bi-sort-up';
+    const label = isDesc ? 'Plus récentes' : 'Plus anciennes';
+    const labelMobile = isDesc ? 'Plus récentes d\'abord' : 'Plus anciennes d\'abord';
+    
+    const btnDesktop = document.getElementById('btnSortOrders');
+    if (btnDesktop) btnDesktop.innerHTML = `<i class="bi ${icon} me-1"></i> ${label}`;
+    
+    const btnMobile = document.getElementById('btnSortOrdersMobile');
+    if (btnMobile) btnMobile.innerHTML = `<i class="bi ${icon} me-1"></i> ${labelMobile}`;
+    
+    // Ré-afficher les commandes avec le nouveau tri
+    displayEmployeOrders(allCommands);
 }
 
 // ============================================

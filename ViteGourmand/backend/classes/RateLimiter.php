@@ -3,12 +3,12 @@
 
 class RateLimiter {
     private static $config = null;
+    private static $configByRole = null;
+    private static $configDefault = null;
     
     /**
      * Charger la configuration depuis config/security.php
      */
-    private static $configByRole = null;
-    
     private static function loadConfig(): void {
         if (self::$config !== null) return;
         
@@ -17,9 +17,11 @@ class RateLimiter {
             $security = require $configFile;
             self::$config = $security['rate_limits'] ?? [];
             self::$configByRole = $security['rate_limits_by_role'] ?? [];
+            self::$configDefault = $security['rate_limit_default'] ?? ['requests' => 5, 'window' => 60];
         } else {
             self::$config = [];
             self::$configByRole = [];
+            self::$configDefault = ['requests' => 5, 'window' => 60];
         }
     }
     
@@ -29,15 +31,7 @@ class RateLimiter {
     private static function getLimit(string $action): array {
         self::loadConfig();
         
-        // Lire la limite par défaut depuis la config ou fallback
-        $configFile = __DIR__ . '/../config/security.php';
-        $default = ['requests' => 1, 'window' => 60];
-        if (file_exists($configFile)) {
-            $security = require $configFile;
-            $default = $security['rate_limit_default'] ?? $default;
-        }
-        
-        return self::$config[$action] ?? $default;
+        return self::$config[$action] ?? self::$configDefault;
     }
     
     /**

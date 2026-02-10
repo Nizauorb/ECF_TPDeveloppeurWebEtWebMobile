@@ -1,94 +1,48 @@
-// Données des menus
-export const menuData = {
-    classique: {
-        title: "Menu Classique",
-        price: "35€",
-        image: "Classique.png",
-        description: "Un festin convivial et raffiné à partir de 2 convives. Savourez une terrine de campagne généreuse, un filet de bœuf Rossini accompagné d'un gratin dauphinois crémeux, et une crème brûlée à la vanille parfaitement caramélisée. Une expérience gastronomique élégante, parfaite pour un repas familial ou entre amis.",
-        minPeople: "2+",
-        allergenes: ["Gluten", "Lait et produits laitiers", "Œufs"],
-        conditionsCommande: "Commande à effectuer au minimum 3 jours avant la prestation. Conservation au réfrigérateur entre 0°C et 4°C.",
-        regime: "Classique",
-        stockDisponible: 12,
-        sections: {
-            entrees: [
-                "Terrine de campagne au lard fumé et au Morbier, cornichons, pain de campagne toasté"
-            ],
-            plats: [
-                "Filet de bœuf Rossini (foie gras poêlé, sauce madire), gratin dauphinois"
-            ],
-            desserts: [
-                "Crème brûlée à la vanille de Madagascar"
-            ]
+// Données des menus — chargées dynamiquement depuis l'API
+// Format : { menu_key: { title, price, image, description, minPeople, allergenes, conditionsCommande, regime, stockDisponible, sections } }
+export let menuData = {};
+
+// Charger les menus depuis l'API backend
+export async function loadMenusFromAPI() {
+    try {
+        const response = await fetch(`${window.API_BASE_URL || '/api'}/menus/list.php`);
+        const result = await response.json();
+
+        if (!result.success || !result.data) {
+            console.error('Erreur chargement menus API:', result.message);
+            return false;
         }
-    },
-    noel: {
-        title: "Menu de Noël",
-        price: "55€",
-        image: "Noel.png",
-        description: "Un festin de Noël généreux à partir de 6 convives. Dégustez des huîtres fraîches en entrée, un chapon rôti farci aux châtaignes accompagné d'un gratin de pommes de terre au Reblochon fondant, et une bûche de Noël traditionnelle au chocolat et marron glacé. Une table scintillante aux couleurs de fête pour célébrer ensemble dans une ambiance chaleureuse et raffinée.",
-        minPeople: "6+",
-        allergenes: ["Mollusques", "Lait et produits laitiers", "Fruits à coque", "Œufs", "Gluten"],
-        conditionsCommande: "Commande à effectuer au minimum 2 semaines avant la prestation en raison de la disponibilité saisonnière des produits (huîtres fraîches, chapon). Les huîtres doivent être conservées vivantes au frais (5-10°C) et consommées rapidement. Le chapon nécessite une préparation spécifique.",
-        regime: "Classique",
-        stockDisponible: 5,
-        sections: {
-            entrees: [
-                "Huîtres fines de claire n°2, mignonnette au vinaigre d'échalote"
-            ],
-            plats: [
-                "Chapon rôti farci aux châtaignes, jus au fond brun, gratin de pommes de terre au Reblochon"
-            ],
-            desserts: [
-                "Bûche de Noël traditionnelle au chocolat et marron glacé"
-            ]
-        }
-    },
-    paques: {
-        title: "Menu de Pâques",
-        price: "38€",
-        image: "Paques.png",
-        description: "Un menu de Pâques automnal et réconfortant à partir de 4 convives. Dégustez un velouté de potimarron onctueux au foie gras poêlé, un jarret de bœuf braisé fondant accompagné d'une purée de céleri-rave au Comté et de carottes glacées, et une délicate tarte fine aux poires confites. Une ambiance sereine et chaleureuse aux couleurs automnales pour célébrer ce moment festif.",
-        minPeople: "4+",
-        allergenes: ["Lait et produits laitiers", "Fruits à coque", "Gluten", "Œufs"],
-        conditionsCommande: "Commande à effectuer au minimum 5 jours avant la prestation. Le jarret de bœuf nécessite un temps de préparation prolongé. Conservation au réfrigérateur entre 0°C et 4°C.",
-        regime: "Classique",
-        stockDisponible: 8,
-        sections: {
-            entrees: [
-                "Velouté de potimarron au foie gras poêlé et croûtons de pain aux noix"
-            ],
-            plats: [
-                "Jarret de bœuf braisé au vin rouge, purée de céleri-rave au Comté râpé, carottes glacées"
-            ],
-            desserts: [
-                "Tarte fine aux poires confites et crème vanille"
-            ]
-        }
-    },
-    event: {
-        title: "Menu d'Evénements",
-        price: "48€",
-        image: "Event.png",
-        description: "Un menu événementiel raffiné à partir de 10 convives. Savourez des asperges vertes rôties aux œufs mollets mimosa, un carré d'agneau rôti aux herbes de Provence accompagné d'un risotto crémeux aux petits pois et menthe fraîche, et un fraisier revisité à la crème mousseline. Une table élégante et sophistiquée, parfaite pour célébrer vos grands événements dans une ambiance festive et raffinée.",
-        minPeople: "10+",
-        allergenes: ["Lait et produits laitiers", "Œufs", "Gluten"],
-        conditionsCommande: "Commande à effectuer au minimum 3 semaines avant la prestation pour garantir la disponibilité des produits et la préparation soignée. Les asperges fraîches dépendent de la saison. Service traiteur sur place recommandé pour les groupes de plus de 15 personnes.",
-        regime: "Classique",
-        stockDisponible: 3,
-        sections: {
-            entrees: [
-                "Asperges vertes rôties aux œufs mollets mimosa"
-            ],
-            plats: [
-                "Carré d'agneau rôti aux herbes de Provence, risotto crémeux aux petits pois et menthe fraîche"
-            ],
-            desserts: [
-                "Fraisier revisité – biscuit joconde, crème mousseline à la fraise, coulis de fruits rouges"
-            ]
-        }
+
+        // Transformer les données API au format attendu par les fonctions existantes
+        const newMenuData = {};
+        result.data.forEach(menu => {
+            newMenuData[menu.menu_key] = {
+                title: menu.titre,
+                price: `${parseFloat(menu.prix_par_personne).toFixed(0)}€`,
+                image: menu.image || '',
+                description: menu.description || '',
+                minPeople: `${menu.nombre_personnes_min}+`,
+                allergenes: menu.allergenes || [],
+                conditionsCommande: menu.conditions_commande || '',
+                regime: menu.regime || 'Classique',
+                stockDisponible: menu.stock_disponible,
+                sections: {
+                    entrees: (menu.sections?.entrees || []).map(p => p.nom),
+                    plats: (menu.sections?.plats || []).map(p => p.nom),
+                    desserts: (menu.sections?.desserts || []).map(p => p.nom)
+                }
+            };
+        });
+
+        menuData = newMenuData;
+        console.log(`Menus chargés depuis l'API: ${Object.keys(menuData).length} menus`);
+        return true;
+
+    } catch (error) {
+        console.error('Erreur fetch menus API:', error);
+        return false;
     }
-};
+}
 
 // Fonction pour afficher les cartes des menus
 export function renderMenuCards(menusToRender = null) {

@@ -1,53 +1,44 @@
 // frontend/js/order.js
 // Gestion de la page de commande
 
-// Données des menus (importées depuis menu.js via copie pour éviter les problèmes d'import ES module)
-const orderMenuData = {
-    classique: {
-        title: "Menu Classique",
-        price: 35,
-        image: "Classique.png",
-        description: "Un festin convivial et raffiné à partir de 2 convives.",
-        minPeople: 2,
-        regime: "Classique",
-        stockDisponible: 12,
-        conditionsCommande: "Commande à effectuer au minimum 3 jours avant la prestation. Conservation au réfrigérateur entre 0°C et 4°C.",
-        allergenes: ["Gluten", "Lait et produits laitiers", "Œufs"]
-    },
-    noel: {
-        title: "Menu de Noël",
-        price: 55,
-        image: "Noel.png",
-        description: "Un festin de Noël généreux à partir de 6 convives.",
-        minPeople: 6,
-        regime: "Classique",
-        stockDisponible: 5,
-        conditionsCommande: "Commande à effectuer au minimum 2 semaines avant la prestation en raison de la disponibilité saisonnière des produits.",
-        allergenes: ["Mollusques", "Lait et produits laitiers", "Fruits à coque", "Œufs", "Gluten"]
-    },
-    paques: {
-        title: "Menu de Pâques",
-        price: 38,
-        image: "Paques.png",
-        description: "Un menu de Pâques automnal et réconfortant à partir de 4 convives.",
-        minPeople: 4,
-        regime: "Classique",
-        stockDisponible: 8,
-        conditionsCommande: "Commande à effectuer au minimum 5 jours avant la prestation. Conservation au réfrigérateur entre 0°C et 4°C.",
-        allergenes: ["Lait et produits laitiers", "Fruits à coque", "Gluten", "Œufs"]
-    },
-    event: {
-        title: "Menu d'Événements",
-        price: 48,
-        image: "Event.png",
-        description: "Un menu événementiel raffiné à partir de 10 convives.",
-        minPeople: 10,
-        regime: "Classique",
-        stockDisponible: 3,
-        conditionsCommande: "Commande à effectuer au minimum 3 semaines avant la prestation. Service traiteur sur place recommandé pour les groupes de plus de 15 personnes.",
-        allergenes: ["Lait et produits laitiers", "Œufs", "Gluten"]
+// Données des menus — chargées dynamiquement depuis l'API
+var orderMenuData = {};
+
+// Charger les menus depuis l'API pour la page de commande
+async function loadOrderMenusFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/menus/list.php`);
+        const result = await response.json();
+
+        if (!result.success || !result.data) {
+            console.error('Erreur chargement menus pour commande:', result.message);
+            return false;
+        }
+
+        const newData = {};
+        result.data.forEach(menu => {
+            newData[menu.menu_key] = {
+                title: menu.titre,
+                price: parseFloat(menu.prix_par_personne),
+                image: menu.image || '',
+                description: menu.description || '',
+                minPeople: menu.nombre_personnes_min,
+                regime: menu.regime || 'Classique',
+                stockDisponible: menu.stock_disponible,
+                conditionsCommande: menu.conditions_commande || '',
+                allergenes: menu.allergenes || []
+            };
+        });
+
+        orderMenuData = newData;
+        console.log(`Menus commande chargés depuis l'API: ${Object.keys(orderMenuData).length} menus`);
+        return true;
+
+    } catch (error) {
+        console.error('Erreur fetch menus commande:', error);
+        return false;
     }
-};
+}
 
 // Ville du restaurant (pour calcul frais de livraison)
 const VILLE_RESTAURANT = 'bordeaux';
@@ -177,8 +168,8 @@ function getCsrfHeaders() {
     return headers;
 }
 
-// Initialisation
-(function() {
+// Initialisation (async pour attendre le chargement des menus depuis l'API)
+(async function() {
     currentUser = requireAuth();
     
     if (!currentUser) {
@@ -196,6 +187,9 @@ function getCsrfHeaders() {
     
     // Charger le token CSRF
     loadCSRFToken();
+    
+    // Charger les menus depuis l'API
+    await loadOrderMenusFromAPI();
     
     // Pré-remplir les informations personnelles
     fillUserInfo();

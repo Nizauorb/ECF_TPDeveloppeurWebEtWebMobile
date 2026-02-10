@@ -1,7 +1,7 @@
 // frontend/js/menuManager.js
 
 // Gestionnaire centralisé pour les fonctionnalités des menus
-import { menuData, renderMenuCards, applyFilters, resetFilters, showMenuDetails, updateFilterResults, orderMenu } from './menu.js';
+import { menuData, loadMenusFromAPI, renderMenuCards, applyFilters, resetFilters, showMenuDetails, updateFilterResults, orderMenu } from './menu.js';
 
 function requireAuth() {
     const auth = new AuthValidator();
@@ -43,7 +43,8 @@ class MenuManager {
         window.showMenuDetails = showMenuDetails;
         window.orderMenu = orderMenu;
 
-        // Initialiser l'affichage des menus
+        // Charger les menus depuis l'API puis afficher
+        await loadMenusFromAPI();
         renderMenuCards();
         
         this.isInitialized = true;

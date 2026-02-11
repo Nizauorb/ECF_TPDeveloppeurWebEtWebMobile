@@ -315,8 +315,10 @@ export function applyFilters() {
 export function resetFilters() {
     document.getElementById('filterPeople').value = '';
     document.getElementById('filterRegime').value = '';
+    document.getElementById('filterTheme').value = '';
+    document.getElementById('filterPriceMin').value = '';
+    document.getElementById('filterPriceMax').value = '';
     document.getElementById('filterAllergenes').value = '';
-    document.getElementById('filterStock').value = '';
     
     renderMenuCards();
     updateFilterResults(Object.keys(menuData).length);
@@ -328,22 +330,26 @@ export function resetFilters() {
 export function getFilteredMenus() {
     const peopleFilter = document.getElementById('filterPeople').value;
     const regimeFilter = document.getElementById('filterRegime').value;
+    const themeFilter = document.getElementById('filterTheme').value;
+    const priceMinFilter = document.getElementById('filterPriceMin').value;
+    const priceMaxFilter = document.getElementById('filterPriceMax').value;
     const allergenesFilter = document.getElementById('filterAllergenes').value;
-    const stockFilter = document.getElementById('filterStock').value;
     
     // DEBUG: Log de débogage - à supprimer en production
-    console.log('DEBUG: Éléments de filtre trouvés:', {
+    console.log('Éléments de filtre trouvés:', {
         people: !!document.getElementById('filterPeople'),
         regime: !!document.getElementById('filterRegime'),
-        allergenes: !!document.getElementById('filterAllergenes'),
-        stock: !!document.getElementById('filterStock')
+        theme: !!document.getElementById('filterTheme'),
+        priceMin: !!document.getElementById('filterPriceMin'),
+        priceMax: !!document.getElementById('filterPriceMax'),
+        allergenes: !!document.getElementById('filterAllergenes')
     });
     
     return Object.keys(menuData).filter(menuKey => {
         const menu = menuData[menuKey];
         
-        // Filtre par nombre de personnes
-        if (peopleFilter && menu.minPeople !== peopleFilter) {
+        // Filtre par nombre de personnes (minimum)
+        if (peopleFilter && parseInt(menu.minPeople) < parseInt(peopleFilter)) {
             return false;
         }
         
@@ -352,19 +358,25 @@ export function getFilteredMenus() {
             return false;
         }
         
-        // Filtre par allergènes (exclusion)
-        if (allergenesFilter && menu.allergenes.includes(allergenesFilter)) {
+        // Filtre par thème
+        if (themeFilter && menu.theme !== themeFilter) {
             return false;
         }
         
-        // Filtre par stock
-        if (stockFilter) {
-            if (stockFilter === 'available' && menu.stockDisponible < 4) {
+        // Filtre par prix (fourchette min-max)
+        if (priceMinFilter || priceMaxFilter) {
+            const price = parseFloat(menu.price);
+            if (priceMinFilter && price < parseFloat(priceMinFilter)) {
                 return false;
             }
-            if (stockFilter === 'limited' && menu.stockDisponible >= 4) {
+            if (priceMaxFilter && price > parseFloat(priceMaxFilter)) {
                 return false;
             }
+        }
+        
+        // Filtre par allergènes (exclusion)
+        if (allergenesFilter && menu.allergenes.includes(allergenesFilter)) {
+            return false;
         }
         
         return true;

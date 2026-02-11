@@ -111,7 +111,7 @@ if (strtotime($datePrestation) <= strtotime('today')) {
 
 // Sanitization des chaînes
 $menuKey = htmlspecialchars(trim($data['menu_key']), ENT_QUOTES, 'UTF-8');
-$menuNom = htmlspecialchars(trim($data['menu_nom']), ENT_QUOTES, 'UTF-8');
+$menuNom = trim($data['menu_nom']);
 $adresseLivraison = htmlspecialchars(trim($data['adresse_livraison']), ENT_QUOTES, 'UTF-8');
 $codePostal = htmlspecialchars(trim($data['code_postal_livraison']), ENT_QUOTES, 'UTF-8');
 $villeLivraison = htmlspecialchars(trim($data['ville_livraison']), ENT_QUOTES, 'UTF-8');

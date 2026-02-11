@@ -131,6 +131,14 @@ function getCsrfHeaders() {
         
         if (section === 'profile') {
             showProfile();
+        } else if (section === 'review') {
+            // Ouvrir le formulaire d'avis pour une commande spécifique (lien depuis le mail)
+            const reviewOrderId = urlParams.get('order');
+            loadUserCommands(currentUser.id).then(() => {
+                if (reviewOrderId) {
+                    openReviewModal(parseInt(reviewOrderId));
+                }
+            });
         } else {
             // Par défaut : afficher les commandes
             loadUserCommands(currentUser.id);
@@ -430,6 +438,10 @@ function createOrderElement(command) {
                     </button>
                 ` : ''}
                 ${command.statut === 'terminee' ? `
+                    <button class="btn btn-sm btn-outline-warning" onclick="openReviewModal(${command.id})">
+                        <i class="bi bi-star me-1"></i>
+                        Laisser un avis
+                    </button>
                     <button class="btn btn-sm btn-success" onclick="reorderCommand(${command.id})">
                         <i class="bi bi-arrow-repeat me-1"></i>
                         Commander à nouveau
@@ -907,6 +919,10 @@ function showOrderDetailsModal(orderId) {
     
     if (command.statut === 'terminee') {
         actionsHTML += `
+            <button type="button" class="btn btn-warning" onclick="openReviewModal(${command.id})">
+                <i class="bi bi-star me-1"></i>
+                Laisser un avis
+            </button>
             <button type="button" class="btn btn-success" onclick="reorderCommand(${command.id})">
                 <i class="bi bi-arrow-repeat me-1"></i>
                 Commander à nouveau
@@ -1196,6 +1212,156 @@ function setupLogoutButton() {
             btn.addEventListener('click', logoutHandler);
         }
     });
+}
+
+// ============================================
+// GESTION DES AVIS
+// ============================================
+var currentReviewNote = 0;
+
+function openReviewModal(commandeId) {
+    const command = loadedCommands.find(c => c.id === commandeId);
+    if (!command) {
+        showErrorMessage('Commande non trouvée');
+        return;
+    }
+
+    // Fermer le modal de détails si ouvert
+    const detailsModal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
+    if (detailsModal) detailsModal.hide();
+
+    // Si un avis existe déjà, afficher le modal "avis existant"
+    if (command.avis) {
+        showExistingReviewModal(command);
+        return;
+    }
+
+    // Remplir le modal
+    document.getElementById('review-commande-id').value = commandeId;
+    document.getElementById('review-commande-ref').textContent = '#' + commandeId;
+    document.getElementById('review-commande-menu').textContent = command.menu_nom || '';
+
+    // Réinitialiser
+    currentReviewNote = 0;
+    document.getElementById('review-note').value = 0;
+    document.getElementById('review-commentaire').value = '';
+    document.getElementById('review-char-count').textContent = '0';
+    updateReviewStars(0);
+
+    // Compteur de caractères
+    const textarea = document.getElementById('review-commentaire');
+    textarea.oninput = function() {
+        document.getElementById('review-char-count').textContent = this.value.length;
+    };
+
+    setTimeout(() => {
+        const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+        modal.show();
+    }, 300);
+}
+
+function showExistingReviewModal(command) {
+    const avis = command.avis;
+
+    document.getElementById('review-exists-ref').textContent = '#' + command.id;
+    document.getElementById('review-exists-menu').textContent = command.menu_nom || '';
+
+    // Étoiles
+    let starsHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        starsHTML += i <= avis.note
+            ? '<i class="bi bi-star-fill fs-4 text-warning"></i> '
+            : '<i class="bi bi-star fs-4 text-muted"></i> ';
+    }
+    document.getElementById('review-exists-stars').innerHTML = starsHTML;
+
+    // Commentaire
+    document.getElementById('review-exists-commentaire').textContent = '"' + avis.commentaire + '"';
+
+    // Date
+    const dateAvis = new Date(avis.date);
+    document.getElementById('review-exists-date').textContent = 'Publié le ' + dateAvis.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    // Statut de validation
+    const statusEl = document.getElementById('review-exists-status');
+    if (avis.valide === 1) {
+        statusEl.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Validé et visible sur le site</span>';
+    } else if (avis.valide === 2) {
+        statusEl.innerHTML = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Refusé</span>';
+    } else {
+        statusEl.innerHTML = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente de validation</span>';
+    }
+
+    setTimeout(() => {
+        const modal = new bootstrap.Modal(document.getElementById('reviewExistsModal'));
+        modal.show();
+    }, 300);
+}
+
+function setReviewNote(note) {
+    currentReviewNote = note;
+    document.getElementById('review-note').value = note;
+    updateReviewStars(note);
+}
+
+function updateReviewStars(note) {
+    const stars = document.querySelectorAll('#review-stars i');
+    stars.forEach((star, index) => {
+        if (index < note) {
+            star.className = 'bi bi-star-fill fs-2 text-warning';
+        } else {
+            star.className = 'bi bi-star fs-2 text-muted';
+        }
+    });
+}
+
+async function submitReview() {
+    const commandeId = parseInt(document.getElementById('review-commande-id').value);
+    const note = currentReviewNote;
+    const commentaire = document.getElementById('review-commentaire').value.trim();
+
+    if (note < 1 || note > 5) {
+        showErrorMessage('Veuillez sélectionner une note entre 1 et 5 étoiles');
+        return;
+    }
+
+    if (commentaire.length < 10) {
+        showErrorMessage('Le commentaire doit contenir au moins 10 caractères');
+        return;
+    }
+
+    const submitBtn = document.getElementById('review-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Envoi...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/avis/create.php`, {
+            method: 'POST',
+            headers: getCsrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify({
+                commande_id: commandeId,
+                note: note,
+                commentaire: commentaire
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showSuccessMessage(result.message || 'Merci pour votre avis !');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+            if (modal) modal.hide();
+        } else {
+            showErrorMessage(result.message || 'Erreur lors de l\'envoi de l\'avis');
+        }
+    } catch (error) {
+        console.error('Erreur soumission avis:', error);
+        showErrorMessage('Erreur de connexion au serveur');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>Envoyer mon avis';
+    }
 }
 
 // Initialiser les boutons de déconnexion

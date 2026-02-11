@@ -126,6 +126,7 @@ try {
         $command['reduction_montant'] = (float) $command['reduction_montant'];
         $command['total'] = (float) $command['total'];
         if ($command['distance_km'] !== null) $command['distance_km'] = (float) $command['distance_km'];
+        $command['menu_nom'] = html_entity_decode($command['menu_nom'], ENT_QUOTES, 'UTF-8');
     }
 
     echo json_encode([

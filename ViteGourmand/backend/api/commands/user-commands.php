@@ -48,18 +48,20 @@ if ($userId <= 0) {
 try {
     $db = Database::getInstance()->getConnection();
 
-    // Récupérer les commandes de l'utilisateur
+    // Récupérer les commandes de l'utilisateur avec l'avis éventuel
     $stmt = $db->prepare("
-        SELECT id, user_id, client_nom, client_prenom, client_email, client_telephone,
-               menu_key, menu_nom, prix_unitaire, nombre_personnes, nombre_personnes_min,
-               adresse_livraison, ville_livraison, code_postal_livraison,
-               date_prestation, heure_prestation, frais_livraison, distance_km,
-               sous_total, reduction_pourcent, reduction_montant, total,
-               notes, statut, motif_annulation, mode_contact_annulation,
-               date_commande, updated_at
-        FROM commandes
-        WHERE user_id = ?
-        ORDER BY date_commande DESC
+        SELECT c.id, c.user_id, c.client_nom, c.client_prenom, c.client_email, c.client_telephone,
+               c.menu_key, c.menu_nom, c.prix_unitaire, c.nombre_personnes, c.nombre_personnes_min,
+               c.adresse_livraison, c.ville_livraison, c.code_postal_livraison,
+               c.date_prestation, c.heure_prestation, c.frais_livraison, c.distance_km,
+               c.sous_total, c.reduction_pourcent, c.reduction_montant, c.total,
+               c.notes, c.statut, c.motif_annulation, c.mode_contact_annulation,
+               c.date_commande, c.updated_at,
+               a.id AS avis_id, a.note AS avis_note, a.commentaire AS avis_commentaire, a.valide AS avis_valide, a.created_at AS avis_date
+        FROM commandes c
+        LEFT JOIN avis a ON a.commande_id = c.id
+        WHERE c.user_id = ?
+        ORDER BY c.date_commande DESC
     ");
     $stmt->execute([$userId]);
     $commands = $stmt->fetchAll();
@@ -77,6 +79,20 @@ try {
         $command['reduction_montant'] = (float) $command['reduction_montant'];
         $command['total'] = (float) $command['total'];
         if ($command['distance_km'] !== null) $command['distance_km'] = (float) $command['distance_km'];
+        $command['menu_nom'] = html_entity_decode($command['menu_nom'], ENT_QUOTES, 'UTF-8');
+        // Formater l'avis s'il existe
+        if ($command['avis_id']) {
+            $command['avis'] = [
+                'id' => (int) $command['avis_id'],
+                'note' => (int) $command['avis_note'],
+                'commentaire' => $command['avis_commentaire'],
+                'valide' => (int) $command['avis_valide'],
+                'date' => $command['avis_date']
+            ];
+        } else {
+            $command['avis'] = null;
+        }
+        unset($command['avis_id'], $command['avis_note'], $command['avis_commentaire'], $command['avis_valide'], $command['avis_date']);
     }
 
     echo json_encode([

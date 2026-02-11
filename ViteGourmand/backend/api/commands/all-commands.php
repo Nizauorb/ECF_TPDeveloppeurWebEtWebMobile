@@ -27,14 +27,48 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Validation JWT
+$authHeaders = [];
+foreach ($_SERVER as $key => $value) {
+    if (stripos($key, 'auth') !== false || stripos($key, 'authorization') !== false) {
+        $authHeaders[$key] = $value;
+    }
+}
+error_log("Auth-related SERVER vars: " . json_encode($authHeaders));
+
 $jwtPayload = JWTHelper::getFromRequest();
+error_log("=== DEBUG all-commands.php ===");
+error_log("JWT Payload: " . json_encode($jwtPayload));
+
+// Diagnostic temporaire : retourner plus d'infos sur l'erreur
 if (!$jwtPayload || !isset($jwtPayload['user_id'])) {
+    // Essayer de décoder manuellement pour diagnostiquer
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    error_log("Authorization header: " . $authHeader);
+
+    if ($authHeader && preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
+        $token = $matches[1];
+        error_log("Token received: " . substr($token, 0, 50) . "...");
+
+        // Essayer de valider manuellement
+        $manualValidation = JWTHelper::validate($token);
+        error_log("Manual validation result: " . json_encode($manualValidation));
+    }
+
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Authentification requise']);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Authentification requise',
+        'debug' => [
+            'jwt_payload' => $jwtPayload,
+            'has_user_id' => isset($jwtPayload['user_id']) ? 'yes' : 'no',
+            'auth_headers' => $authHeaders
+        ]
+    ]);
     exit();
 }
 
 $operatorId = (int) $jwtPayload['user_id'];
+error_log("Operator ID: " . $operatorId);
 
 try {
     $db = Database::getInstance()->getConnection();

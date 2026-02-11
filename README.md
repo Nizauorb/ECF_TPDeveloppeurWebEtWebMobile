@@ -382,9 +382,9 @@ RewriteRule ^backend/(.*)$ backend/$1 [L]
 
 ### Comptes de Test
 
-#### Administrateur
-- **Email** : admin@vite-gourmand.fr
-- **Mot de passe** : Admin123!
+#### Administrateur (José)
+- **Email** : jose.martin@vite-gourmand.fr
+- **Mot de passe** : Admin1234!
 - **Permissions** : Toutes les fonctionnalités
 
 #### Employé
@@ -666,11 +666,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 - **Fichiers** : 80+ fichiers organisés
 - **Base de données** : 8 tables, données de test complètes
 - **API Endpoints** : 25+ routes REST
-- **Temps de développement** : [À définir] semaines
+- **Temps de développement** : ~8 semaines
 - **Technologies maîtrisées** : 8+ technologies
 
 ---
 
 *Ce projet constitue la validation des compétences acquises durant la formation Développeur Web & Web Mobile. Il démontre la capacité à concevoir, développer et déployer une application web complète de A à Z.*
 
-🎓 **ECF Réussi - Prêt pour l'intégration professionnelle !** 🚀
+🎓 **Résultat ECF - à Venir !** 🚀

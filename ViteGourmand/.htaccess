@@ -1,6 +1,8 @@
 # Configuration Apache pour Vite&Gourmand
 # Gère le routing SPA + accès API backend
 
+CGIPassAuth On
+
 RewriteEngine On
 
 # API Backend - Priorité haute (ne pas réécrire les requêtes backend)

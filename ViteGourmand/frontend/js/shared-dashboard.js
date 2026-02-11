@@ -25,11 +25,19 @@ function getAuthHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     if (csrfToken) {
         headers['X-CSRF-Token'] = csrfToken;
+        console.log('🔍 CSRF token ajouté:', csrfToken.substring(0, 20) + '...');
+    } else {
+        console.log('🔍 ATTENTION: Aucun token CSRF disponible');
     }
     const token = localStorage.getItem('token');
+    console.log('🔍 Token JWT depuis localStorage:', token ? token.substring(0, 50) + '...' : 'AUCUN TOKEN');
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        console.log('🔍 Header Authorization défini avec Bearer token');
+    } else {
+        console.log('🔍 ATTENTION: Aucun token JWT trouvé dans localStorage');
     }
+    console.log('🔍 Headers finaux envoyés:', Object.keys(headers));
     return headers;
 }
 
@@ -128,9 +136,8 @@ async function loadAllCommands(filters = {}) {
         const queryString = params.toString();
         const url = `${API_BASE_URL}/commands/all-commands.php${queryString ? '?' + queryString : ''}`;
         
-        const token = localStorage.getItem('token');
         const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: getAuthHeaders()
         });
         const result = await response.json();
         

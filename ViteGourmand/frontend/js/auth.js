@@ -170,7 +170,7 @@ async loginUser() {
             
             switch(user.role) {
                 case 'administrateur':
-                    redirectUrl = '/admin';
+                    redirectUrl = '/AdminDashboard';
                     break;
                 case 'employe':
                     redirectUrl = '/EmployeDashboard';

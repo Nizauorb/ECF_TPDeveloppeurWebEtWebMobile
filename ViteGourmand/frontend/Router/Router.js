@@ -7,7 +7,7 @@ const route404 = new Route("404", "Page introuvable", "/pages/404.html");
 // Retourne l'URL du dashboard selon le rôle de l'utilisateur
 const getDashboardUrlByRole = (role) => {
   switch (role) {
-    case 'administrateur': return '/admin';
+    case 'administrateur': return '/AdminDashboard';
     case 'employe': return '/EmployeDashboard';
     default: return '/UserDashboard';
   }

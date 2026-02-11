@@ -13,6 +13,7 @@ export const allRoutes = [
     new Route("/UserDashboard", "Espace Client", "/pages/user-dashboard.html", "/js/user-dashboard.js"),
     new Route("/Commander", "Commander", "/pages/order.html", "/js/order.js"),
     new Route("/EmployeDashboard", "Espace Employé", "/pages/employe-dashboard.html", "/js/employe-dashboard.js"),
+    new Route("/AdminDashboard", "Espace Admin", "/pages/admin-dashboard.html", "/js/admin-dashboard.js"),
 ];
 
 //Le titre s'affiche comme ceci : Route.titre - websitename

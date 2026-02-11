@@ -10,6 +10,8 @@ require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
 require_once __DIR__ . '/../../classes/Mailer.php';
 
+$config = require __DIR__ . '/../../config/config.php';
+
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
 SecurityHeaders::setErrorHeaders();
@@ -178,7 +180,8 @@ try {
     // Envoi du mail de bienvenue
     $emailSent = false;
     try {
-        $welcomeHtml = buildWelcomeEmail($firstNameValidation['sanitized'], $lastNameValidation['sanitized']);
+        $baseUrl = $config['mail']['base_url'] ?? 'http://localhost:3000';
+        $welcomeHtml = buildWelcomeEmail($firstNameValidation['sanitized'], $lastNameValidation['sanitized'], $baseUrl);
         Mailer::send(
             $emailValidation['sanitized'],
             'Bienvenue chez Vite&Gourmand !',
@@ -222,7 +225,7 @@ try {
 /**
  * Construit le corps HTML de l'email de bienvenue utilisateur
  */
-function buildWelcomeEmail(string $firstName, string $lastName): string {
+function buildWelcomeEmail(string $firstName, string $lastName, string $baseUrl): string {
     return '
     <!DOCTYPE html>
     <html lang="fr">
@@ -248,7 +251,7 @@ function buildWelcomeEmail(string $firstName, string $lastName): string {
                 <li>Laisser un avis après chaque prestation</li>
             </ul>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="https://viteetgourmand.fr/Carte" style="display: inline-block; background-color: #627D4A; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-weight: bold;">
+                <a href="' . htmlspecialchars($baseUrl) . '/Carte" style="display: inline-block; background-color: #627D4A; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-weight: bold;">
                     Découvrir nos menus
                 </a>
             </div>

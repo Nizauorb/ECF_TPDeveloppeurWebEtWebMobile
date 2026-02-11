@@ -15,6 +15,7 @@ export const allRoutes = [
     new Route("/EmployeDashboard", "Espace Employé", "/pages/employe-dashboard.html", "/js/employe-dashboard.js"),
     new Route("/AdminDashboard", "Espace Admin", "/pages/admin-dashboard.html", "/js/admin-dashboard.js"),
     new Route("/MentionsLegales", "Mentions Légales", "/pages/mentions-legales.html"),
+    new Route("/CGV", "Conditions Générales de Vente", "/pages/cgv.html"),
 ];
 
 //Le titre s'affiche comme ceci : Route.titre - websitename

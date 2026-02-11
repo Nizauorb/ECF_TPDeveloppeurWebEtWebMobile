@@ -1109,9 +1109,13 @@ async function saveOrderEdit() {
 }
 
 async function cancelOrder(orderId) {
-    if (!confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
-        return;
-    }
+    const confirmed = await confirmAction({
+        title: 'Annuler la commande',
+        message: 'Êtes-vous sûr de vouloir annuler cette commande ?',
+        btnText: 'Annuler la commande',
+        btnClass: 'btn-danger'
+    });
+    if (!confirmed) return;
     
     try {
         const response = await fetch(`${API_BASE_URL}/commands/cancel.php`, {

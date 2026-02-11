@@ -1756,7 +1756,13 @@ function generateStarsHTML(note) {
 
 async function validateAvis(avisId, valide) {
     const action = valide === 1 ? 'valider' : 'refuser';
-    if (!confirm(`Voulez-vous ${action} cet avis ?`)) return;
+    const confirmed = await confirmAction({
+        title: valide === 1 ? 'Valider cet avis' : 'Refuser cet avis',
+        message: `Voulez-vous ${action} cet avis ?`,
+        btnText: valide === 1 ? 'Valider' : 'Refuser',
+        btnClass: valide === 1 ? 'btn-success' : 'btn-danger'
+    });
+    if (!confirmed) return;
 
     try {
         const response = await fetch(`${API_BASE_URL}/avis/validate.php`, {

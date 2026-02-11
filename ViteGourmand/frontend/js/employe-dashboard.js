@@ -217,12 +217,6 @@ function showSection(section) {
     // Sections disponibles
     const sections = ['commandes', 'menus', 'horaires', 'avis', 'profil'];
     
-    // Sections désactivées (placeholder)
-    const disabledSections = ['avis'];
-    if (disabledSections.includes(section)) {
-        // Quand même afficher le placeholder
-    }
-    
     // Charger les menus si on navigue vers la section menus
     if (section === 'menus') {
         loadAllMenus();
@@ -231,6 +225,11 @@ function showSection(section) {
     // Charger les horaires si on navigue vers la section horaires
     if (section === 'horaires') {
         loadHoraires();
+    }
+    
+    // Charger les avis si on navigue vers la section avis
+    if (section === 'avis') {
+        loadAllAvis();
     }
     
     // Masquer toutes les sections
@@ -281,6 +280,8 @@ function showSection(section) {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadAllMenus()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else if (section === 'horaires') {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadHoraires()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
+        } else if (section === 'avis') {
+            headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadAllAvis()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else {
             headerActions.innerHTML = '';
         }
@@ -1636,5 +1637,144 @@ async function submitHoraireEdit() {
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Enregistrer';
+    }
+}
+
+// ============================================
+// GESTION DES AVIS (modération)
+// ============================================
+var allAvis = [];
+var currentAvisFilter = '';
+
+async function loadAllAvis() {
+    const container = document.getElementById('avis-list-container');
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="text-muted mt-2">Chargement des avis...</p></div>';
+
+    try {
+        const filterParam = (currentAvisFilter !== '' && currentAvisFilter !== undefined) ? `?valide=${currentAvisFilter}` : '';
+        const response = await fetch(`${API_BASE_URL}/avis/list-all.php${filterParam}`, {
+            headers: getAuthHeaders()
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            allAvis = result.data;
+            renderAvisList(allAvis);
+            // Mettre à jour les stats
+            if (result.stats) {
+                document.getElementById('avis-stat-total').textContent = result.stats.total;
+                document.getElementById('avis-stat-attente').textContent = result.stats.en_attente;
+                document.getElementById('avis-stat-valides').textContent = result.stats.valides;
+                document.getElementById('avis-stat-refuses').textContent = result.stats.refuses;
+            }
+        } else {
+            container.innerHTML = '<div class="alert alert-danger">Erreur : ' + (result.message || 'Impossible de charger les avis') + '</div>';
+        }
+    } catch (error) {
+        console.error('Erreur chargement avis:', error);
+        container.innerHTML = '<div class="alert alert-danger">Erreur de connexion au serveur</div>';
+    }
+}
+
+function filterAvis(valide) {
+    currentAvisFilter = valide;
+
+    // Mettre à jour les boutons actifs
+    document.querySelectorAll('[id^="avis-filter-"]').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = valide === '' ? document.getElementById('avis-filter-all') : document.getElementById('avis-filter-' + valide);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    loadAllAvis();
+}
+
+function renderAvisList(avis) {
+    const container = document.getElementById('avis-list-container');
+
+    if (!avis || avis.length === 0) {
+        container.innerHTML = '<div class="text-center py-4"><i class="bi bi-star text-muted" style="font-size: 2rem;"></i><p class="text-muted mt-2">Aucun avis trouvé</p></div>';
+        return;
+    }
+
+    let html = '';
+    avis.forEach(a => {
+        const starsHTML = generateStarsHTML(a.note);
+        const dateCreated = new Date(a.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        let statusBadge = '';
+        let actionButtons = '';
+        if (a.valide === 0) {
+            statusBadge = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente</span>';
+            actionButtons = `
+                <button class="btn btn-sm btn-success" onclick="validateAvis(${a.id}, 1)"><i class="bi bi-check-circle me-1"></i>Valider</button>
+                <button class="btn btn-sm btn-danger" onclick="validateAvis(${a.id}, 2)"><i class="bi bi-x-circle me-1"></i>Refuser</button>
+            `;
+        } else if (a.valide === 1) {
+            statusBadge = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Validé</span>';
+            actionButtons = `<button class="btn btn-sm btn-outline-danger" onclick="validateAvis(${a.id}, 2)"><i class="bi bi-x-circle me-1"></i>Refuser</button>`;
+        } else {
+            statusBadge = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Refusé</span>';
+            actionButtons = `<button class="btn btn-sm btn-outline-success" onclick="validateAvis(${a.id}, 1)"><i class="bi bi-check-circle me-1"></i>Valider</button>`;
+        }
+
+        const validatorInfo = a.validator_prenom ? `<small class="text-muted d-block mt-1">Par ${a.validator_prenom} ${a.validator_nom || ''}</small>` : '';
+
+        html += `
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <strong>${a.client_prenom} ${a.client_nom}</strong>
+                                ${statusBadge}
+                            </div>
+                            <div class="mb-1">${starsHTML}</div>
+                            <p class="mb-1 fst-italic text-secondary">"${a.commentaire}"</p>
+                            <small class="text-muted">Commande #${a.commande_id} — ${a.menu_nom || ''} — ${dateCreated}</small>
+                            ${validatorInfo}
+                        </div>
+                        <div class="d-flex gap-2 flex-shrink-0">
+                            ${actionButtons}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function generateStarsHTML(note) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += i <= note
+            ? '<i class="bi bi-star-fill text-warning"></i>'
+            : '<i class="bi bi-star text-muted"></i>';
+    }
+    return html;
+}
+
+async function validateAvis(avisId, valide) {
+    const action = valide === 1 ? 'valider' : 'refuser';
+    if (!confirm(`Voulez-vous ${action} cet avis ?`)) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/avis/validate.php`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ id: avisId, valide: valide })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showEmployeSuccess(result.message);
+            loadAllAvis();
+        } else {
+            showEmployeError(result.message || 'Erreur lors de la validation');
+        }
+    } catch (error) {
+        console.error('Erreur validation avis:', error);
+        showEmployeError('Erreur de connexion au serveur');
     }
 }

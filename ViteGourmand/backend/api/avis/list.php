@@ -28,7 +28,7 @@ try {
 
     // Récupérer uniquement les avis validés avec les infos client (prénom uniquement pour la confidentialité)
     $sql = "SELECT a.id, a.note, a.commentaire, a.created_at,
-                   u.prenom AS client_prenom,
+                   u.first_name AS client_prenom,
                    c.menu_nom
             FROM avis a
             JOIN users u ON a.user_id = u.id

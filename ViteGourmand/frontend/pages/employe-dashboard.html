@@ -51,10 +51,9 @@
                         </a>
                     </li>
                     <li class="nav-item" data-section="avis">
-                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary disabled-section" onclick="showSection('avis'); closeEmployeMenu();">
+                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary" onclick="showSection('avis'); closeEmployeMenu();">
                             <i class="bi bi-star me-3 fs-5"></i>
                             <span>Les Avis</span>
-                            <span class="badge bg-secondary ms-auto">Bientôt</span>
                         </a>
                     </li>
                     <li class="nav-item" data-section="profil">
@@ -113,10 +112,9 @@
                     </a>
                 </li>
                 <li class="nav-item" data-section="avis">
-                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary disabled-section" onclick="showSection('avis')">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary" onclick="showSection('avis')">
                         <i class="bi bi-star me-3"></i>
                         <span>Les Avis</span>
-                        <span class="badge bg-secondary ms-auto">Bientôt</span>
                     </a>
                 </li>
                 <li class="nav-item" data-section="profil">
@@ -387,13 +385,59 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- SECTION : Avis (placeholder) -->
+        <!-- SECTION : Avis (modération) -->
         <!-- ============================================ -->
         <div id="section-avis" style="display: none;">
-            <div class="text-center py-5">
-                <i class="bi bi-star text-muted" style="font-size: 3rem;"></i>
-                <h4 class="text-muted mt-3">Validation des Avis</h4>
-                <p class="text-muted">Cette fonctionnalité sera disponible prochainement.</p>
+            <!-- Stats rapides -->
+            <div class="row g-3 mb-4" id="avis-stats">
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body py-2">
+                            <div class="fs-4 fw-bold text-primary" id="avis-stat-total">0</div>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body py-2">
+                            <div class="fs-4 fw-bold text-warning" id="avis-stat-attente">0</div>
+                            <small class="text-muted">En attente</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body py-2">
+                            <div class="fs-4 fw-bold text-success" id="avis-stat-valides">0</div>
+                            <small class="text-muted">Validés</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center">
+                        <div class="card-body py-2">
+                            <div class="fs-4 fw-bold text-danger" id="avis-stat-refuses">0</div>
+                            <small class="text-muted">Refusés</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtre par statut -->
+            <div class="d-flex gap-2 mb-3 flex-wrap">
+                <button class="btn btn-sm btn-outline-secondary active" onclick="filterAvis('')" id="avis-filter-all">Tous</button>
+                <button class="btn btn-sm btn-outline-warning" onclick="filterAvis(0)" id="avis-filter-0">En attente</button>
+                <button class="btn btn-sm btn-outline-success" onclick="filterAvis(1)" id="avis-filter-1">Validés</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="filterAvis(2)" id="avis-filter-2">Refusés</button>
+            </div>
+
+            <!-- Liste des avis -->
+            <div id="avis-list-container">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2">Chargement des avis...</p>
+                </div>
             </div>
         </div>
 

@@ -47,13 +47,13 @@ try {
     }
 
     // Filtre optionnel par statut de validation
-    $filterValide = isset($_GET['valide']) ? $_GET['valide'] : null;
+    $filterValide = isset($_GET['valide']) && $_GET['valide'] !== '' && is_numeric($_GET['valide']) ? $_GET['valide'] : null;
 
     $sql = "SELECT a.id, a.user_id, a.commande_id, a.note, a.commentaire, a.valide,
                    a.validated_by, a.validated_at, a.created_at,
-                   u.prenom AS client_prenom, u.nom AS client_nom, u.email AS client_email,
+                   u.first_name AS client_prenom, u.last_name AS client_nom, u.email AS client_email,
                    c.menu_nom, c.date_prestation,
-                   v.prenom AS validator_prenom, v.nom AS validator_nom
+                   v.first_name AS validator_prenom, v.last_name AS validator_nom
             FROM avis a
             JOIN users u ON a.user_id = u.id
             JOIN commandes c ON a.commande_id = c.id

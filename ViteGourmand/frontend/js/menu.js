@@ -5,8 +5,42 @@ export let menuData = {};
 // Charger les menus depuis l'API backend
 export async function loadMenusFromAPI() {
     try {
-        const response = await fetch(`${window.API_BASE_URL || '/api'}/menus/list.php`);
-        const result = await response.json();
+        const apiBaseUrl = window.API_BASE_URL || '/api';
+        const fullUrl = `${apiBaseUrl}/menus/list.php`;
+
+        console.log('🔍 API_BASE_URL:', window.API_BASE_URL);
+        console.log('🔍 URL complète appelée:', fullUrl);
+        console.log('🔍 URL finale:', window.location.origin + fullUrl);
+
+        const response = await fetch(fullUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('🔍 Status HTTP:', response.status);
+        console.log('🔍 Content-Type:', response.headers.get('content-type'));
+
+        // LOG DE DIAGNOSTIC : réponse brute AVANT JSON.parse()
+        const responseText = await response.text();
+        console.log('🔍 Réponse brute (100 premiers caractères):', responseText.substring(0, 100));
+        console.log('🔍 Début de la réponse:', responseText.startsWith('<') ? 'HTML' : 'JSON');
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // Tenter de parser le JSON seulement si c'est du JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('🔍 Erreur JSON.parse():', jsonError);
+            console.error('🔍 Réponse qui a causé l\'erreur:', responseText.substring(0, 200));
+            throw new Error('Réponse n\'est pas du JSON valide');
+        }
 
         if (!result.success || !result.data) {
             console.error('Erreur chargement menus API:', result.message);

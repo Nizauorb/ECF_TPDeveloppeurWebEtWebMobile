@@ -1550,6 +1550,7 @@ function showSection(section) {
     if (section === 'horaires') loadHoraires();
     if (section === 'avis') loadAllAvis();
     if (section === 'employes' && typeof loadEmployesList === 'function') loadEmployesList();
+    if (section === 'statistiques' && typeof loadStats === 'function') loadStats();
 
     // Callback personnalisé si défini
     if (config.onSectionChange) config.onSectionChange(section);
@@ -1599,6 +1600,8 @@ function showSection(section) {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadAllAvis()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else if (section === 'employes' && typeof loadEmployesList === 'function') {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadEmployesList()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
+        } else if (section === 'statistiques' && typeof loadStats === 'function') {
+            headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadStats()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else {
             headerActions.innerHTML = '';
         }

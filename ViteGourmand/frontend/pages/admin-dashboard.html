@@ -62,6 +62,12 @@
                             <span>Les Employés</span>
                         </a>
                     </li>
+                    <li class="nav-item" data-section="statistiques">
+                        <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary" onclick="showSection('statistiques'); closeDashboardMenu();">
+                            <i class="bi bi-graph-up me-3 fs-5"></i>
+                            <span>Statistiques</span>
+                        </a>
+                    </li>
                     <li class="nav-item" data-section="profil">
                         <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-3 text-decoration-none text-secondary" onclick="showSection('profil'); closeDashboardMenu();">
                             <i class="bi bi-person-gear me-3 fs-5"></i>
@@ -127,6 +133,12 @@
                     <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary" onclick="showSection('employes')">
                         <i class="bi bi-people me-3"></i>
                         <span>Les Employés</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-section="statistiques">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center px-4 py-2 text-decoration-none text-secondary" onclick="showSection('statistiques')">
+                        <i class="bi bi-graph-up me-3"></i>
+                        <span>Statistiques</span>
                     </a>
                 </li>
                 <li class="nav-item" data-section="profil">
@@ -543,6 +555,133 @@
                                     </tr>
                                 </thead>
                                 <tbody id="employes-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SECTION : Statistiques (admin uniquement) -->
+        <!-- ============================================ -->
+        <div id="section-statistiques" style="display: none;">
+            <!-- Stats globales -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-primary fs-3"><i class="bi bi-bag-check"></i></div>
+                            <div class="fw-bold fs-4" id="stat-total-commandes">0</div>
+                            <small class="text-muted">Commandes totales</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-success fs-3"><i class="bi bi-currency-euro"></i></div>
+                            <div class="fw-bold fs-4" id="stat-total-ca">0 €</div>
+                            <small class="text-muted">Chiffre d'affaires</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-info fs-3"><i class="bi bi-cart3"></i></div>
+                            <div class="fw-bold fs-4" id="stat-panier-moyen">0 €</div>
+                            <small class="text-muted">Panier moyen</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="text-warning fs-3"><i class="bi bi-book"></i></div>
+                            <div class="fw-bold fs-4" id="stat-nb-menus">0</div>
+                            <small class="text-muted">Menus commandés</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres de période -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Date début</label>
+                            <input type="date" class="form-control" id="stats-date-from">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Date fin</label>
+                            <input type="date" class="form-control" id="stats-date-to">
+                        </div>
+                        <div class="col-md-6 d-flex gap-2">
+                            <button class="btn btn-primary" onclick="loadStats()">
+                                <i class="bi bi-funnel me-1"></i>Filtrer
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="resetStatsFilters()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Réinitialiser
+                            </button>
+                            <div class="btn-group ms-auto">
+                                <button class="btn btn-outline-primary btn-sm active" id="btn-chart-bar" onclick="switchChartType('bar')">
+                                    <i class="bi bi-bar-chart"></i>
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm" id="btn-chart-pie" onclick="switchChartType('pie')">
+                                    <i class="bi bi-pie-chart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphique commandes par menu -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2"></i>Commandes par menu</h6>
+                </div>
+                <div class="card-body">
+                    <div id="stats-loading" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="text-muted mt-2">Chargement des statistiques...</p>
+                    </div>
+                    <div id="stats-empty" class="text-center py-4" style="display: none;">
+                        <i class="bi bi-bar-chart text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Aucune donnée disponible</p>
+                    </div>
+                    <canvas id="chartCommandesParMenu" style="display: none; max-height: 400px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Tableau détaillé CA par menu -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Détail du chiffre d'affaires par menu</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div id="stats-table-container" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Menu</th>
+                                        <th class="text-center">Commandes</th>
+                                        <th class="text-end">Chiffre d'affaires</th>
+                                        <th class="text-end">% du CA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stats-table-body"></tbody>
+                                <tfoot class="table-light fw-bold">
+                                    <tr>
+                                        <td>Total</td>
+                                        <td class="text-center" id="stats-table-total-cmd">0</td>
+                                        <td class="text-end" id="stats-table-total-ca">0 €</td>
+                                        <td class="text-end">100%</td>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>

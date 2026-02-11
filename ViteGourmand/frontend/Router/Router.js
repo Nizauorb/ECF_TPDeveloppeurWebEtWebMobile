@@ -25,7 +25,10 @@ const getNavItemsByRole = (role, dashboardUrl) => {
       { href: dashboardUrl + '?section=avis', icon: 'bi-chat-dots', label: 'Les Avis' }
     );
     if (role === 'administrateur') {
-      items.push({ href: dashboardUrl + '?section=employes', icon: 'bi-people', label: 'Les Employés' });
+      items.push(
+        { href: dashboardUrl + '?section=employes', icon: 'bi-people', label: 'Les Employés' },
+        { href: dashboardUrl + '?section=statistiques', icon: 'bi-graph-up', label: 'Statistiques' }
+      );
     }
     items.push(
       { href: dashboardUrl + '?section=profile', icon: 'bi-person-gear', label: 'Mon Profil' }

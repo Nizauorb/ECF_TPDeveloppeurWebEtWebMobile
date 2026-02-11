@@ -1549,6 +1549,7 @@ function showSection(section) {
     if (section === 'menus') loadAllMenus();
     if (section === 'horaires') loadHoraires();
     if (section === 'avis') loadAllAvis();
+    if (section === 'employes' && typeof loadEmployesList === 'function') loadEmployesList();
 
     // Callback personnalisé si défini
     if (config.onSectionChange) config.onSectionChange(section);
@@ -1596,6 +1597,8 @@ function showSection(section) {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadHoraires()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else if (section === 'avis') {
             headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadAllAvis()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
+        } else if (section === 'employes' && typeof loadEmployesList === 'function') {
+            headerActions.innerHTML = '<button class="btn btn-outline-primary btn-sm" onclick="loadEmployesList()"><i class="bi bi-arrow-clockwise me-1"></i>Actualiser</button>';
         } else {
             headerActions.innerHTML = '';
         }

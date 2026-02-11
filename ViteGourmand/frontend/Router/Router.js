@@ -22,7 +22,12 @@ const getNavItemsByRole = (role, dashboardUrl) => {
       { href: dashboardUrl + '?section=orders', icon: 'bi-clipboard-check', label: 'Les Commandes' },
       { href: dashboardUrl + '?section=menus', icon: 'bi-book', label: 'Les Menus' },
       { href: dashboardUrl + '?section=horaires', icon: 'bi-clock', label: 'Les Horaires' },
-      { href: dashboardUrl + '?section=avis', icon: 'bi-chat-dots', label: 'Les Avis' },
+      { href: dashboardUrl + '?section=avis', icon: 'bi-chat-dots', label: 'Les Avis' }
+    );
+    if (role === 'administrateur') {
+      items.push({ href: dashboardUrl + '?section=employes', icon: 'bi-people', label: 'Les Employés' });
+    }
+    items.push(
       { href: dashboardUrl + '?section=profile', icon: 'bi-person-gear', label: 'Mon Profil' }
     );
   } else {

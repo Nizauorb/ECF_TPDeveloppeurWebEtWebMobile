@@ -163,12 +163,13 @@ var adminFiltersHeaderHTML = `
 
     // Configurer le dashboard admin
     window.dashboardConfig = {
-        sections: ['commandes', 'menus', 'horaires', 'avis', 'profil'],
+        sections: ['commandes', 'menus', 'horaires', 'avis', 'employes', 'profil'],
         titles: {
             'commandes': 'Les Commandes',
             'menus': 'Les Menus',
             'horaires': 'Les Horaires',
             'avis': 'Les Avis',
+            'employes': 'Les Employ\u00e9s',
             'profil': 'Mon Profil'
         },
         titleElementId: 'admin-page-title',
@@ -187,7 +188,7 @@ var adminFiltersHeaderHTML = `
     const urlParams = new URLSearchParams(window.location.search);
     const sectionParam = urlParams.get('section');
     if (sectionParam) {
-        const sectionMap = { 'orders': 'commandes', 'menus': 'menus', 'horaires': 'horaires', 'avis': 'avis', 'profile': 'profil' };
+        const sectionMap = { 'orders': 'commandes', 'menus': 'menus', 'horaires': 'horaires', 'avis': 'avis', 'employes': 'employes', 'profile': 'profil' };
         const targetSection = sectionMap[sectionParam] || sectionParam;
         showSection(targetSection);
     }
@@ -214,4 +215,171 @@ function displayAdminInfo(user) {
     if (profilEmail) profilEmail.value = user.email || '';
     const profilTel = document.getElementById('admin-profile-telephone');
     if (profilTel) profilTel.value = user.phone || '';
+}
+
+// ============================================
+// Gestion des employés (admin uniquement)
+// ============================================
+
+async function loadEmployesList() {
+    const loading = document.getElementById('employes-loading');
+    const empty = document.getElementById('employes-empty');
+    const tableContainer = document.getElementById('employes-table-container');
+    const tableBody = document.getElementById('employes-table-body');
+
+    if (loading) loading.style.display = '';
+    if (empty) empty.style.display = 'none';
+    if (tableContainer) tableContainer.style.display = 'none';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/list-employes.php`, {
+            headers: getAuthHeaders()
+        });
+        const data = await response.json();
+
+        if (loading) loading.style.display = 'none';
+
+        if (!data.success || !data.data || data.data.length === 0) {
+            if (empty) empty.style.display = '';
+            const statTotal = document.getElementById('stat-employes-total');
+            if (statTotal) statTotal.textContent = '0';
+            return;
+        }
+
+        const employes = data.data;
+
+        // Mettre à jour la stat
+        const statTotal = document.getElementById('stat-employes-total');
+        if (statTotal) statTotal.textContent = employes.length;
+
+        // Remplir le tableau
+        if (tableBody) {
+            tableBody.innerHTML = employes.map(emp => {
+                const createdDate = emp.created_at ? new Date(emp.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">${escapeHtml(emp.last_name)} ${escapeHtml(emp.first_name)}</div>
+                        </td>
+                        <td><span class="text-muted">${escapeHtml(emp.email)}</span></td>
+                        <td>${escapeHtml(emp.phone || '-')}</td>
+                        <td><small class="text-muted">${createdDate}</small></td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteEmploye(${emp.id}, '${escapeHtml(emp.first_name)} ${escapeHtml(emp.last_name)}')" title="Supprimer">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        if (tableContainer) tableContainer.style.display = '';
+
+    } catch (error) {
+        console.error('Erreur chargement employés:', error);
+        if (loading) loading.style.display = 'none';
+        if (empty) {
+            empty.style.display = '';
+            empty.querySelector('p').textContent = 'Erreur lors du chargement';
+        }
+    }
+}
+
+async function submitCreateEmploye() {
+    const nom = document.getElementById('employe-form-nom')?.value.trim();
+    const prenom = document.getElementById('employe-form-prenom')?.value.trim();
+    const email = document.getElementById('employe-form-email')?.value.trim();
+    const telephone = document.getElementById('employe-form-telephone')?.value.trim();
+
+    if (!nom || !prenom || !email || !telephone) {
+        showDashboardError('Veuillez remplir tous les champs obligatoires.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/create-employe.php`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                lastName: nom,
+                firstName: prenom,
+                email: email,
+                phone: telephone
+            })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            showDashboardError(data.message || 'Erreur lors de la création');
+            return;
+        }
+
+        // Afficher le résultat avec le mot de passe généré
+        const resultDiv = document.getElementById('employe-creation-result');
+        if (resultDiv) {
+            resultDiv.classList.remove('d-none');
+            document.getElementById('result-employe-email').textContent = data.data.employe.email;
+            document.getElementById('result-employe-password').textContent = data.data.generatedPassword;
+            const emailStatus = document.getElementById('result-email-status');
+            if (emailStatus) {
+                emailStatus.textContent = data.data.emailSent
+                    ? 'Un email avec les identifiants a été envoyé à l\'employé.'
+                    : 'L\'email n\'a pas pu être envoyé. Transmettez les identifiants manuellement.';
+            }
+        }
+
+        // Réinitialiser le formulaire
+        document.getElementById('createEmployeForm')?.reset();
+
+        showDashboardSuccess('Compte employé créé avec succès !');
+
+        // Recharger la liste
+        loadEmployesList();
+
+    } catch (error) {
+        console.error('Erreur création employé:', error);
+        showDashboardError('Erreur réseau lors de la création du compte.');
+    }
+}
+
+async function deleteEmploye(employeId, employeName) {
+    const confirmed = await confirmAction(
+        'Supprimer cet employé ?',
+        `Êtes-vous sûr de vouloir supprimer le compte de <strong>${employeName}</strong> ? Cette action est irréversible.`,
+        'Supprimer',
+        'btn-danger'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/delete-employe.php?id=${employeId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            showDashboardError(data.message || 'Erreur lors de la suppression');
+            return;
+        }
+
+        showDashboardSuccess('Compte employé supprimé avec succès.');
+        loadEmployesList();
+
+    } catch (error) {
+        console.error('Erreur suppression employé:', error);
+        showDashboardError('Erreur réseau lors de la suppression.');
+    }
+}
+
+// Utilitaire d'échappement HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

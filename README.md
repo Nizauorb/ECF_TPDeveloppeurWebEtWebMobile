@@ -223,6 +223,7 @@ cd ECF_TPDeveloppeurWebEtWebMobile/ViteGourmand
 
 ### 2.1 Lancement serveur Apache
 1. **Ouvrez XAMPP Control Panel** et démarrez le serveur **Apache**
+2. Ne pas oublier la configuration du `.htaccess` qui est disponible dans le dossier `ViteGourmand\frontend\.htaccess`
 
 
 #### 3. Configuration Backend PHP

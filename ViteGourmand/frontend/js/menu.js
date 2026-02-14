@@ -2,6 +2,13 @@
 // Format : { menu_key: { title, price, image, description, minPeople, allergenes, conditionsCommande, regime, stockDisponible, sections } }
 export let menuData = {};
 
+// Fonction pour décoder les entités HTML
+function decodeHtmlEntities(text) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
 // Charger les menus depuis l'API backend
 export async function loadMenusFromAPI() {
     try {
@@ -51,19 +58,19 @@ export async function loadMenusFromAPI() {
         const newMenuData = {};
         result.data.forEach(menu => {
             newMenuData[menu.menu_key] = {
-                title: menu.titre,
+                title: decodeHtmlEntities(menu.title),
                 price: `${parseFloat(menu.prix_par_personne).toFixed(0)}€`,
                 image: menu.image || '',
-                description: menu.description || '',
+                description: decodeHtmlEntities(menu.description || ''),
                 minPeople: `${menu.nombre_personnes_min}+`,
                 allergenes: menu.allergenes || [],
-                conditionsCommande: menu.conditions_commande || '',
+                conditionsCommande: decodeHtmlEntities(menu.conditions_commande || ''),
                 regime: menu.regime || 'Classique',
                 stockDisponible: menu.stock_disponible,
                 sections: {
-                    entrees: (menu.sections?.entrees || []).map(p => p.nom),
-                    plats: (menu.sections?.plats || []).map(p => p.nom),
-                    desserts: (menu.sections?.desserts || []).map(p => p.nom)
+                    entrees: (menu.sections?.entrees || []).map(p => decodeHtmlEntities(p.nom)),
+                    plats: (menu.sections?.plats || []).map(p => decodeHtmlEntities(p.nom)),
+                    desserts: (menu.sections?.desserts || []).map(p => decodeHtmlEntities(p.nom))
                 }
             };
         });
@@ -123,9 +130,14 @@ export function renderMenuCards(menusToRender = null) {
                                 ${getStockBadge(menu.stockDisponible)}
                             </div>
                         </div>
-                        <button class="btn btn-outline-primary w-100 mt-auto" onclick="showMenuDetails('${menuKey}')">
-                            <i class="bi bi-eye-fill"></i> Voir les détails
-                        </button>
+                        ${menu.stockDisponible == 0 ? 
+                            `<button class="btn btn-outline-secondary w-100 mt-auto" disabled>
+                                <i class="bi bi-x-circle"></i> Stock épuisé
+                            </button>` :
+                            `<button class="btn btn-outline-primary w-100 mt-auto" onclick="showMenuDetails('${menuKey}')">
+                                <i class="bi bi-eye-fill"></i> Voir les détails
+                            </button>`
+                        }
                     </div>
                 </div>
             </div>
@@ -175,9 +187,14 @@ export function showMenuDetails(menuType) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                        <button type="button" class="btn btn-primary" onclick="orderMenu('${menuType}')">
-                            <i class="bi bi-cart-plus me-2"></i>Commander ce menu
-                        </button>
+                        ${menu.stockDisponible == 0 ? 
+                            `<button type="button" class="btn btn-secondary" disabled>
+                                <i class="bi bi-x-circle me-2"></i>Stock épuisé
+                            </button>` :
+                            `<button type="button" class="btn btn-primary" onclick="orderMenu('${menuType}')">
+                                <i class="bi bi-cart-plus me-2"></i>Commander ce menu
+                            </button>`
+                        }
                     </div>
                 </div>
             </div>
@@ -320,6 +337,12 @@ export function generateAdditionalInfo(menu) {
 
 // Fonction pour générer le badge de stock avec code couleur
 export function getStockBadge(stock) {
+    if (stock == 0) {
+        return `<span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill me-1"></i>Épuisé
+        </span>`;
+    }
+    
     let badgeClass = 'bg-danger';
     let icon = 'bi-x-circle-fill';
     

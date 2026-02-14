@@ -57,6 +57,12 @@ try {
         $menu['stock_disponible'] = (int) $menu['stock_disponible'];
         $menu['actif'] = (bool) $menu['actif'];
 
+        // Décoder les entités HTML dans les champs texte
+        $menu['titre'] = html_entity_decode($menu['titre'], ENT_QUOTES, 'UTF-8');
+        $menu['description'] = html_entity_decode($menu['description'], ENT_QUOTES, 'UTF-8');
+        $menu['conditions_commande'] = html_entity_decode($menu['conditions_commande'], ENT_QUOTES, 'UTF-8');
+        $menu['regime'] = html_entity_decode($menu['regime'], ENT_QUOTES, 'UTF-8');
+
         // Récupérer les plats
         $stmtPlats->execute([$menu['id']]);
         $plats = $stmtPlats->fetchAll();
@@ -67,6 +73,7 @@ try {
 
         foreach ($plats as &$plat) {
             $plat['id'] = (int) $plat['id'];
+            $plat['nom'] = html_entity_decode($plat['nom'], ENT_QUOTES, 'UTF-8');
             $platAllergenes = json_decode($plat['allergenes'], true) ?? [];
             $plat['allergenes'] = $platAllergenes;
 

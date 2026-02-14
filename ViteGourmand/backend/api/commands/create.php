@@ -122,6 +122,24 @@ $distanceKm = isset($data['distance_km']) ? floatval($data['distance_km']) : nul
 try {
     $db = Database::getInstance()->getConnection();
 
+    // Vérifier le stock disponible pour le menu
+    $menuName = $data['menu_key'];
+    $stmtCheck = $db->prepare("SELECT stock_disponible FROM menus WHERE menu_key = ?");
+    $stmtCheck->execute([$menuName]);
+    $menu = $stmtCheck->fetch();
+
+    if (!$menu) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Menu non trouvé']);
+        exit();
+    }
+
+    if ($menu['stock_disponible'] < $nbPersonnes) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Stock insuffisant pour ce nombre de personnes']);
+        exit();
+    }
+
     // Vérifier que l'utilisateur existe
     $stmtUser = $db->prepare("SELECT id, last_name, first_name, email, phone FROM users WHERE id = ?");
     $stmtUser->execute([$userId]);

@@ -115,6 +115,24 @@ try {
         $stmtUpdate->execute([$newStatus, $orderId]);
     }
 
+    // Réduire le stock si la commande est acceptée
+    if ($newStatus === 'acceptee') {
+        $menuName = $commande['menu_key'];
+        $stmtMenu = $db->prepare("SELECT id FROM menus WHERE menu_key = ?");
+        $stmtMenu->execute([$menuName]);
+        $menu = $stmtMenu->fetch();
+        
+        if ($menu) {
+            $menuId = (int) $menu['id'];
+            $nombrePersonnes = (int) $commande['nombre_personnes'];
+            $stmtStock = $db->prepare("UPDATE menus SET stock_disponible = stock_disponible - ? WHERE id = ?");
+            $stmtStock->execute([$nombrePersonnes, $menuId]);
+            error_log("Stock réduit de {$nombrePersonnes} pour le menu #{$menuId} (nom: {$menuName}) suite à acceptation commande #{$orderId}");
+        } else {
+            error_log("Menu non trouvé pour nom: {$menuName}, commande #{$orderId}");
+        }
+    }
+
     // Si le statut passe à "terminée", envoyer un mail de demande d'avis
     if ($newStatus === 'terminee') {
         try {

@@ -117,7 +117,6 @@ Plateforme de commande de menus traiteur pour événements - Projet ECF Dévelop
 ### DevOps & Outils
 - **Versionning** : Git
 - **IDE** : Windsurf
-- **API Testing** : [à définir]
 - **Database Management** : phpMyAdmin 
 - **Deployment** : WinSCP - SFTP (production)
 
@@ -166,6 +165,26 @@ vite-gourmand/
 
 ## 🚀 Installation & Configuration
 
+### ⚡ Lancement Express (jury)
+
+```bash
+# 1. Cloner le dépôt officiel
+git clone https://github.com/Nizauorb/ECF_TPDeveloppeurWebEtWebMobile.git
+cd ECF_TPDeveloppeurWebEtWebMobile/ViteGourmand
+
+# 2. Backend PHP
+cd backend
+composer install
+cp config/config.php.example config/config.php
+
+# 3. Frontend Vite
+cd ../frontend
+npm install
+npm run dev
+```
+
+> 📝 Le proxy `/api` côté Vite redirige déjà vers `http://localhost/vite-gourmand/backend/api`, aucune variable d'environnement supplémentaire n'est nécessaire pour les tests locaux.
+
 ### Prérequis Système
 
 #### Pour l'environnement de développement :
@@ -178,9 +197,11 @@ vite-gourmand/
 - **Git** : Pour le versionning
 
 #### Pour l'environnement de production :
-- **Hébergement mutualisé** avec PHP 8.1+ et MySQL 8.0+
-- **Accès FTP/SFTP** pour le déploiement
-- **Domaine configuré** : vite-gourmand.maxime-brouazin.fr
+- **Hébergement** : OVH, Azure, ou équivalent
+- **Domaine** : vite-gourmand.maxime-brouazin.fr
+- **PHP** : 8.1+ avec extensions nécessaires
+- **MySQL** : 8.0+ avec phpMyAdmin
+- **SSL** : Certificat Let's Encrypt recommandé
 
 ---
 
@@ -188,18 +209,21 @@ vite-gourmand/
 
 #### 1. Clonage du Repository
 ```bash
-# Clonez le repository
-git clone https://github.com/Nizauorb/Vite-Gourmand.git
-cd Vite-Gourmand
+# Clonez le repository officiel
+git clone https://github.com/Nizauorb/ECF_TPDeveloppeurWebEtWebMobile.git
+cd ECF_TPDeveloppeurWebEtWebMobile/ViteGourmand
 ```
 
 #### 2. Configuration de la Base de Données
-```bash
-# Créez une base de données MySQL nommée 'vite_gourmand'
-# Importez le fichier SQL
-mysql -u root -p vite_gourmand < vite_gourmand.sql
-# OU via phpMyAdmin : importez vite_gourmand.sql
-```
+1. **Ouvrez XAMPP Control Panel** et démarrez le serveur **MySQL**
+2. **Accédez à phpMyAdmin** : cliquez sur "Admin" ou rendez-vous sur http://localhost/phpmyadmin/
+3. **Créez une nouvelle base de données** nommée `vite_gourmand_local`
+4. **Sélectionnez la base** créée, puis allez dans l'onglet **SQL**
+5. **Collez le contenu** du fichier `vite_gourmand_local.sql` et exécutez la requête
+
+### 2.1 Lancement serveur Apache
+1. **Ouvrez XAMPP Control Panel** et démarrez le serveur **Apache**
+
 
 #### 3. Configuration Backend PHP
 ```bash
@@ -211,7 +235,7 @@ composer install
 cp config/config.php.example config/config.php
 
 # Modifiez config/config.php avec vos paramètres locaux :
-# - URL de base : http://localhost/Vite-Gourmand
+# - URL de base : http://localhost/3000
 # - Identifiants base de données
 # - Configuration PHPMailer pour les emails (MailHog en local)
 ```
@@ -228,41 +252,37 @@ npm install
 npm run dev
 ```
 
-#### 5. Configuration Serveur Local
-```apache
-# Assurez-vous que votre serveur local (XAMPP/WAMP)
-# pointe vers le dossier racine du projet
+> ℹ️ Le serveur Vite est configuré pour proxyfier automatiquement les requêtes `fetch('/api/...')` vers `http://localhost/vite-gourmand/backend/api` (voir `frontend/vite.config.js`). Aucun réglage supplémentaire n'est requis pour consommer l'API en local.
 
-# Exemple configuration Apache :
-<VirtualHost *:80>
-    ServerName vite-gourmand.local
-    DocumentRoot "C:/path/to/Vite-Gourmand"
 
-    <Directory "C:/path/to/Vite-Gourmand">
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
-
-#### 6. Variables d'Environnement Local
+#### 5. Variables d'Environnement Local
 ```php
 // backend/config/config.php
 return [
     'environment' => 'development',
-    'base_url' => 'http://localhost/Vite-Gourmand',
+    'base_url' => 'http://localhost:3000',
     'database' => [
         'host' => 'localhost',
-        'name' => 'vite_gourmand',
+        'name' => 'vite_gourmand_local',
         'user' => 'root',
         'password' => ''
     ],
     'mail' => [
-        'resend_api_key' => 'votre-cle-api-resend',
-        'from_email' => 'noreply@vite-gourmand.local'
+            'host' => 'localhost',
+            'port' => 1025,
+            'smtp_auth' => false,
+            'smtp_secure' => '',
+            'username' => '',
+            'password' => '',
+            'charset' => 'UTF-8',
+            'from_email' => 'noreply@vitegourmand.com',
+            'from_name' => 'Vite & Gourmand',
+            'admin_email' => 'contact@vitegourmand.com',
+            'base_url' => 'http://localhost:3000'
     ],
     'jwt' => [
-        'secret' => 'votre-cle-secrete-jwt-dev'
+        'secret' => 'votre-cle-secrete-jwt-dev',
+        'expires_in' => '24h'
     ]
 ];
 ```
@@ -297,7 +317,7 @@ return [
 // backend/config/config.php
 return [
     'environment' => 'production',
-    'base_url' => 'https://vite-gourmand.maxime-brouazin.fr',
+    'base_url' => 'https://votre-domaine.fr', // À adapter selon votre domaine
     'database' => [
         'host' => 'sql.prz.jeuweb.org', // À adapter selon votre hébergeur
         'name' => 'vite_gourmand_prod',
@@ -306,7 +326,7 @@ return [
     ],
     'mail' => [
         'resend_api_key' => 'votre-cle-api-resend-production',
-        'from_email' => 'noreply@vite-gourmand.maxime-brouazin.fr'
+        'from_email' => 'noreply@votre-domaine.fr'
     ],
     'jwt' => [
         'secret' => 'votre-cle-secrete-jwt-production-tres-longue-et-complexe'

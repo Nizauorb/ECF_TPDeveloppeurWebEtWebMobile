@@ -20,13 +20,18 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Nizauorb/Vite-Gourmand.git"
+    "url": "git+https://github.com/Nizauorb/ECF_TPDeveloppeurWebEtWebMobile.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Nizauorb/Vite-Gourmand/issues"
+    "url": "https://github.com/Nizauorb/ECF_TPDeveloppeurWebEtWebMobile/issues"
   },
-  "homepage": "https://github.com/Nizauorb/Vite -Gourmand#readme"
+  "homepage": "https://github.com/Nizauorb/ECF_TPDeveloppeurWebEtWebMobile#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=10.0.0"
+  },
+  "packageManager": "npm@10.5.0"
 }

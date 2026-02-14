@@ -50,6 +50,13 @@ $jwtPayload = JWTHelper::getFromRequest();
 $userId = ($jwtPayload && isset($jwtPayload['user_id'])) ? (int) $jwtPayload['user_id'] : intval($data['user_id'] ?? 0);
 $userRole = ($jwtPayload && isset($jwtPayload['role'])) ? $jwtPayload['role'] : 'utilisateur';
 
+// Interdire aux employés et admins de passer des commandes
+if (in_array($userRole, ['employe', 'admin'])) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Les employés et administrateurs ne peuvent pas passer de commandes.']);
+    exit();
+}
+
 // Rate Limiting par rôle (employés/admins ont des limites plus souples)
 RateLimiter::setRateLimitHeadersByRole('create_order', $userRole);
 
@@ -298,7 +305,7 @@ function generateConfirmationEmail($orderId, $user, $menuNom, $nbPersonnes, $pri
             </div>
             <div style='background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;'>
                 <p style='margin: 0; font-size: 0.85rem; color: #6c757d;'>Cet email a été envoyé automatiquement. Merci de ne pas y répondre.</p>
-                <p style='margin: 5px 0 0; font-size: 0.85rem; color: #6c757d;'>&copy; 2024 Vite&Gourmand - Tous droits réservés</p>
+                <p style='margin: 5px 0 0; font-size: 0.85rem; color: #6c757d;'>&copy; 2026 Vite&Gourmand - Tous droits réservés</p>
             </div>
         </div>
     </body>

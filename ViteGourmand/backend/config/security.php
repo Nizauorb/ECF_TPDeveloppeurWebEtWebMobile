@@ -13,7 +13,7 @@ return [
     'rate_limits' => [
         'contact'                => ['requests' => 3,  'window' => 300],   // 3 emails / 5 min
         'forgot_password'        => ['requests' => 5,  'window' => 900],   // 5 demandes / 15 min
-        'login'                  => ['requests' => 10, 'window' => 900],   // 10 tentatives / 15 min
+        'login'                  => ['requests' => 100, 'window' => 900],   // 10 tentatives / 15 min
         'register'               => ['requests' => 5,  'window' => 3600],  // 5 inscriptions / 1h
         'reset_password'         => ['requests' => 5,  'window' => 900],   // 5 resets / 15 min
         'profile_update'         => ['requests' => 10, 'window' => 300],   // 10 modifs / 5 min

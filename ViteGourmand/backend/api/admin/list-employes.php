@@ -49,7 +49,7 @@ try {
 
     // Récupérer tous les employés
     $stmt = $db->prepare("
-        SELECT id, email, first_name, last_name, phone, created_at
+        SELECT id, email, first_name, last_name, phone, initial_password, created_at
         FROM users
         WHERE role = 'employe'
         ORDER BY created_at DESC

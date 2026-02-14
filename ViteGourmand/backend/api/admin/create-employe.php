@@ -142,13 +142,14 @@ try {
 
     // Insertion du nouvel employé
     $stmt = $db->prepare("
-        INSERT INTO users (email, password_hash, first_name, last_name, phone, role)
-        VALUES (:email, :password_hash, :first_name, :last_name, :phone, 'employe')
+        INSERT INTO users (email, password_hash, initial_password, first_name, last_name, phone, role)
+        VALUES (:email, :password_hash, :initial_password, :first_name, :last_name, :phone, 'employe')
     ");
 
     $stmt->execute([
         ':email' => $emailValidation['sanitized'],
         ':password_hash' => $passwordHash,
+        ':initial_password' => $generatedPassword,
         ':first_name' => $firstNameValidation['sanitized'],
         ':last_name' => $lastNameValidation['sanitized'],
         ':phone' => $data['phone']
@@ -156,12 +157,11 @@ try {
 
     $employeId = $db->lastInsertId();
 
-    // Envoyer l'email avec les identifiants
+    // Envoyer l'email avec les instructions
     $htmlBody = buildWelcomeEmail(
         $firstNameValidation['sanitized'],
         $lastNameValidation['sanitized'],
-        $emailValidation['sanitized'],
-        $generatedPassword
+        $emailValidation['sanitized']
     );
 
     try {
@@ -235,7 +235,7 @@ function generateSecurePassword(int $length = 12): string {
 /**
  * Construit le corps HTML de l'email de bienvenue employé
  */
-function buildWelcomeEmail(string $firstName, string $lastName, string $email, string $password): string {
+function buildWelcomeEmail(string $firstName, string $lastName, string $email): string {
     return '
     <!DOCTYPE html>
     <html lang="fr">
@@ -249,11 +249,11 @@ function buildWelcomeEmail(string $firstName, string $lastName, string $email, s
             <hr style="border: none; border-top: 2px solid #627D4A; margin: 20px 0;">
             <h2 style="color: #333;">Bienvenue ' . htmlspecialchars($firstName) . ' !</h2>
             <p style="color: #555; line-height: 1.6;">
-                Votre compte employé a été créé par l\'administrateur. Voici vos identifiants de connexion :
+                Votre compte employé a été créé par l\'administrateur. Pour récupérer vos identifiants de connexion, veuillez contacter votre supérieur hiérarchique.
             </p>
             <div style="background-color: #f0f4ec; border-left: 4px solid #627D4A; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
-                <p style="margin: 5px 0;"><strong>Email :</strong> ' . htmlspecialchars($email) . '</p>
-                <p style="margin: 5px 0;"><strong>Mot de passe :</strong> <code style="background: #fff; padding: 2px 8px; border-radius: 3px; font-size: 14px;">' . htmlspecialchars($password) . '</code></p>
+                <p style="margin: 5px 0;"><strong>Email de connexion :</strong> ' . htmlspecialchars($email) . '</p>
+                <p style="margin: 5px 0;"><strong>Mot de passe :</strong> À récupérer auprès de votre supérieur</p>
             </div>
             <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0;">
                 <p style="margin: 0; color: #856404;">

@@ -185,6 +185,22 @@ function getCsrfHeaders() {
         return;
     }
     
+    // Vérifier le rôle : interdire aux employés et admins
+    if (currentUser.role === 'employe' || currentUser.role === 'admin') {
+        // Afficher l'alerte d'accès refusé
+        const authAlert = document.getElementById('order-auth-alert');
+        if (authAlert) {
+            authAlert.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i><div><strong>Accès refusé</strong><br>Les employés et administrateurs ne peuvent pas passer de commandes.</div>';
+            authAlert.className = 'alert alert-danger d-flex align-items-center mb-4';
+            authAlert.style.display = 'flex';
+            authAlert.style.cssText = 'display: flex !important;';
+        }
+        // Désactiver le formulaire
+        const form = document.getElementById('order-form');
+        if (form) form.style.display = 'none';
+        return;
+    }
+    
     // Charger le token CSRF
     loadCSRFToken();
     

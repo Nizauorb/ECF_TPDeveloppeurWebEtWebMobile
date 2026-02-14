@@ -108,7 +108,7 @@ function getCsrfHeaders() {
     }
     const token = localStorage.getItem('token');
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers['X-Authorization'] = `Bearer ${token}`;
     }
     return headers;
 }
@@ -287,7 +287,7 @@ async function loadUserCommands(userId) {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/commands/user-commands.php?user_id=${userId}`, {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'X-Authorization': `Bearer ${token}`
             }
         });
         const result = await response.json();
@@ -1366,6 +1366,22 @@ async function submitReview() {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>Envoyer mon avis';
     }
+}
+
+// Fonction de déconnexion
+function logout() {
+    // Vider localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Rediriger vers la page de connexion
+    window.location.href = '/Login';
+}
+
+// Configuration du bouton de déconnexion
+function setupLogoutButton() {
+    // Les boutons sont déjà configurés dans le HTML avec onclick="logout()"
+    // Cette fonction peut être utilisée pour des configurations supplémentaires si nécessaire
 }
 
 // Initialiser les boutons de déconnexion

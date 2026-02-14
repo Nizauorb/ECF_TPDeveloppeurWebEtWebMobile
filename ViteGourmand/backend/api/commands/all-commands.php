@@ -29,11 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 // Validation JWT
 $authHeaders = [];
 foreach ($_SERVER as $key => $value) {
-    if (stripos($key, 'auth') !== false || stripos($key, 'authorization') !== false) {
+    if (stripos($key, 'auth') !== false || stripos($key, 'authorization') !== false || stripos($key, 'x_auth') !== false) {
         $authHeaders[$key] = $value;
     }
 }
 error_log("Auth-related SERVER vars: " . json_encode($authHeaders));
+error_log("ENV HTTP_AUTHORIZATION: " . ($_ENV['HTTP_AUTHORIZATION'] ?? 'not set'));
+error_log("ENV REDIRECT_HTTP_AUTHORIZATION: " . ($_ENV['REDIRECT_HTTP_AUTHORIZATION'] ?? 'not set'));
+error_log("ENV HTTP_X_AUTHORIZATION: " . ($_ENV['HTTP_X_AUTHORIZATION'] ?? 'not set'));
+error_log("ENV REDIRECT_HTTP_X_AUTHORIZATION: " . ($_ENV['REDIRECT_HTTP_X_AUTHORIZATION'] ?? 'not set'));
 
 $jwtPayload = JWTHelper::getFromRequest();
 error_log("=== DEBUG all-commands.php ===");
@@ -43,7 +47,8 @@ error_log("JWT Payload: " . json_encode($jwtPayload));
 if (!$jwtPayload || !isset($jwtPayload['user_id'])) {
     // Essayer de décoder manuellement pour diagnostiquer
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
-    error_log("Authorization header: " . $authHeader);
+    error_log("Auth header: " . $authHeader);
+    error_log("Current server time: " . time());
 
     if ($authHeader && preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
         $token = $matches[1];
@@ -52,6 +57,10 @@ if (!$jwtPayload || !isset($jwtPayload['user_id'])) {
         // Essayer de valider manuellement
         $manualValidation = JWTHelper::validate($token);
         error_log("Manual validation result: " . json_encode($manualValidation));
+        if ($manualValidation) {
+            error_log("Manual validation exp: " . ($manualValidation['exp'] ?? 'none'));
+            error_log("Time diff (exp - now): " . (($manualValidation['exp'] ?? 0) - time()));
+        }
     }
 
     http_response_code(401);

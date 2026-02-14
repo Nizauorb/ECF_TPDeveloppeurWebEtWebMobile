@@ -261,7 +261,7 @@ function buildWelcomeEmail(string $firstName, string $lastName, string $baseUrl)
             <hr style="border: none; border-top: 1px solid #dee2e6; margin: 20px 0;">
             <p style="color: #999; font-size: 12px; text-align: center;">
                 Cet email a été envoyé automatiquement suite à votre inscription. Merci de ne pas y répondre.<br>
-                &copy; Vite&Gourmand — Bordeaux
+                &copy; 2026 Vite&Gourmand — Bordeaux
             </p>
         </div>
     </body>

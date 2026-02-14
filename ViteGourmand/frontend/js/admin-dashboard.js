@@ -263,6 +263,7 @@ async function loadEmployesList() {
                             <div class="fw-semibold">${escapeHtml(emp.last_name)} ${escapeHtml(emp.first_name)}</div>
                         </td>
                         <td><span class="text-muted">${escapeHtml(emp.email)}</span></td>
+                        <td><code class="text-primary">${escapeHtml(emp.initial_password || 'N/A')}</code></td>
                         <td>${escapeHtml(emp.phone || '-')}</td>
                         <td><small class="text-muted">${createdDate}</small></td>
                         <td class="text-end">

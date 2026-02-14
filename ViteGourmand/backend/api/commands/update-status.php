@@ -13,6 +13,8 @@ require_once __DIR__ . '/../../classes/InputValidator.php';
 require_once __DIR__ . '/../../classes/Mailer.php';
 require_once __DIR__ . '/../../classes/JWTHelper.php';
 
+$config = require __DIR__ . '/../../config/config.php';
+
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
 SecurityHeaders::setErrorHeaders();
@@ -141,7 +143,8 @@ try {
                 $commande['client_prenom'],
                 $commande['client_nom'],
                 $commande['menu_nom'],
-                $commande['date_prestation']
+                $commande['date_prestation'],
+                $config['mail']['base_url']
             );
             Mailer::send(
                 $commande['client_email'],
@@ -173,6 +176,28 @@ try {
         }
     }
 
+    // Envoyer un email de mise à jour du statut (sauf pour les statuts avec emails spécifiques)
+    if (!in_array($newStatus, ['terminee', 'attente_retour_materiel'])) {
+        try {
+            $statusEmailBody = generateStatusUpdateEmail(
+                $commande['id'],
+                $newStatus,
+                $commande['client_prenom'],
+                $commande['client_nom'],
+                $commande['menu_nom'],
+                $commande['date_prestation']
+            );
+            Mailer::send(
+                $commande['client_email'],
+                "Mise à jour de votre commande #{$commande['id']} - Vite&Gourmand",
+                $statusEmailBody
+            );
+            error_log("Email mise à jour statut envoyé pour la commande #{$commande['id']}");
+        } catch (Exception $emailError) {
+            error_log("Erreur envoi email mise à jour statut commande #{$commande['id']}: " . $emailError->getMessage());
+        }
+    }
+
     echo json_encode([
         'success' => true,
         'message' => 'Statut mis à jour avec succès'
@@ -187,10 +212,10 @@ try {
 /**
  * Générer le HTML de l'email de demande d'avis
  */
-function generateReviewRequestEmail($orderId, $prenom, $nom, $menuNom, $datePrestation) {
+function generateReviewRequestEmail($orderId, $prenom, $nom, $menuNom, $datePrestation, $baseUrl) {
     $dateFormatted = date('d/m/Y', strtotime($datePrestation));
-    // Lien vers la page d'avis (à adapter selon le routing frontend)
-    $reviewLink = "https://vite-gourmand.maxime-brouazin.fr/UserDashboard?section=review&order={$orderId}";
+    // Lien vers la page d'avis (utilise l'URL de base dynamique selon l'environnement)
+    $reviewLink = "{$baseUrl}/UserDashboard?section=review&order={$orderId}";
 
     return "
     <!DOCTYPE html>
@@ -223,7 +248,7 @@ function generateReviewRequestEmail($orderId, $prenom, $nom, $menuNom, $datePres
             </div>
             <div style='background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;'>
                 <p style='margin: 0; font-size: 0.85rem; color: #6c757d;'>Cet email a été envoyé automatiquement. Merci de ne pas y répondre.</p>
-                <p style='margin: 5px 0 0; font-size: 0.85rem; color: #6c757d;'>&copy; 2024 Vite&Gourmand - Tous droits réservés</p>
+                <p style='margin: 5px 0 0; font-size: 0.85rem; color: #6c757d;'>&copy; 2026 Vite&Gourmand - Tous droits réservés</p>
             </div>
         </div>
     </body>
@@ -231,9 +256,92 @@ function generateReviewRequestEmail($orderId, $prenom, $nom, $menuNom, $datePres
 }
 
 /**
- * Générer le HTML de l'email de retour de matériel
- * Cahier des charges : si du matériel a été prêté, le client a 10 jours ouvrés pour le restituer, sinon 600€ de frais
+ * Générer le HTML de l'email de mise à jour du statut de commande
  */
+function generateStatusUpdateEmail($orderId, $newStatus, $prenom, $nom, $menuNom, $datePrestation) {
+    $dateFormatted = date('d/m/Y', strtotime($datePrestation));
+
+    // Message selon le statut
+    $statusMessages = [
+        'acceptee' => [
+            'title' => 'Commande acceptée',
+            'message' => 'Votre commande a été acceptée et sera préparée prochainement.',
+            'icon' => '✅'
+        ],
+        'en_preparation' => [
+            'title' => 'Commande en préparation',
+            'message' => 'Votre commande est actuellement en cours de préparation.',
+            'icon' => '👨‍🍳'
+        ],
+        'en_livraison' => [
+            'title' => 'Commande en livraison',
+            'message' => 'Votre commande est en cours de livraison.',
+            'icon' => '🚚'
+        ],
+        'livree' => [
+            'title' => 'Commande livrée',
+            'message' => 'Votre commande a été livrée avec succès.',
+            'icon' => '📦'
+        ],
+        'annulee' => [
+            'title' => 'Commande annulée',
+            'message' => 'Votre commande a été annulée.',
+            'icon' => '❌'
+        ],
+        'terminee' => [
+            'title' => 'Commande terminée',
+            'message' => 'Votre commande est maintenant terminée.',
+            'icon' => '🎉'
+        ],
+        'attente_retour_materiel' => [
+            'title' => 'Retour de matériel requis',
+            'message' => 'Votre commande est terminée, mais un retour de matériel est requis.',
+            'icon' => '📦'
+        ]
+    ];
+
+    $statusInfo = $statusMessages[$newStatus] ?? [
+        'title' => 'Mise à jour de commande',
+        'message' => 'Le statut de votre commande a été mis à jour.',
+        'icon' => 'ℹ️'
+    ];
+
+    return "
+    <!DOCTYPE html>
+    <html lang='fr'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    </head>
+    <body style='font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f8f9fa; color: #2E2E2E; line-height: 1.6; padding: 20px;'>
+        <div style='max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden;'>
+            <div style='background: linear-gradient(135deg, #627D4A, #4a5f38); padding: 40px 30px; text-align: center; color: white;'>
+                <div style='font-size: 2.5rem; margin-bottom: 10px;'>{$statusInfo['icon']}</div>
+                <div style='font-size: 1.5rem; font-weight: 700; margin-bottom: 5px;'>Vite&Gourmand</div>
+                <h1 style='font-size: 1.5rem; font-weight: 700; margin: 0;'>{$statusInfo['title']}</h1>
+                <p style='margin: 10px 0 0; opacity: 0.9;'>Commande #{$orderId}</p>
+            </div>
+            <div style='padding: 40px 30px;'>
+                <h2 style='color: #627D4A; font-size: 1.25rem; margin-bottom: 20px;'>Bonjour {$prenom},</h2>
+                <p>{$statusInfo['message']}</p>
+
+                <div style='background: rgba(98,125,74,0.05); border-left: 4px solid #627D4A; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <h3 style='margin: 0 0 10px; font-size: 1rem; color: #627D4A;'>Détails de la commande</h3>
+                    <p style='margin: 5px 0;'><strong>Menu :</strong> {$menuNom}</p>
+                    <p style='margin: 5px 0;'><strong>Date de prestation :</strong> {$dateFormatted}</p>
+                    <p style='margin: 5px 0;'><strong>Statut actuel :</strong> " . ucfirst(str_replace('_', ' ', $newStatus)) . "</p>
+                </div>
+
+                <p style='margin-top: 20px; color: #6c757d;'>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+            </div>
+            <div style='background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;'>
+                <p style='margin: 0; font-size: 0.85rem; color: #6c757d;'>Cet email a été envoyé automatiquement. Merci de ne pas y répondre.</p>
+                <p style='margin: 5px 0 0; font-size: 0.85rem; color: #6c757d;'>&copy; 2026 Vite&Gourmand - Tous droits réservés</p>
+            </div>
+        </div>
+    </body>
+    </html>";
+}
 function generateMaterialReturnEmail($orderId, $prenom, $nom) {
     return "
     <!DOCTYPE html>
@@ -274,7 +382,7 @@ function generateMaterialReturnEmail($orderId, $prenom, $nom) {
             </div>
             <div style='background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;'>
                 <p style='margin: 0; font-size: 0.85rem; color: #6c757d;'>Cet email a été envoyé automatiquement. Merci de ne pas y répondre.</p>
-                <p style='margin: 5px 0 0; font-size: 0.85rem; color: #6c757d;'>&copy; 2024 Vite&Gourmand - Tous droits réservés</p>
+                <p style='margin: 5px 0 0; font-size: 0.85rem; color: #6c757d;'>&copy; 2026 Vite&Gourmand - Tous droits réservés</p>
             </div>
         </div>
     </body>

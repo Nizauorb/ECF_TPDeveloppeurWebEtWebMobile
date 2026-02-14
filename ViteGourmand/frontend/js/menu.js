@@ -58,7 +58,7 @@ export async function loadMenusFromAPI() {
         const newMenuData = {};
         result.data.forEach(menu => {
             newMenuData[menu.menu_key] = {
-                title: decodeHtmlEntities(menu.title),
+                title: decodeHtmlEntities(menu.titre),
                 price: `${parseFloat(menu.prix_par_personne).toFixed(0)}€`,
                 image: menu.image || '',
                 description: decodeHtmlEntities(menu.description || ''),

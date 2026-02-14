@@ -32,8 +32,8 @@ function getAuthHeaders() {
     const token = localStorage.getItem('token');
     console.log('🔍 Token JWT depuis localStorage:', token ? token.substring(0, 50) + '...' : 'AUCUN TOKEN');
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        console.log('🔍 Header Authorization défini avec Bearer token');
+        headers['X-Authorization'] = `Bearer ${token}`;
+        console.log('🔍 Header X-Authorization défini avec Bearer token');
     } else {
         console.log('🔍 ATTENTION: Aucun token JWT trouvé dans localStorage');
     }
@@ -1350,6 +1350,12 @@ async function submitHoraireEdit() {
     if (ouvert) {
         const matinActif = document.getElementById('horaire-edit-matin-actif').checked;
         const soirActif = document.getElementById('horaire-edit-soir-actif').checked;
+
+        // Validation : au moins un créneau doit être actif si ouvert
+        if (!matinActif && !soirActif) {
+            showDashboardError('Un jour ouvert doit avoir au moins un créneau horaire actif (midi ou soir)');
+            return;
+        }
 
         data.matin_ouverture = matinActif ? (document.getElementById('horaire-edit-matin-ouv').value || null) : null;
         data.matin_fermeture = matinActif ? (document.getElementById('horaire-edit-matin-ferm').value || null) : null;

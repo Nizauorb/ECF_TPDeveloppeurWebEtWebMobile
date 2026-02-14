@@ -5,6 +5,9 @@ CGIPassAuth On
 
 RewriteEngine On
 
+# Passer l'header Authorization
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:X-Authorization}]
+
 # API Backend - Priorité haute (ne pas réécrire les requêtes backend)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

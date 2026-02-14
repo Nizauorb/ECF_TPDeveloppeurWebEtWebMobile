@@ -338,29 +338,72 @@ npm run build
 
 #### 5. Configuration Apache (.htaccess)
 ```apache
-# .htaccess à la racine du site
+# Configuration Apache pour Vite&Gourmand
+# Gère le routing SPA + accès API backend
+
+CGIPassAuth On
+
 RewriteEngine On
 
-# Redirections SPA (important pour le routing)
-RewriteRule ^(?!backend/)(.*)$ frontend/dist/$1 [L,NC]
+# Passer l'header Authorization
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:X-Authorization}]
 
-# API Backend
+# API Backend - Priorité haute (ne pas réécrire les requêtes backend)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^backend/(.*)$ backend/$1 [L]
 
-# Sécurité
-<Files "config.php">
-    Order Allow,Deny
-    Deny from all
-</Files>
+# Frontend SPA - Rediriger vers index.html pour les routes non existantes
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.html [L,QSA]
 
 # Headers de sécurité
 <IfModule mod_headers.c>
+    # CORS pour développement (à ajuster en production)
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+
+    # Sécurité
     Header always set X-Frame-Options DENY
     Header always set X-Content-Type-Options nosniff
     Header always set Referrer-Policy strict-origin-when-cross-origin
 </IfModule>
+
+# Gestion des erreurs
+ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+
+# Cache statique
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/pdf "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/x-shockwave-flash "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresDefault "access plus 2 days"
+</IfModule>
+
 ```
 
 #### 6. Configuration DNS
@@ -382,18 +425,18 @@ RewriteRule ^backend/(.*)$ backend/$1 [L]
 
 ### Comptes de Test
 
-#### Administrateur (José)
+#### Administrateur (José Martin)
 - **Email** : jose.martin@vite-gourmand.fr
 - **Mot de passe** : Admin1234!
 - **Permissions** : Toutes les fonctionnalités
 
-#### Employé
-- **Email** : employe@vite-gourmand.fr
+#### Employé (Antoine Dupont)
+- **Email** : antoine.dupont@vite-gourmand.fr
 - **Mot de passe** : Employe123!
 - **Permissions** : Gestion commandes, profils
 
-#### Client de Test
-- **Email** : client@vite-gourmand.fr
+#### Client de Test (Maxime Brouazin)
+- **Email** : maxime.brouazin@vite-gourmand.fr
 - **Mot de passe** : Client123!
 - **Permissions** : Commandes, profil, historique
 

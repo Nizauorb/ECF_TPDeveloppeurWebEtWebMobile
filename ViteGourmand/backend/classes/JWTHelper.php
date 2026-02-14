@@ -107,13 +107,8 @@ class JWTHelper {
         return $data;
     }
 
-    /**
-     * Extraire et valider le token depuis le header Authorization
-     * 
-     * @return array|false Payload décodé ou false
-     */
     public static function getFromRequest() {
-        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        $authHeader = $_SERVER['HTTP_X_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_X_AUTHORIZATION'] ?? $_ENV['HTTP_X_AUTHORIZATION'] ?? $_ENV['REDIRECT_HTTP_X_AUTHORIZATION'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? $_ENV['HTTP_AUTHORIZATION'] ?? $_ENV['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
         
         if (empty($authHeader) || !preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
             return false;

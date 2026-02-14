@@ -219,12 +219,10 @@ cd ECF_TPDeveloppeurWebEtWebMobile/ViteGourmand
 2. **Accédez à phpMyAdmin** : cliquez sur "Admin" ou rendez-vous sur http://localhost/phpmyadmin/
 3. **Créez une nouvelle base de données** nommée `vite_gourmand_local`
 4. **Sélectionnez la base** créée, puis allez dans l'onglet **SQL**
-5. **Collez le contenu** du fichier `vite_gourmand_local.sql` et exécutez la requête
+5. **Collez le contenu** du fichier `vite_gourmand_local.sql` que vous trouverez dans le dossier `ViteGourmand\backend\vite_gourmand_local.sql` et exécutez la requête
 
 ### 2.1 Lancement serveur Apache
 1. **Ouvrez XAMPP Control Panel** et démarrez le serveur **Apache**
-2. Ne pas oublier la configuration du `.htaccess` qui est disponible dans le dossier `ViteGourmand\frontend\.htaccess`
-
 
 #### 3. Configuration Backend PHP
 ```bash

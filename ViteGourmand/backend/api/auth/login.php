@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../classes/SecurityHeaders.php';
 require_once __DIR__ . '/../../classes/RateLimiter.php';
 require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
+require_once __DIR__ . '/../../classes/JWTHelper.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -85,7 +86,7 @@ try {
 
     // Récupérer l'utilisateur par email
     $stmt = $db->prepare("
-        SELECT id, email, password_hash, first_name, last_name, phone, address, role 
+        SELECT id, email, password_hash, first_name, last_name, phone, adresse, code_postal, ville, pays, role 
         FROM users 
         WHERE email = ?
     ");
@@ -102,11 +103,12 @@ try {
         exit();
     }
 
-    // Générer un token JWT (à implémenter)
-    $token = bin2hex(random_bytes(32));
-    
-    // Ici, vous devriez stocker le token dans la base de données
-    // avec une date d'expiration
+    // Générer un token JWT signé
+    $token = JWTHelper::generate([
+        'user_id' => (int) $user['id'],
+        'email' => $user['email'],
+        'role' => $user['role']
+    ]);
 
     // Réponse de succès
     echo json_encode([
@@ -120,7 +122,10 @@ try {
                 'firstName' => $user['first_name'],
                 'lastName' => $user['last_name'],
                 'phone' => $user['phone'],
-                'address' => $user['address'],
+                'adresse' => $user['adresse'],
+                'code_postal' => $user['code_postal'],
+                'ville' => $user['ville'],
+                'pays' => $user['pays'],
                 'role' => $user['role']
             ]
         ]

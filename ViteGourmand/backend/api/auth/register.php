@@ -8,6 +8,9 @@ require_once __DIR__ . '/../../classes/SecurityHeaders.php';
 require_once __DIR__ . '/../../classes/RateLimiter.php';
 require_once __DIR__ . '/../../classes/CSRFProtection.php';
 require_once __DIR__ . '/../../classes/InputValidator.php';
+require_once __DIR__ . '/../../classes/Mailer.php';
+
+$config = require __DIR__ . '/../../config/config.php';
 
 // Headers de sécurité
 SecurityHeaders::setSecureCORS();
@@ -63,7 +66,7 @@ if (!RateLimiter::checkLimit('register')) {
 $data = json_decode(file_get_contents('php://input'), true);
 
 // Validation des champs requis
-$requiredFields = ['lastName', 'firstName', 'email', 'password', 'confirmPassword', 'phone', 'address'];
+$requiredFields = ['lastName', 'firstName', 'email', 'password', 'confirmPassword', 'phone', 'adresse', 'code_postal', 'ville'];
 $missingFields = [];
 
 foreach ($requiredFields as $field) {
@@ -156,8 +159,8 @@ try {
 
     // Insertion du nouvel utilisateur
     $stmt = $db->prepare("
-        INSERT INTO users (email, password_hash, first_name, last_name, phone, address)
-        VALUES (:email, :password_hash, :first_name, :last_name, :phone, :address)
+        INSERT INTO users (email, password_hash, first_name, last_name, phone, adresse, code_postal, ville, pays)
+        VALUES (:email, :password_hash, :first_name, :last_name, :phone, :adresse, :code_postal, :ville, :pays)
     ");
 
     $stmt->execute([
@@ -166,10 +169,28 @@ try {
         ':first_name' => $firstNameValidation['sanitized'],
         ':last_name' => $lastNameValidation['sanitized'],
         ':phone' => $data['phone'],
-        ':address' => $data['address']
+        ':adresse' => trim($data['adresse']),
+        ':code_postal' => trim($data['code_postal']),
+        ':ville' => trim($data['ville']),
+        ':pays' => trim($data['pays'] ?? 'France')
     ]);
 
     $userId = $db->lastInsertId();
+
+    // Envoi du mail de bienvenue
+    $emailSent = false;
+    try {
+        $baseUrl = $config['mail']['base_url'] ?? 'http://localhost:3000';
+        $welcomeHtml = buildWelcomeEmail($firstNameValidation['sanitized'], $lastNameValidation['sanitized'], $baseUrl);
+        Mailer::send(
+            $emailValidation['sanitized'],
+            'Bienvenue chez Vite&Gourmand !',
+            $welcomeHtml
+        );
+        $emailSent = true;
+    } catch (Exception $mailError) {
+        error_log("Erreur envoi mail bienvenue register: " . $mailError->getMessage());
+    }
 
     // Réponse de succès
     http_response_code(201);
@@ -183,7 +204,8 @@ try {
                 'firstName' => $data['firstName'],
                 'lastName' => $data['lastName'],
                 'role' => 'utilisateur'
-            ]
+            ],
+            'emailSent' => $emailSent
         ]
     ]);
 
@@ -194,4 +216,54 @@ try {
         'message' => 'Erreur lors de l\'inscription',
         'error' => 'Erreur interne'
     ]);
+}
+
+// ============================================
+// Fonctions utilitaires
+// ============================================
+
+/**
+ * Construit le corps HTML de l'email de bienvenue utilisateur
+ */
+function buildWelcomeEmail(string $firstName, string $lastName, string $baseUrl): string {
+    return '
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head><meta charset="UTF-8"></head>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
+        <div style="background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #627D4A; margin: 0;">Vite&Gourmand</h1>
+                <p style="color: #6c757d; margin-top: 5px;">Traiteur d\'exception</p>
+            </div>
+            <hr style="border: none; border-top: 2px solid #627D4A; margin: 20px 0;">
+            <h2 style="color: #333;">Bienvenue ' . htmlspecialchars($firstName) . ' ' . htmlspecialchars($lastName) . ' !</h2>
+            <p style="color: #555; line-height: 1.6;">
+                Nous sommes ravis de vous compter parmi nos clients. Votre compte a bien été créé sur notre plateforme.
+            </p>
+            <p style="color: #555; line-height: 1.6;">
+                Vous pouvez dès maintenant :
+            </p>
+            <ul style="color: #555; line-height: 1.8;">
+                <li>Parcourir notre carte de menus</li>
+                <li>Passer commande pour vos événements</li>
+                <li>Suivre vos commandes en temps réel</li>
+                <li>Laisser un avis après chaque prestation</li>
+            </ul>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="' . htmlspecialchars($baseUrl) . '/Carte" style="display: inline-block; background-color: #627D4A; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-weight: bold;">
+                    Découvrir nos menus
+                </a>
+            </div>
+            <p style="color: #555; line-height: 1.6;">
+                Notre équipe — Julie, José, Antoine, Camille et Maxence — se tient à votre disposition pour faire de vos événements des moments inoubliables.
+            </p>
+            <hr style="border: none; border-top: 1px solid #dee2e6; margin: 20px 0;">
+            <p style="color: #999; font-size: 12px; text-align: center;">
+                Cet email a été envoyé automatiquement suite à votre inscription. Merci de ne pas y répondre.<br>
+                &copy; 2026 Vite&Gourmand — Bordeaux
+            </p>
+        </div>
+    </body>
+    </html>';
 }

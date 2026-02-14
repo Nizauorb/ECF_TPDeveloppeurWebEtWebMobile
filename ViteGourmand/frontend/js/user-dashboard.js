@@ -21,6 +21,70 @@ function requireAuth() {
 var currentUser = null;
 var currentEditingOrder = null;
 var csrfToken = null;
+var loadedCommands = [];
+var editDistanceLivraison = 0;
+var editDeliveryFeeTimeout = null;
+
+// Constantes livraison (identiques à order.js)
+const COORDS_RESTAURANT = { lat: 44.837789, lon: -0.57918 };
+const FRAIS_LIVRAISON_BASE = 5;
+const FRAIS_KM = 0.59;
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+async function calculateEditDeliveryFees() {
+    const adresse = (document.getElementById('edit-adresse')?.value || '').trim();
+    const codePostal = (document.getElementById('edit-code-postal')?.value || '').trim();
+    const ville = (document.getElementById('edit-ville')?.value || '').trim();
+
+    if (!ville && !codePostal) {
+        editDistanceLivraison = 0;
+        return;
+    }
+
+    if (ville.toLowerCase().replace(/[àâ]/g, 'a').replace(/[éèêë]/g, 'e') === 'bordeaux') {
+        editDistanceLivraison = 0;
+        return;
+    }
+
+    try {
+        const query = encodeURIComponent(`${adresse} ${codePostal} ${ville}`);
+        const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${query}&limit=1`);
+        const data = await response.json();
+        if (data.features && data.features.length > 0) {
+            const [lon, lat] = data.features[0].geometry.coordinates;
+            const distance = haversineDistance(COORDS_RESTAURANT.lat, COORDS_RESTAURANT.lon, lat, lon);
+            editDistanceLivraison = Math.round(distance * 1.3 * 100) / 100;
+        } else {
+            editDistanceLivraison = 0;
+        }
+    } catch (error) {
+        console.error('[EditDeliveryFees] Erreur géocodage:', error);
+        editDistanceLivraison = 0;
+    }
+}
+
+function getEditDeliveryFees() {
+    if (editDistanceLivraison <= 0) return FRAIS_LIVRAISON_BASE;
+    return Math.round((FRAIS_LIVRAISON_BASE + editDistanceLivraison * FRAIS_KM) * 100) / 100;
+}
+
+function debouncedEditDeliveryFees(command) {
+    if (editDeliveryFeeTimeout) clearTimeout(editDeliveryFeeTimeout);
+    editDeliveryFeeTimeout = setTimeout(async () => {
+        await calculateEditDeliveryFees();
+        updateEditRecap(command);
+    }, 500);
+}
 
 async function loadCSRFToken() {
     try {
@@ -41,6 +105,10 @@ function getCsrfHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     if (csrfToken) {
         headers['X-CSRF-Token'] = csrfToken;
+    }
+    const token = localStorage.getItem('token');
+    if (token) {
+        headers['X-Authorization'] = `Bearer ${token}`;
     }
     return headers;
 }
@@ -63,6 +131,14 @@ function getCsrfHeaders() {
         
         if (section === 'profile') {
             showProfile();
+        } else if (section === 'review') {
+            // Ouvrir le formulaire d'avis pour une commande spécifique (lien depuis le mail)
+            const reviewOrderId = urlParams.get('order');
+            loadUserCommands(currentUser.id).then(() => {
+                if (reviewOrderId) {
+                    openReviewModal(parseInt(reviewOrderId));
+                }
+            });
         } else {
             // Par défaut : afficher les commandes
             loadUserCommands(currentUser.id);
@@ -127,7 +203,9 @@ function displayUserInfo(user) {
     document.getElementById('profile-prenom').value = user.firstName || '';
     document.getElementById('profile-email').value = user.email || '';
     document.getElementById('profile-telephone').value = user.phone || '';
-    document.getElementById('profile-adresse').value = user.address || '';
+    document.getElementById('profile-adresse').value = user.adresse || '';
+    document.getElementById('profile-code-postal').value = user.code_postal || '';
+    document.getElementById('profile-ville').value = user.ville || '';
 }
 
 // Navigation
@@ -209,7 +287,7 @@ async function loadUserCommands(userId) {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/commands/user-commands.php?user_id=${userId}`, {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'X-Authorization': `Bearer ${token}`
             }
         });
         const result = await response.json();
@@ -237,6 +315,9 @@ function displayOrders(commands) {
         showEmptyState();
         return;
     }
+    
+    // Stocker les commandes pour accès local
+    loadedCommands = commands;
     
     // Vider la liste
     ordersList.innerHTML = '';
@@ -276,6 +357,11 @@ function createOrderElement(command) {
     // Vérifier si la commande peut être modifiée/annulée
     const canModify = canModifyOrder(command.statut);
     
+    // Formater la date de prestation
+    const datePrestation = command.date_prestation ? new Date(command.date_prestation + 'T00:00:00').toLocaleDateString('fr-FR', {
+        day: '2-digit', month: 'long', year: 'numeric'
+    }) : '';
+    
     orderDiv.innerHTML = `
         <div class="order-header" onclick="toggleOrderDetails(${command.id})">
             <div class="order-info">
@@ -291,6 +377,36 @@ function createOrderElement(command) {
                     <span class="detail-label">Menu :</span>
                     <span class="detail-value">${command.menu_nom || 'Menu inconnu'}</span>
                 </div>
+                <div class="detail-row">
+                    <span class="detail-label">Personnes :</span>
+                    <span class="detail-value">${command.nombre_personnes || '-'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Prix unitaire :</span>
+                    <span class="detail-value">${command.prix_unitaire ? command.prix_unitaire.toFixed(2) + ' €/pers.' : '-'}</span>
+                </div>
+                ${command.reduction_pourcent > 0 ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Réduction :</span>
+                        <span class="detail-value text-success">-${command.reduction_montant.toFixed(2)} € (${command.reduction_pourcent}%)</span>
+                    </div>
+                ` : ''}
+                <div class="detail-row">
+                    <span class="detail-label">Frais livraison :</span>
+                    <span class="detail-value">${command.frais_livraison ? command.frais_livraison.toFixed(2) + ' €' : '-'}</span>
+                </div>
+                ${command.date_prestation ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Prestation :</span>
+                        <span class="detail-value">${datePrestation} à ${command.heure_prestation || ''}</span>
+                    </div>
+                ` : ''}
+                ${command.adresse_livraison ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Livraison :</span>
+                        <span class="detail-value">${command.adresse_livraison}, ${command.code_postal_livraison || ''} ${command.ville_livraison || ''}</span>
+                    </div>
+                ` : ''}
                 ${command.notes ? `
                     <div class="detail-row">
                         <span class="detail-label">Notes :</span>
@@ -299,7 +415,7 @@ function createOrderElement(command) {
                 ` : ''}
             </div>
             
-            ${command.statut !== 'en_attente' ? `
+            ${command.statut !== 'en_attente' && command.statut !== 'annulee' ? `
                 <div class="order-tracking">
                     <h4>Suivi de la commande</h4>
                     ${generateOrderTracking(command.statut)}
@@ -321,7 +437,11 @@ function createOrderElement(command) {
                         Annuler
                     </button>
                 ` : ''}
-                ${command.statut === 'livre' ? `
+                ${command.statut === 'terminee' ? `
+                    <button class="btn btn-sm btn-outline-warning" onclick="openReviewModal(${command.id})">
+                        <i class="bi bi-star me-1"></i>
+                        Laisser un avis
+                    </button>
                     <button class="btn btn-sm btn-success" onclick="reorderCommand(${command.id})">
                         <i class="bi bi-arrow-repeat me-1"></i>
                         Commander à nouveau
@@ -346,22 +466,25 @@ function toggleOrderDetails(orderId) {
 function generateOrderTracking(status) {
     const steps = [
         { id: 'en_attente', title: 'Commande reçue', icon: 'bi-clock' },
-        { id: 'accepte', title: 'Commande acceptée', icon: 'bi-check-circle' },
+        { id: 'acceptee', title: 'Acceptée', icon: 'bi-check-circle' },
         { id: 'en_preparation', title: 'En préparation', icon: 'bi-fire' },
-        { id: 'pret', title: 'Prête', icon: 'bi-check2-square' },
-        { id: 'livre', title: 'Livrée', icon: 'bi-truck' }
+        { id: 'en_livraison', title: 'En livraison', icon: 'bi-truck' },
+        { id: 'livree', title: 'Livrée', icon: 'bi-check2-all' },
+        { id: 'attente_retour_materiel', title: 'Retour matériel', icon: 'bi-box-seam' },
+        { id: 'terminee', title: 'Terminée', icon: 'bi-check-circle-fill' }
     ];
     
+    // Trouver l'index du statut courant
+    const currentIndex = steps.findIndex(s => s.id === status);
+    
     let html = '';
-    let foundCurrent = false;
     
     steps.forEach((step, index) => {
         let stepClass = 'pending';
-        if (step.id === status) {
-            stepClass = 'current';
-            foundCurrent = true;
-        } else if (foundCurrent || (status === 'livre' && index < 4)) {
+        if (index < currentIndex) {
             stepClass = 'completed';
+        } else if (index === currentIndex) {
+            stepClass = 'current';
         }
         
         html += `
@@ -383,30 +506,34 @@ function generateOrderTracking(status) {
 // Fonctions utilitaires pour le statut
 function getStatusClass(status) {
     const statusMap = {
-        'en_attente': 'status-en_attente',
-        'accepte': 'status-accepte',
-        'en_preparation': 'status-en_preparation',
-        'pret': 'status-pret',
-        'livre': 'status-livre',
-        'annule': 'status-annule'
+        'en_attente': 'bg-warning text-dark',
+        'acceptee': 'bg-info text-dark',
+        'en_preparation': 'bg-info text-white',
+        'en_livraison': 'bg-primary text-white',
+        'livree': 'bg-success text-white',
+        'attente_retour_materiel': 'bg-secondary text-white',
+        'terminee': 'bg-success text-white',
+        'annulee': 'bg-danger text-white'
     };
-    return statusMap[status] || 'status-en_attente';
+    return statusMap[status] || 'bg-warning text-dark';
 }
 
 function getStatusText(status) {
     const statusMap = {
         'en_attente': 'En attente',
-        'accepte': 'Acceptée',
+        'acceptee': 'Acceptée',
         'en_preparation': 'En préparation',
-        'pret': 'Prête',
-        'livre': 'Livrée',
-        'annule': 'Annulée'
+        'en_livraison': 'En livraison',
+        'livree': 'Livrée',
+        'attente_retour_materiel': 'Retour matériel',
+        'terminee': 'Terminée',
+        'annulee': 'Annulée'
     };
     return statusMap[status] || 'Inconnu';
 }
 
 function canModifyOrder(status) {
-    return status === 'en_attente' || status === 'accepte';
+    return status === 'en_attente';
 }
 
 // Gestion du profil
@@ -444,7 +571,9 @@ async function handleProfileSubmit(e) {
         first_name: document.getElementById('profile-prenom').value,
         email: document.getElementById('profile-email').value,
         phone: document.getElementById('profile-telephone').value,
-        address: document.getElementById('profile-adresse').value
+        adresse: document.getElementById('profile-adresse').value,
+        code_postal: document.getElementById('profile-code-postal').value,
+        ville: document.getElementById('profile-ville').value
     };
     
     try {
@@ -462,7 +591,9 @@ async function handleProfileSubmit(e) {
             currentUser.firstName = formData.first_name;
             currentUser.lastName = formData.last_name;
             currentUser.phone = formData.phone;
-            currentUser.address = formData.address;
+            currentUser.adresse = formData.adresse;
+            currentUser.code_postal = formData.code_postal;
+            currentUser.ville = formData.ville;
             
             if (result.email_change_pending) {
                 // L'email n'a PAS été changé, un code a été envoyé à l'ancienne adresse
@@ -702,93 +833,107 @@ async function confirmDeleteAccount() {
 }
 
 // Gestion des commandes
-async function showOrderDetailsModal(orderId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/commands/${orderId}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const command = result.data;
-            
-            // Remplir la modale
-            document.getElementById('modal-order-id').textContent = command.id;
-            
-            const modalContent = document.getElementById('order-details-content');
-            modalContent.innerHTML = `
-                <div class="order-details">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Informations de la commande</h6>
-                            <p><strong>N° Commande:</strong> #${command.id}</p>
-                            <p><strong>Date:</strong> ${new Date(command.date_commande).toLocaleDateString('fr-FR')}</p>
-                            <p><strong>Statut:</strong> ${getStatusText(command.statut)}</p>
-                            <p><strong>Total:</strong> ${command.total ? command.total.toFixed(2) + ' €' : 'N/A'}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Menu commandé</h6>
-                            <p><strong>Nom:</strong> ${command.menu_nom || 'N/A'}</p>
-                            <p><strong>Description:</strong> ${command.menu_description || 'N/A'}</p>
+function showOrderDetailsModal(orderId) {
+    const command = loadedCommands.find(c => c.id === orderId);
+    
+    if (!command) {
+        showErrorMessage('Commande non trouvée');
+        return;
+    }
+    
+    // Remplir la modale
+    document.getElementById('modal-order-id').textContent = command.id;
+    
+    const dateCommande = new Date(command.date_commande).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+    const datePrestation = command.date_prestation ? new Date(command.date_prestation + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
+    
+    const modalContent = document.getElementById('order-details-content');
+    modalContent.innerHTML = `
+        <div class="order-details">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-receipt me-1"></i>Commande</h6>
+                    <p><strong>N° :</strong> #${command.id}</p>
+                    <p><strong>Date :</strong> ${dateCommande}</p>
+                    <p><strong>Statut :</strong> <span class="badge ${getStatusClass(command.statut)}">${getStatusText(command.statut)}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-egg-fried me-1"></i>Menu</h6>
+                    <p><strong>Menu :</strong> ${command.menu_nom || 'N/A'}</p>
+                    <p><strong>Personnes :</strong> ${command.nombre_personnes}</p>
+                    <p><strong>Prix unitaire :</strong> ${command.prix_unitaire ? command.prix_unitaire.toFixed(2) + ' €/pers.' : '-'}</p>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-geo-alt me-1"></i>Livraison</h6>
+                    <p><strong>Adresse :</strong> ${command.adresse_livraison || '-'}</p>
+                    <p><strong>Ville :</strong> ${command.code_postal_livraison || ''} ${command.ville_livraison || '-'}</p>
+                    <p><strong>Date :</strong> ${datePrestation}</p>
+                    <p><strong>Heure :</strong> ${command.heure_prestation || '-'}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-calculator me-1"></i>Tarification</h6>
+                    <p><strong>Sous-total :</strong> ${command.sous_total ? command.sous_total.toFixed(2) + ' €' : '-'}</p>
+                    ${command.reduction_pourcent > 0 ? `<p class="text-success"><strong>Réduction (${command.reduction_pourcent}%) :</strong> -${command.reduction_montant.toFixed(2)} €</p>` : ''}
+                    <p><strong>Frais livraison :</strong> ${command.frais_livraison ? command.frais_livraison.toFixed(2) + ' €' : '-'}</p>
+                    <p class="fs-5 fw-bold"><strong>Total :</strong> ${command.total ? command.total.toFixed(2) + ' €' : 'N/A'}</p>
+                </div>
+            </div>
+            ${command.notes ? `
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="fw-bold text-primary"><i class="bi bi-chat-left-text me-1"></i>Notes</h6>
+                        <p class="text-muted">${command.notes}</p>
+                    </div>
+                </div>
+            ` : ''}
+            ${command.statut !== 'en_attente' && command.statut !== 'annulee' ? `
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="fw-bold text-primary"><i class="bi bi-truck me-1"></i>Suivi</h6>
+                        <div class="order-tracking">
+                            ${generateOrderTracking(command.statut)}
                         </div>
                     </div>
-                    ${command.notes ? `
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Notes</h6>
-                                <p class="text-muted">${command.notes}</p>
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${command.statut !== 'en_attente' ? `
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Suivi de la commande</h6>
-                                <div class="order-tracking">
-                                    ${generateOrderTracking(command.statut)}
-                                </div>
-                            </div>
-                        </div>
-                    ` : ''}
                 </div>
-            `;
-            
-            // Configurer les actions
-            const modalFooter = document.getElementById('modal-footer');
-            let actionsHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>';
-            
-            if (canModifyOrder(command.statut)) {
-                actionsHTML += `
-                    <button type="button" class="btn btn-warning" onclick="editOrder(${command.id})">
-                        <i class="bi bi-pencil me-1"></i>
-                        Modifier
-                    </button>
-                    <button type="button" class="btn btn-danger" onclick="cancelOrder(${command.id})">
-                        <i class="bi bi-x-circle me-1"></i>
-                        Annuler
-                    </button>
-                `;
-            }
-            
-            if (command.statut === 'livre') {
-                actionsHTML += `
-                    <button type="button" class="btn btn-success" onclick="reorderCommand(${command.id})">
-                        <i class="bi bi-arrow-repeat me-1"></i>
-                        Commander à nouveau
-                    </button>
-                `;
-            }
-            
-            modalFooter.innerHTML = actionsHTML;
-            
-            // Afficher la modale
-            const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-            modal.show();
-        } else {
-            showErrorMessage(result.message || 'Erreur lors du chargement des détails');
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        showErrorMessage('Erreur de communication avec le serveur');
+            ` : ''}
+        </div>
+    `;
+    
+    // Configurer les actions
+    const modalFooter = document.getElementById('modal-footer');
+    let actionsHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>';
+    
+    if (canModifyOrder(command.statut)) {
+        actionsHTML += `
+            <button type="button" class="btn btn-danger" onclick="cancelOrder(${command.id})">
+                <i class="bi bi-x-circle me-1"></i>
+                Annuler
+            </button>
+        `;
     }
+    
+    if (command.statut === 'terminee') {
+        actionsHTML += `
+            <button type="button" class="btn btn-warning" onclick="openReviewModal(${command.id})">
+                <i class="bi bi-star me-1"></i>
+                Laisser un avis
+            </button>
+            <button type="button" class="btn btn-success" onclick="reorderCommand(${command.id})">
+                <i class="bi bi-arrow-repeat me-1"></i>
+                Commander à nouveau
+            </button>
+        `;
+    }
+    
+    modalFooter.innerHTML = actionsHTML;
+    
+    const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+    modal.show();
 }
 
 function editOrder(orderId) {
@@ -800,43 +945,159 @@ function editOrder(orderId) {
         detailsModal.hide();
     }
     
-    // Ouvrir la modale d'édition
-    document.getElementById('edit-order-id').textContent = orderId;
+    // Trouver la commande dans les données locales
+    const command = loadedCommands.find(c => c.id == orderId);
+    if (!command) {
+        showErrorMessage('Commande introuvable');
+        return;
+    }
     
-    // Pré-remplir les notes existantes
-    // TODO: Charger les notes existantes depuis l'API
+    // Pré-remplir la modale
+    document.getElementById('edit-order-id').textContent = orderId;
+    document.getElementById('edit-menu-nom').textContent = command.menu_nom || 'Menu inconnu';
+    document.getElementById('edit-nb-personnes').value = command.nombre_personnes || 1;
+    document.getElementById('edit-nb-personnes').min = command.nombre_personnes_min || 1;
+    document.getElementById('edit-personnes-info').textContent = `Minimum ${command.nombre_personnes_min || 1} personnes`;
+    document.getElementById('edit-adresse').value = command.adresse_livraison || '';
+    document.getElementById('edit-code-postal').value = command.code_postal_livraison || '';
+    document.getElementById('edit-ville').value = command.ville_livraison || '';
+    document.getElementById('edit-date').value = command.date_prestation || '';
+    document.getElementById('edit-heure').value = command.heure_prestation || '';
+    document.getElementById('edit-notes').value = command.notes || '';
+    
+    // Mettre à jour le récap
+    updateEditRecap(command);
+    
+    // Initialiser la distance depuis la commande originale
+    editDistanceLivraison = parseFloat(command.distance_km) || 0;
+    
+    // Écouter les changements pour recalculer le récap
+    const nbInput = document.getElementById('edit-nb-personnes');
+    nbInput.onchange = () => updateEditRecap(command);
+    nbInput.oninput = () => updateEditRecap(command);
+    
+    // Écouter les changements d'adresse pour recalculer les frais de livraison
+    const editAdresse = document.getElementById('edit-adresse');
+    const editCp = document.getElementById('edit-code-postal');
+    const editVille = document.getElementById('edit-ville');
+    if (editAdresse) editAdresse.oninput = () => debouncedEditDeliveryFees(command);
+    if (editCp) editCp.oninput = () => debouncedEditDeliveryFees(command);
+    if (editVille) editVille.oninput = () => debouncedEditDeliveryFees(command);
+    
+    // Date minimum (demain)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('edit-date').min = tomorrow.toISOString().split('T')[0];
     
     const modal = new bootstrap.Modal(document.getElementById('editOrderModal'));
     modal.show();
 }
 
+function updateEditRecap(command) {
+    const nbPersonnes = parseInt(document.getElementById('edit-nb-personnes').value) || 1;
+    const prixUnitaire = parseFloat(command.prix_unitaire) || 0;
+    const nbMin = parseInt(command.nombre_personnes_min) || 1;
+    const sousTotal = prixUnitaire * nbPersonnes;
+    let reductionPourcent = 0;
+    let reductionMontant = 0;
+    if (nbPersonnes >= nbMin + 5) {
+        reductionPourcent = 10;
+        reductionMontant = sousTotal * 0.1;
+    }
+    
+    const fraisLivraison = getEditDeliveryFees();
+    const total = sousTotal - reductionMontant + fraisLivraison;
+    
+    const fmt = (v) => v.toFixed(2).replace('.', ',') + ' €';
+    
+    document.getElementById('edit-recap-sous-total').textContent = fmt(sousTotal);
+    if (editDistanceLivraison > 0) {
+        const majorationKm = Math.round(editDistanceLivraison * FRAIS_KM * 100) / 100;
+        document.getElementById('edit-recap-frais').textContent = `${fmt(fraisLivraison)} (${fmt(FRAIS_LIVRAISON_BASE)} + ${editDistanceLivraison.toFixed(1)} km)`;
+    } else {
+        document.getElementById('edit-recap-frais').textContent = fmt(fraisLivraison);
+    }
+    document.getElementById('edit-recap-total').textContent = fmt(total);
+    
+    const reductionRow = document.getElementById('edit-recap-reduction-row');
+    if (reductionPourcent > 0) {
+        reductionRow.style.cssText = '';
+        reductionRow.style.display = 'flex';
+        document.getElementById('edit-recap-reduction').textContent = `- ${fmt(reductionMontant)} (${reductionPourcent}%)`;
+    } else {
+        reductionRow.style.cssText = 'display: none !important;';
+    }
+}
+
 async function saveOrderEdit() {
     if (!currentEditingOrder) return;
     
-    const notes = document.getElementById('edit-notes').value;
+    const command = loadedCommands.find(c => c.id == currentEditingOrder);
+    if (!command) return;
+    
+    const nbPersonnes = parseInt(document.getElementById('edit-nb-personnes').value);
+    const adresse = document.getElementById('edit-adresse').value.trim();
+    const codePostal = document.getElementById('edit-code-postal').value.trim();
+    const ville = document.getElementById('edit-ville').value.trim();
+    const date = document.getElementById('edit-date').value;
+    const heure = document.getElementById('edit-heure').value;
+    const notes = document.getElementById('edit-notes').value.trim();
+    
+    if (!adresse || !codePostal || !ville || !date || !heure) {
+        showErrorMessage('Veuillez remplir tous les champs obligatoires.');
+        return;
+    }
+    
+    // Forcer le recalcul des frais de livraison avant envoi
+    if (editDeliveryFeeTimeout) clearTimeout(editDeliveryFeeTimeout);
+    await calculateEditDeliveryFees();
+    
+    const prixUnitaire = parseFloat(command.prix_unitaire) || 0;
+    const sousTotal = prixUnitaire * nbPersonnes;
+    let reductionPourcent = 0;
+    let reductionMontant = 0;
+    if (nbPersonnes >= command.nombre_personnes_min + 5) {
+        reductionPourcent = 10;
+        reductionMontant = sousTotal * 0.1;
+    }
+    const fraisLivraison = getEditDeliveryFees();
+    const total = sousTotal - reductionMontant + fraisLivraison;
+    
+    const payload = {
+        order_id: currentEditingOrder,
+        user_id: currentUser.id,
+        nombre_personnes: nbPersonnes,
+        prix_unitaire: prixUnitaire,
+        adresse_livraison: adresse,
+        code_postal_livraison: codePostal,
+        ville_livraison: ville,
+        date_prestation: date,
+        heure_prestation: heure,
+        frais_livraison: fraisLivraison,
+        distance_km: editDistanceLivraison > 0 ? editDistanceLivraison : null,
+        sous_total: sousTotal,
+        reduction_pourcent: reductionPourcent,
+        reduction_montant: reductionMontant,
+        total: total,
+        notes: notes || null
+    };
+    console.log('[saveOrderEdit] Payload envoyé:', payload);
     
     try {
-        const response = await fetch(`${API_BASE_URL}/commands/${currentEditingOrder}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ notes })
+        const response = await fetch(`${API_BASE_URL}/commands/update.php`, {
+            method: 'POST',
+            headers: getCsrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify(payload)
         });
         
         const result = await response.json();
+        console.log('[saveOrderEdit] Réponse serveur:', response.status, result);
         
         if (result.success) {
             showSuccessMessage('Commande modifiée avec succès');
-            
-            // Fermer la modale
             const modal = bootstrap.Modal.getInstance(document.getElementById('editOrderModal'));
-            if (modal) {
-                modal.hide();
-            }
-            
-            // Recharger les commandes
+            if (modal) modal.hide();
             loadUserCommands(currentUser.id);
         } else {
             showErrorMessage(result.message || 'Erreur lors de la modification de la commande');
@@ -848,16 +1109,20 @@ async function saveOrderEdit() {
 }
 
 async function cancelOrder(orderId) {
-    if (!confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
-        return;
-    }
+    const confirmed = await confirmAction({
+        title: 'Annuler la commande',
+        message: 'Êtes-vous sûr de vouloir annuler cette commande ?',
+        btnText: 'Annuler la commande',
+        btnClass: 'btn-danger'
+    });
+    if (!confirmed) return;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/commands/${orderId}/cancel`, {
+        const response = await fetch(`${API_BASE_URL}/commands/cancel.php`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+            headers: getCsrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify({ order_id: orderId, user_id: currentUser.id })
         });
         
         const result = await response.json();
@@ -951,6 +1216,172 @@ function setupLogoutButton() {
             btn.addEventListener('click', logoutHandler);
         }
     });
+}
+
+// ============================================
+// GESTION DES AVIS
+// ============================================
+var currentReviewNote = 0;
+
+function openReviewModal(commandeId) {
+    const command = loadedCommands.find(c => c.id === commandeId);
+    if (!command) {
+        showErrorMessage('Commande non trouvée');
+        return;
+    }
+
+    // Fermer le modal de détails si ouvert
+    const detailsModal = bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal'));
+    if (detailsModal) detailsModal.hide();
+
+    // Si un avis existe déjà, afficher le modal "avis existant"
+    if (command.avis) {
+        showExistingReviewModal(command);
+        return;
+    }
+
+    // Remplir le modal
+    document.getElementById('review-commande-id').value = commandeId;
+    document.getElementById('review-commande-ref').textContent = '#' + commandeId;
+    document.getElementById('review-commande-menu').textContent = command.menu_nom || '';
+
+    // Réinitialiser
+    currentReviewNote = 0;
+    document.getElementById('review-note').value = 0;
+    document.getElementById('review-commentaire').value = '';
+    document.getElementById('review-char-count').textContent = '0';
+    updateReviewStars(0);
+
+    // Compteur de caractères
+    const textarea = document.getElementById('review-commentaire');
+    textarea.oninput = function() {
+        document.getElementById('review-char-count').textContent = this.value.length;
+    };
+
+    setTimeout(() => {
+        const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+        modal.show();
+    }, 300);
+}
+
+function showExistingReviewModal(command) {
+    const avis = command.avis;
+
+    document.getElementById('review-exists-ref').textContent = '#' + command.id;
+    document.getElementById('review-exists-menu').textContent = command.menu_nom || '';
+
+    // Étoiles
+    let starsHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        starsHTML += i <= avis.note
+            ? '<i class="bi bi-star-fill fs-4 text-warning"></i> '
+            : '<i class="bi bi-star fs-4 text-muted"></i> ';
+    }
+    document.getElementById('review-exists-stars').innerHTML = starsHTML;
+
+    // Commentaire
+    document.getElementById('review-exists-commentaire').textContent = '"' + avis.commentaire + '"';
+
+    // Date
+    const dateAvis = new Date(avis.date);
+    document.getElementById('review-exists-date').textContent = 'Publié le ' + dateAvis.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    // Statut de validation
+    const statusEl = document.getElementById('review-exists-status');
+    if (avis.valide === 1) {
+        statusEl.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Validé et visible sur le site</span>';
+    } else if (avis.valide === 2) {
+        statusEl.innerHTML = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Refusé</span>';
+    } else {
+        statusEl.innerHTML = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente de validation</span>';
+    }
+
+    setTimeout(() => {
+        const modal = new bootstrap.Modal(document.getElementById('reviewExistsModal'));
+        modal.show();
+    }, 300);
+}
+
+function setReviewNote(note) {
+    currentReviewNote = note;
+    document.getElementById('review-note').value = note;
+    updateReviewStars(note);
+}
+
+function updateReviewStars(note) {
+    const stars = document.querySelectorAll('#review-stars i');
+    stars.forEach((star, index) => {
+        if (index < note) {
+            star.className = 'bi bi-star-fill fs-2 text-warning';
+        } else {
+            star.className = 'bi bi-star fs-2 text-muted';
+        }
+    });
+}
+
+async function submitReview() {
+    const commandeId = parseInt(document.getElementById('review-commande-id').value);
+    const note = currentReviewNote;
+    const commentaire = document.getElementById('review-commentaire').value.trim();
+
+    if (note < 1 || note > 5) {
+        showErrorMessage('Veuillez sélectionner une note entre 1 et 5 étoiles');
+        return;
+    }
+
+    if (commentaire.length < 10) {
+        showErrorMessage('Le commentaire doit contenir au moins 10 caractères');
+        return;
+    }
+
+    const submitBtn = document.getElementById('review-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Envoi...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/avis/create.php`, {
+            method: 'POST',
+            headers: getCsrfHeaders(),
+            credentials: 'include',
+            body: JSON.stringify({
+                commande_id: commandeId,
+                note: note,
+                commentaire: commentaire
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showSuccessMessage(result.message || 'Merci pour votre avis !');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+            if (modal) modal.hide();
+        } else {
+            showErrorMessage(result.message || 'Erreur lors de l\'envoi de l\'avis');
+        }
+    } catch (error) {
+        console.error('Erreur soumission avis:', error);
+        showErrorMessage('Erreur de connexion au serveur');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>Envoyer mon avis';
+    }
+}
+
+// Fonction de déconnexion
+function logout() {
+    // Vider localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Rediriger vers la page de connexion
+    window.location.href = '/Login';
+}
+
+// Configuration du bouton de déconnexion
+function setupLogoutButton() {
+    // Les boutons sont déjà configurés dans le HTML avec onclick="logout()"
+    // Cette fonction peut être utilisée pour des configurations supplémentaires si nécessaire
 }
 
 // Initialiser les boutons de déconnexion

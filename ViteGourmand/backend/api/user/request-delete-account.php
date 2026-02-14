@@ -147,7 +147,7 @@ try {
                 </div>
                 <div class='email-footer'>
                     <p>Cet email a été envoyé automatiquement. Merci de ne pas y répondre.</p>
-                    <p>&copy; 2024 Vite&Gourmand - Tous droits réservés</p>
+                    <p>&copy; 2026 Vite&Gourmand - Tous droits réservés</p>
                 </div>
             </div>
         </body>

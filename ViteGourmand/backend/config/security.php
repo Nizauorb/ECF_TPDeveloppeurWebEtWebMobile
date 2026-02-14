@@ -22,10 +22,27 @@ return [
         'delete_account'         => ['requests' => 3,  'window' => 900],   // 3 demandes / 15 min
         'delete_account_confirm' => ['requests' => 5,  'window' => 300],   // 5 essais code / 5 min
         'password_reset_request' => ['requests' => 3,  'window' => 900],   // 3 demandes / 15 min
+        'create_order'           => ['requests' => 5,  'window' => 300],   // 5 commandes / 5 min
+        'update_order_status'    => ['requests' => 5,  'window' => 60],    // 5 mises à jour / 1 min (utilisateur lambda)
     ],
 
     // Limite par défaut si l'action n'est pas définie ci-dessus
-    'rate_limit_default' => ['requests' => 1, 'window' => 60],
+    'rate_limit_default' => ['requests' => 5, 'window' => 60],
+
+    // =========================================================================
+    // Rate Limiting par rôle — Limites plus souples pour employés/admins
+    // Surcharge les limites ci-dessus quand le rôle est détecté via JWT
+    // =========================================================================
+    'rate_limits_by_role' => [
+        'employe' => [
+            'update_order_status' => ['requests' => 60, 'window' => 60],    // 60 mises à jour / 1 min
+            'create_order'        => ['requests' => 20, 'window' => 300],   // 20 commandes / 5 min
+        ],
+        'administrateur' => [
+            'update_order_status' => ['requests' => 120, 'window' => 60],   // 120 mises à jour / 1 min
+            'create_order'        => ['requests' => 30,  'window' => 300],  // 30 commandes / 5 min
+        ],
+    ],
 
     // =========================================================================
     // CSRF Protection

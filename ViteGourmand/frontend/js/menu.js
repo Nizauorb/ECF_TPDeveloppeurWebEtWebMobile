@@ -1,94 +1,89 @@
-// Données des menus
-export const menuData = {
-    classique: {
-        title: "Menu Classique",
-        price: "35€",
-        image: "Classique.png",
-        description: "Un festin convivial et raffiné pour 2 à 6 convives. Savourez une terrine de campagne généreuse, un filet de bœuf Rossini accompagné d'un gratin dauphinois crémeux, et une crème brûlée à la vanille parfaitement caramélisée. Une expérience gastronomique élégante, parfaite pour un repas familial ou entre amis.",
-        minPeople: "2-6",
-        allergenes: ["Gluten", "Lait et produits laitiers", "Œufs"],
-        conditionsCommande: "Commande à effectuer au minimum 3 jours avant la prestation. Conservation au réfrigérateur entre 0°C et 4°C.",
-        regime: "Classique",
-        stockDisponible: 12,
-        sections: {
-            entrees: [
-                "Terrine de campagne au lard fumé et au Morbier, cornichons, pain de campagne toasté"
-            ],
-            plats: [
-                "Filet de bœuf Rossini (foie gras poêlé, sauce madire), gratin dauphinois"
-            ],
-            desserts: [
-                "Crème brûlée à la vanille de Madagascar"
-            ]
+// Données des menus — chargées dynamiquement depuis l'API
+// Format : { menu_key: { title, price, image, description, minPeople, allergenes, conditionsCommande, regime, stockDisponible, sections } }
+export let menuData = {};
+
+// Fonction pour décoder les entités HTML
+function decodeHtmlEntities(text) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
+// Charger les menus depuis l'API backend
+export async function loadMenusFromAPI() {
+    try {
+        const apiBaseUrl = window.API_BASE_URL || '/api';
+        const fullUrl = `${apiBaseUrl}/menus/list.php`;
+
+        console.log('🔍 API_BASE_URL:', window.API_BASE_URL);
+        console.log('🔍 URL complète appelée:', fullUrl);
+        console.log('🔍 URL finale:', window.location.origin + fullUrl);
+
+        const response = await fetch(fullUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('🔍 Status HTTP:', response.status);
+        console.log('🔍 Content-Type:', response.headers.get('content-type'));
+
+        // LOG DE DIAGNOSTIC : réponse brute AVANT JSON.parse()
+        const responseText = await response.text();
+        console.log('🔍 Réponse brute (100 premiers caractères):', responseText.substring(0, 100));
+        console.log('🔍 Début de la réponse:', responseText.startsWith('<') ? 'HTML' : 'JSON');
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-    },
-    noel: {
-        title: "Menu de Noël",
-        price: "55€",
-        image: "Noel.png",
-        description: "Un festin de Noël généreux pour 6 à 10 convives. Dégustez des huîtres fraîches en entrée, un chapon rôti farci aux châtaignes accompagné d'un gratin de pommes de terre au Reblochon fondant, et une bûche de Noël traditionnelle au chocolat et marron glacé. Une table scintillante aux couleurs de fête pour célébrer ensemble dans une ambiance chaleureuse et raffinée.",
-        minPeople: "6-10",
-        allergenes: ["Mollusques", "Lait et produits laitiers", "Fruits à coque", "Œufs", "Gluten"],
-        conditionsCommande: "Commande à effectuer au minimum 2 semaines avant la prestation en raison de la disponibilité saisonnière des produits (huîtres fraîches, chapon). Les huîtres doivent être conservées vivantes au frais (5-10°C) et consommées rapidement. Le chapon nécessite une préparation spécifique.",
-        regime: "Classique",
-        stockDisponible: 5,
-        sections: {
-            entrees: [
-                "Huîtres fines de claire n°2, mignonnette au vinaigre d'échalote"
-            ],
-            plats: [
-                "Chapon rôti farci aux châtaignes, jus au fond brun, gratin de pommes de terre au Reblochon"
-            ],
-            desserts: [
-                "Bûche de Noël traditionnelle au chocolat et marron glacé"
-            ]
+
+        // Tenter de parser le JSON seulement si c'est du JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('🔍 Erreur JSON.parse():', jsonError);
+            console.error('🔍 Réponse qui a causé l\'erreur:', responseText.substring(0, 200));
+            throw new Error('Réponse n\'est pas du JSON valide');
         }
-    },
-    paques: {
-        title: "Menu de Pâques",
-        price: "38€",
-        image: "Paques.png",
-        description: "Un menu de Pâques automnal et réconfortant pour 4 à 6 convives. Dégustez un velouté de potimarron onctueux au foie gras poêlé, un jarret de bœuf braisé fondant accompagné d'une purée de céleri-rave au Comté et de carottes glacées, et une délicate tarte fine aux poires confites. Une ambiance sereine et chaleureuse aux couleurs automnales pour célébrer ce moment festif.",
-        minPeople: "4-6",
-        allergenes: ["Lait et produits laitiers", "Fruits à coque", "Gluten", "Œufs"],
-        conditionsCommande: "Commande à effectuer au minimum 5 jours avant la prestation. Le jarret de bœuf nécessite un temps de préparation prolongé. Conservation au réfrigérateur entre 0°C et 4°C.",
-        regime: "Classique",
-        stockDisponible: 8,
-        sections: {
-            entrees: [
-                "Velouté de potimarron au foie gras poêlé et croûtons de pain aux noix"
-            ],
-            plats: [
-                "Jarret de bœuf braisé au vin rouge, purée de céleri-rave au Comté râpé, carottes glacées"
-            ],
-            desserts: [
-                "Tarte fine aux poires confites et crème vanille"
-            ]
+
+        if (!result.success || !result.data) {
+            console.error('Erreur chargement menus API:', result.message);
+            return false;
         }
-    },
-    event: {
-        title: "Menu d'Evénements",
-        price: "48€",
-        image: "Event.png",
-        description: "Un menu événementiel raffiné pour 10 convives et plus. Savourez des asperges vertes rôties aux œufs mollets mimosa, un carré d'agneau rôti aux herbes de Provence accompagné d'un risotto crémeux aux petits pois et menthe fraîche, et un fraisier revisité à la crème mousseline. Une table élégante et sophistiquée, parfaite pour célébrer vos grands événements dans une ambiance festive et raffinée.",
-        minPeople: "10+",
-        allergenes: ["Lait et produits laitiers", "Œufs", "Gluten"],
-        conditionsCommande: "Commande à effectuer au minimum 3 semaines avant la prestation pour garantir la disponibilité des produits et la préparation soignée. Les asperges fraîches dépendent de la saison. Service traiteur sur place recommandé pour les groupes de plus de 15 personnes.",
-        regime: "Classique",
-        stockDisponible: 3,
-        sections: {
-            entrees: [
-                "Asperges vertes rôties aux œufs mollets mimosa"
-            ],
-            plats: [
-                "Carré d'agneau rôti aux herbes de Provence, risotto crémeux aux petits pois et menthe fraîche"
-            ],
-            desserts: [
-                "Fraisier revisité – biscuit joconde, crème mousseline à la fraise, coulis de fruits rouges"
-            ]
-        }
+
+        // Transformer les données API au format attendu par les fonctions existantes
+        const newMenuData = {};
+        result.data.forEach(menu => {
+            newMenuData[menu.menu_key] = {
+                title: decodeHtmlEntities(menu.titre),
+                price: `${parseFloat(menu.prix_par_personne).toFixed(0)}€`,
+                image: menu.image || '',
+                description: decodeHtmlEntities(menu.description || ''),
+                minPeople: `${menu.nombre_personnes_min}+`,
+                allergenes: menu.allergenes || [],
+                conditionsCommande: decodeHtmlEntities(menu.conditions_commande || ''),
+                regime: menu.regime || 'Classique',
+                stockDisponible: menu.stock_disponible,
+                sections: {
+                    entrees: (menu.sections?.entrees || []).map(p => decodeHtmlEntities(p.nom)),
+                    plats: (menu.sections?.plats || []).map(p => decodeHtmlEntities(p.nom)),
+                    desserts: (menu.sections?.desserts || []).map(p => decodeHtmlEntities(p.nom))
+                }
+            };
+        });
+
+        menuData = newMenuData;
+        console.log(`Menus chargés depuis l'API: ${Object.keys(menuData).length} menus`);
+        return true;
+
+    } catch (error) {
+        console.error('Erreur fetch menus API:', error);
+        return false;
     }
-};
+}
 
 // Fonction pour afficher les cartes des menus
 export function renderMenuCards(menusToRender = null) {
@@ -135,9 +130,14 @@ export function renderMenuCards(menusToRender = null) {
                                 ${getStockBadge(menu.stockDisponible)}
                             </div>
                         </div>
-                        <button class="btn btn-outline-primary w-100 mt-auto" onclick="showMenuDetails('${menuKey}')">
-                            <i class="bi bi-eye-fill"></i> Voir les détails
-                        </button>
+                        ${menu.stockDisponible == 0 ? 
+                            `<button class="btn btn-outline-secondary w-100 mt-auto" disabled>
+                                <i class="bi bi-x-circle"></i> Stock épuisé
+                            </button>` :
+                            `<button class="btn btn-outline-primary w-100 mt-auto" onclick="showMenuDetails('${menuKey}')">
+                                <i class="bi bi-eye-fill"></i> Voir les détails
+                            </button>`
+                        }
                     </div>
                 </div>
             </div>
@@ -187,9 +187,14 @@ export function showMenuDetails(menuType) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                        <button type="button" class="btn btn-primary">
-                            <i class="bi bi-cart-plus me-2"></i>Commander ce menu
-                        </button>
+                        ${menu.stockDisponible == 0 ? 
+                            `<button type="button" class="btn btn-secondary" disabled>
+                                <i class="bi bi-x-circle me-2"></i>Stock épuisé
+                            </button>` :
+                            `<button type="button" class="btn btn-primary" onclick="orderMenu('${menuType}')">
+                                <i class="bi bi-cart-plus me-2"></i>Commander ce menu
+                            </button>`
+                        }
                     </div>
                 </div>
             </div>
@@ -332,6 +337,12 @@ export function generateAdditionalInfo(menu) {
 
 // Fonction pour générer le badge de stock avec code couleur
 export function getStockBadge(stock) {
+    if (stock == 0) {
+        return `<span class="badge bg-danger">
+            <i class="bi bi-x-circle-fill me-1"></i>Épuisé
+        </span>`;
+    }
+    
     let badgeClass = 'bg-danger';
     let icon = 'bi-x-circle-fill';
     
@@ -361,8 +372,10 @@ export function applyFilters() {
 export function resetFilters() {
     document.getElementById('filterPeople').value = '';
     document.getElementById('filterRegime').value = '';
+    document.getElementById('filterTheme').value = '';
+    document.getElementById('filterPriceMin').value = '';
+    document.getElementById('filterPriceMax').value = '';
     document.getElementById('filterAllergenes').value = '';
-    document.getElementById('filterStock').value = '';
     
     renderMenuCards();
     updateFilterResults(Object.keys(menuData).length);
@@ -374,22 +387,26 @@ export function resetFilters() {
 export function getFilteredMenus() {
     const peopleFilter = document.getElementById('filterPeople').value;
     const regimeFilter = document.getElementById('filterRegime').value;
+    const themeFilter = document.getElementById('filterTheme').value;
+    const priceMinFilter = document.getElementById('filterPriceMin').value;
+    const priceMaxFilter = document.getElementById('filterPriceMax').value;
     const allergenesFilter = document.getElementById('filterAllergenes').value;
-    const stockFilter = document.getElementById('filterStock').value;
     
     // DEBUG: Log de débogage - à supprimer en production
-    console.log('DEBUG: Éléments de filtre trouvés:', {
+    console.log('Éléments de filtre trouvés:', {
         people: !!document.getElementById('filterPeople'),
         regime: !!document.getElementById('filterRegime'),
-        allergenes: !!document.getElementById('filterAllergenes'),
-        stock: !!document.getElementById('filterStock')
+        theme: !!document.getElementById('filterTheme'),
+        priceMin: !!document.getElementById('filterPriceMin'),
+        priceMax: !!document.getElementById('filterPriceMax'),
+        allergenes: !!document.getElementById('filterAllergenes')
     });
     
     return Object.keys(menuData).filter(menuKey => {
         const menu = menuData[menuKey];
         
-        // Filtre par nombre de personnes
-        if (peopleFilter && menu.minPeople !== peopleFilter) {
+        // Filtre par nombre de personnes (minimum)
+        if (peopleFilter && parseInt(menu.minPeople) < parseInt(peopleFilter)) {
             return false;
         }
         
@@ -398,19 +415,25 @@ export function getFilteredMenus() {
             return false;
         }
         
-        // Filtre par allergènes (exclusion)
-        if (allergenesFilter && menu.allergenes.includes(allergenesFilter)) {
+        // Filtre par thème
+        if (themeFilter && menu.theme !== themeFilter) {
             return false;
         }
         
-        // Filtre par stock
-        if (stockFilter) {
-            if (stockFilter === 'available' && menu.stockDisponible < 4) {
+        // Filtre par prix (fourchette min-max)
+        if (priceMinFilter || priceMaxFilter) {
+            const price = parseFloat(menu.price);
+            if (priceMinFilter && price < parseFloat(priceMinFilter)) {
                 return false;
             }
-            if (stockFilter === 'limited' && menu.stockDisponible >= 4) {
+            if (priceMaxFilter && price > parseFloat(priceMaxFilter)) {
                 return false;
             }
+        }
+        
+        // Filtre par allergènes (exclusion)
+        if (allergenesFilter && menu.allergenes.includes(allergenesFilter)) {
+            return false;
         }
         
         return true;
@@ -434,6 +457,78 @@ export function updateFilterResults(count) {
     } else {
         resultsElement.textContent = `${count} menu${count > 1 ? 's' : ''} trouvé${count > 1 ? 's' : ''} sur ${totalMenus}`;
     }
+}
+
+// Fonction pour commander un menu (redirige vers la page de commande)
+export function orderMenu(menuKey) {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (!token || !userStr) {
+        // Fermer la modale de détails si ouverte
+        const detailsModal = document.getElementById('menuDetailsModal');
+        if (detailsModal) {
+            const bsDetailsModal = bootstrap.Modal.getInstance(detailsModal);
+            if (bsDetailsModal) bsDetailsModal.hide();
+        }
+        // Afficher la modale de connexion requise
+        showLoginRequiredModal();
+        return;
+    }
+    
+    // Fermer la modale et rediriger vers la page de commande avec le menu pré-sélectionné
+    const modal = document.getElementById('menuDetailsModal');
+    if (modal) {
+        const bsModal = bootstrap.Modal.getInstance(modal);
+        if (bsModal) bsModal.hide();
+    }
+    window.location.href = `/Commander?menu=${menuKey}`;
+}
+
+// Modale de connexion requise (stylisée)
+function showLoginRequiredModal() {
+    // Supprimer si déjà existante
+    const existing = document.getElementById('loginRequiredModal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-labelledby="loginRequiredModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title" id="loginRequiredModalLabel">
+                            <i class="bi bi-lock-fill me-2"></i>Connexion requise
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-circle" style="font-size: 3.5rem; color: #627D4A;"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">Vous devez être connecté pour commander</h6>
+                        <p class="text-muted mb-0">Connectez-vous à votre compte ou créez-en un pour passer commande et profiter de nos menus.</p>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+                        <a href="/Login" class="btn btn-primary px-4">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+                        </a>
+                        <a href="/Register" class="btn btn-outline-primary px-4">
+                            <i class="bi bi-person-plus me-1"></i>Créer un compte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modal = new bootstrap.Modal(document.getElementById('loginRequiredModal'));
+    modal.show();
+
+    // Nettoyage après fermeture
+    document.getElementById('loginRequiredModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
 }
 
 // Initialisation quand le script est chargé

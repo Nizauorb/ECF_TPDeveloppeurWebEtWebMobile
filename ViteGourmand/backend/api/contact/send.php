@@ -137,7 +137,7 @@ try {
             </div>
             
             <div style='text-align: center; margin-top: 20px; color: #999; font-size: 12px;'>
-                <p>&copy; 2024 Vite & Gourmand. Tous droits réservés.</p>
+                <p>&copy; 2026 Vite & Gourmand. Tous droits réservés.</p>
             </div>
         </body>
         </html>";

@@ -247,6 +247,97 @@ class InputValidator {
     }
     
     /**
+     * Valider un numéro de téléphone français
+     */
+    public static function validatePhone(string $phone): array {
+        $phone = trim($phone);
+        
+        if (empty($phone)) {
+            return ['valid' => false, 'error' => 'Le numéro de téléphone est requis', 'sanitized' => ''];
+        }
+        
+        if (!preg_match('/^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.\-]*\d{2}){4}$/', $phone)) {
+            return ['valid' => false, 'error' => 'Format de numéro de téléphone invalide (format français attendu)', 'sanitized' => ''];
+        }
+        
+        // Normaliser : supprimer espaces, points, tirets
+        $sanitized = preg_replace('/[\s.\-]/', '', $phone);
+        
+        return ['valid' => true, 'error' => '', 'sanitized' => $sanitized];
+    }
+    
+    /**
+     * Valider un code postal français (5 chiffres)
+     */
+    public static function validatePostalCode(string $code): array {
+        $code = trim($code);
+        
+        if (empty($code)) {
+            return ['valid' => false, 'error' => 'Le code postal est requis', 'sanitized' => ''];
+        }
+        
+        if (!preg_match('/^[0-9]{5}$/', $code)) {
+            return ['valid' => false, 'error' => 'Le code postal doit contenir exactement 5 chiffres', 'sanitized' => ''];
+        }
+        
+        return ['valid' => true, 'error' => '', 'sanitized' => $code];
+    }
+    
+    /**
+     * Valider un nom de ville
+     */
+    public static function validateCity(string $city): array {
+        $city = trim($city);
+        
+        if (empty($city)) {
+            return ['valid' => false, 'error' => 'La ville est requise', 'sanitized' => ''];
+        }
+        
+        if (strlen($city) < 2) {
+            return ['valid' => false, 'error' => 'La ville doit contenir au moins 2 caractères', 'sanitized' => ''];
+        }
+        
+        if (strlen($city) > 100) {
+            return ['valid' => false, 'error' => 'La ville ne peut pas dépasser 100 caractères', 'sanitized' => ''];
+        }
+        
+        $sanitized = self::sanitizeString($city);
+        
+        if (!preg_match('/^[a-zA-ZÀ-ÿ\s\-\'\.\d]{2,100}$/', $sanitized)) {
+            return ['valid' => false, 'error' => 'La ville contient des caractères non autorisés', 'sanitized' => ''];
+        }
+        
+        return ['valid' => true, 'error' => '', 'sanitized' => $sanitized];
+    }
+    
+    /**
+     * Valider une adresse postale
+     */
+    public static function validateAddress(string $address): array {
+        $address = trim($address);
+        
+        if (empty($address)) {
+            return ['valid' => false, 'error' => 'L\'adresse est requise', 'sanitized' => ''];
+        }
+        
+        if (strlen($address) < 5) {
+            return ['valid' => false, 'error' => 'L\'adresse doit contenir au moins 5 caractères', 'sanitized' => ''];
+        }
+        
+        if (strlen($address) > 255) {
+            return ['valid' => false, 'error' => 'L\'adresse ne peut pas dépasser 255 caractères', 'sanitized' => ''];
+        }
+        
+        $sanitized = self::sanitizeString($address);
+        
+        if (self::containsSuspiciousContent($sanitized)) {
+            return ['valid' => false, 'error' => 'L\'adresse contient du contenu non autorisé', 'sanitized' => ''];
+        }
+        
+        return ['valid' => true, 'error' => '', 'sanitized' => $sanitized];
+    }
+    
+    /**
      * Validation complète des données de contact
      */
     public static function validateContactData(array $data): array {

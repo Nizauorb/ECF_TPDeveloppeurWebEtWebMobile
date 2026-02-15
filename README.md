@@ -28,7 +28,7 @@ Plateforme de commande de menus traiteur pour événements - Projet ECF Dévelop
 
 ## 🎯 À propos
 
-**Vite&Gourmand** est un plateforme web complète permettant aux utilisateurs de commander des menus traiteur pour leurs événements. Développée dans le cadre de l'Évaluation des Compétences en Cours de Formation (ECF) pour le titre Développeur Web & Web Mobile, cette application offre une expérience utilisateur fluide avec trois niveaux d'utilisateurs distincts.
+**Vite&Gourmand** est une plateforme web complète permettant aux utilisateurs de commander des menus traiteur pour leurs événements. Développée dans le cadre de l'Évaluation des Compétences en Cours de Formation (ECF) pour le titre Développeur Web & Web Mobile, cette application offre une expérience utilisateur fluide avec trois niveaux d'utilisateurs distincts.
 
 ### 🎓 Contexte ECF
 - **Formation** : Développeur Web & Web Mobile

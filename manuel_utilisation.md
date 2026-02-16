@@ -49,8 +49,6 @@ Elle comprend quatre niveaux d'utilisateurs :
 
 ## 3. Identifiants de Test
 
-Pour tester l'application, utilisez les comptes suivants (disponibles en production et local via le fichier `backend/config/seed_local_users.php`) :
-
 - **Administrateur (José Martin)** :
   - Email : jose.martin@vite-gourmand.fr
   - Mot de passe : Admin1234!
@@ -68,7 +66,7 @@ Pour tester l'application, utilisez les comptes suivants (disponibles en product
 ### Découverte du Catalogue
 1. Accédez à la page d'accueil.
 2. Cliquez sur "Menus" ou naviguez vers la section Catalogue.
-3. Utilisez les filtres : prix (ex. 20-50€), nombre de personnes (ex. 4+), régime (Végétarien), thème (Noël), allergènes (sans gluten).
+3. Utilisez les filtres : prix (ex. 20-45€), nombre de personnes (ex. 4+), régime (Végétarien), thème (Noël), allergènes (sans gluten).
 4. Cliquez sur un menu pour voir les détails (description, plats, conditions).
 
 ### Contact
@@ -80,7 +78,7 @@ Pour tester l'application, utilisez les comptes suivants (disponibles en product
 1. Depuis le footer, accédez à "Mentions légales" ou "CGV".
 2. Lisez les informations conformes à la RGPD.
 
-*(Capture d'écran recommandée : Page d'accueil avec filtres actifs.)*
+*(Capture d'écran : Page 'Les-Menus.png' avec filtres actifs.)*
 
 ## 5. Parcours Client
 
@@ -122,7 +120,7 @@ Pour tester l'application, utilisez les comptes suivants (disponibles en product
 2. Confirmez avec code envoyé par email.
 3. Le compte est anonymisé (RGPD).
 
-*(Capture d'écran recommandée : Dashboard client avec historique des commandes.)*
+*(Capture d'écran : Page 'Mes-Commandes.png' Dashboard client avec historique des commandes.)*
 
 ## 6. Parcours Employé
 
@@ -149,7 +147,7 @@ Pour tester l'application, utilisez les comptes suivants (disponibles en product
 ### Profil
 1. Modifiez vos informations personnelles.
 
-*(Capture d'écran recommandée : Dashboard employé avec liste des commandes.)*
+*(Capture d'écran : Page 'Les-Avis.png' Dashboard employé avec liste des avis.)*
 
 ## 7. Parcours Administrateur
 
@@ -165,7 +163,7 @@ Pour tester l'application, utilisez les comptes suivants (disponibles en product
 
 Toutes les actions employé sont également disponibles.
 
-*(Capture d'écran recommandée : Page statistiques avec graphiques.)*
+*(Capture d'écran : Page 'Statistiques.png' avec graphiques.)*
 
 ## 8. Annexes
 
@@ -179,6 +177,3 @@ Toutes les actions employé sont également disponibles.
 - Frontend : JavaScript ES6+, Bootstrap, Vite.
 - Backend : PHP 8.1+, MySQL, JWT.
 - Emails : PHPMailer (local) / Resend (prod).
-
-### Support
-Pour questions, contactez l'administrateur via le formulaire de contact.
